@@ -1,0 +1,121 @@
+<%- include('../partials/header') %>
+<%
+  const action = event ? '/admin/events/' + event.id + '/edit' : '/admin/events';
+  function err(name) { return errors[name] ? '<span class="error">' + errors[name] + '</span>' : ''; }
+%>
+
+<p class="mb-4"><a href="/admin/events">Back to events</a></p>
+<h1 class="mb-6"><%= event ? 'Edit event' : 'New event' %></h1>
+
+<% if (Object.keys(errors).length > 0) { %>
+  <div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold">Some things need fixing. They're marked below.</div>
+<% } %>
+
+<%# file upload form, so the CSRF token goes in the URL %>
+<form action="<%= action %>?_csrf=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" data-upload>
+  <div class="field">
+    <label for="title">Title</label>
+    <input type="text" id="title" name="title" value="<%= values.title || '' %>">
+    <%- err('title') %>
+  </div>
+
+  <div class="field">
+    <label for="description">Description</label>
+    <textarea id="description" name="description" rows="5"><%= values.description || '' %></textarea>
+    <span class="hint">Plain words. What happens, what to bring, who it's for.</span>
+    <%- err('description') %>
+  </div>
+
+  <div class="field">
+    <label for="organizationId">Organization</label>
+    <select id="organizationId" name="organizationId">
+      <option value="">Choose one</option>
+      <% organizations.forEach(function (org) { %>
+        <option value="<%= org.id %>" <%= Number(values.organizationId) === org.id ? 'selected' : '' %>><%= org.name %></option>
+      <% }) %>
+    </select>
+    <%- err('organizationId') %>
+  </div>
+
+  <div class="field">
+    <label for="category">Category</label>
+    <select id="category" name="category">
+      <option value="">Choose one</option>
+      <% categories.forEach(function (c) { %>
+        <option value="<%= c %>" <%= values.category === c ? 'selected' : '' %>><%= t('category.' + c) %></option>
+      <% }) %>
+    </select>
+    <%- err('category') %>
+  </div>
+
+  <div class="grid gap-x-4 sm:grid-cols-2">
+    <div class="field">
+      <label for="startsAt">Starts</label>
+      <input type="datetime-local" id="startsAt" name="startsAt" value="<%= values.startsAt || '' %>">
+      <%- err('startsAt') %>
+    </div>
+    <div class="field">
+      <label for="endsAt">Ends</label>
+      <input type="datetime-local" id="endsAt" name="endsAt" value="<%= values.endsAt || '' %>">
+      <%- err('endsAt') %>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="registrationDeadline">Registration closes</label>
+    <input type="datetime-local" id="registrationDeadline" name="registrationDeadline" value="<%= values.registrationDeadline || '' %>">
+    <span class="hint">All times are Lagos time.</span>
+    <%- err('registrationDeadline') %>
+  </div>
+
+  <div class="field">
+    <label for="locationText">Where</label>
+    <input type="text" id="locationText" name="locationText" value="<%= values.locationText || '' %>">
+    <span class="hint">e.g. Agodi Gardens, main gate, Ibadan</span>
+    <%- err('locationText') %>
+  </div>
+
+  <div class="field">
+    <label for="locationMapsUrl">Google Maps link (optional)</label>
+    <input type="url" id="locationMapsUrl" name="locationMapsUrl" value="<%= values.locationMapsUrl || '' %>">
+    <%- err('locationMapsUrl') %>
+  </div>
+
+  <div class="field">
+    <label for="capacity">How many seniors can attend?</label>
+    <input type="number" id="capacity" name="capacity" min="1" value="<%= values.capacity || '' %>">
+    <%- err('capacity') %>
+  </div>
+
+  <fieldset class="panel mb-5">
+    <legend class="sr-only">Volunteers</legend>
+    <label class="mb-3 flex items-center gap-3 font-bold">
+      <input type="checkbox" name="volunteerEnabled" value="yes" class="h-6 w-6" <%= values.volunteerEnabled ? 'checked' : '' %>>
+      Volunteers needed
+    </label>
+    <div class="field mb-0">
+      <label for="volunteerCapacity">How many volunteers?</label>
+      <input type="number" id="volunteerCapacity" name="volunteerCapacity" min="1" value="<%= values.volunteerCapacity || '' %>">
+      <span class="hint">Separate from the attendee spots.</span>
+      <%- err('volunteerCapacity') %>
+    </div>
+  </fieldset>
+
+  <label class="field flex items-center gap-3 font-bold">
+    <input type="checkbox" name="hostedBySenior" value="yes" class="h-6 w-6" <%= values.hostedBySenior ? 'checked' : '' %>>
+    Hosted by a senior
+  </label>
+
+  <%# keep the file last so the text fields are read even if the file is too big %>
+  <div class="field">
+    <label for="image">Picture (optional)</label>
+    <% if (event && event.imageUrl) { %><img src="<%= event.imageUrl %>" alt="Current picture" class="mb-2 w-60 rounded-lg"><% } %>
+    <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="block w-full text-lg">
+    <span class="hint">JPG, PNG or WebP, up to 3MB. Without one, the card shows the SeniorPadi pattern.</span>
+  </div>
+
+  <button class="btn" data-uploading-text="Saving…"><%= event ? 'Save changes' : 'Publish event' %></button>
+</form>
+
+<script src="/js/upload.js" defer></script>
+<%- include('../partials/footer') %>

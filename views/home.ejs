@@ -1,0 +1,35 @@
+<%- include('partials/header') %>
+
+<section class="mb-10">
+  <h1 class="mb-4 text-[2.2rem] leading-tight"><%= t('home.headline') %></h1>
+  <p class="mb-6 text-xl"><%= t('home.intro') %></p>
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <a href="/events" class="btn"><%= t('home.see_events') %></a>
+    <a href="/signup" class="btn-plain"><%= t('home.create_account') %></a>
+  </div>
+  <p class="mt-4"><%= t('home.have_account') %> <a href="/login"><%= t('home.login') %></a></p>
+</section>
+
+<section class="mb-10">
+  <h2 class="mb-4"><%= t('home.how_title') %></h2>
+  <ol class="space-y-4">
+    <% ['step1', 'step2', 'step3'].forEach(function (step, i) { %>
+      <li class="flex gap-4">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo text-xl font-bold text-white"><%= i + 1 %></span>
+        <span class="pt-1"><%= t('home.' + step) %></span>
+      </li>
+    <% }) %>
+  </ol>
+</section>
+
+<section class="panel">
+  <h2 class="mb-2"><%= t('home.volunteer_title') %></h2>
+  <p><%= t('home.volunteer_text') %></p>
+</section>
+
+<section class="mt-8">
+  <h2 class="mb-2"><%= t('home.family_title') %></h2>
+  <p><%= t('home.family_text') %></p>
+</section>
+
+<%- include('partials/footer') %>

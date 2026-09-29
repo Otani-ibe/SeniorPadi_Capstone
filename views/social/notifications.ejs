@@ -1,0 +1,19 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6"><%= t('notifications.title') %></h1>
+
+<% if (notifications.length === 0) { %>
+  <p class="panel"><%= t('notifications.none') %></p>
+<% } %>
+
+<ul class="space-y-3">
+  <% notifications.forEach(function (n) { %>
+    <li class="rounded-xl border-2 <%= n.readAt ? 'border-gray-300' : 'border-indigo bg-mist' %> p-4">
+      <p class="font-bold"><%= t('notification.' + n.type, n.payload) %></p>
+      <p class="text-base"><%= formatDate(n.createdAt) %>, <%= formatTime(n.createdAt) %></p>
+      <% if (n.link) { %><a href="<%= n.link %>"><%= t('notifications.open') %></a><% } %>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,55 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-4"><%= t('events.title') %></h1>
+
+<% if (!currentUser) { %>
+  <p class="panel mb-6"><%= t('events.guest_note') %> <a href="/signup"><%= t('home.create_account') %></a></p>
+<% } %>
+
+<nav aria-label="<%= t('events.when') %>" class="mb-4 grid grid-cols-2 gap-2">
+  <% [['week', t('events.this_week')], ['upcoming', t('events.upcoming')]].forEach(function (item) { %>
+    <a href="/events?tab=<%= item[0] %><%= category ? '&category=' + category : '' %>"
+       class="<%= tab === item[0] ? 'btn' : 'btn-plain' %>"
+       <%= tab === item[0] ? 'aria-current=page' : '' %>><%= item[1] %></a>
+  <% }) %>
+</nav>
+
+<form action="/events" method="get" class="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end">
+  <input type="hidden" name="tab" value="<%= tab %>">
+  <div class="field mb-0 flex-1">
+    <label for="category"><%= t('events.filter') %></label>
+    <select id="category" name="category">
+      <option value=""><%= t('events.all_types') %></option>
+      <% categories.forEach(function (c) { %>
+        <option value="<%= c %>" <%= category === c ? 'selected' : '' %>><%= t('category.' + c) %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button class="btn-plain"><%= t('events.show') %></button>
+</form>
+
+<% if (cards.length === 0) { %>
+  <div class="panel">
+    <p class="mb-3 font-bold"><%= tab === 'week' ? t('events.none_week') : t('events.none_upcoming') %></p>
+    <% if (tab === 'week') { %><a href="/events?tab=upcoming"><%= t('events.see_upcoming') %></a><% } %>
+  </div>
+<% } %>
+
+<ul class="space-y-8">
+  <% cards.forEach(function (card) { const event = card.event; const state = card.state; const isMine = card.isMine; %>
+    <li>
+      <article class="rounded-xl border-2 border-gray-300 p-3">
+        <%- include('../partials/eventImage', { event }) %>
+        <div class="px-1 pt-3">
+          <h2 class="mb-1"><a href="/events/<%= event.id %>" class="text-ink"><%= event.title %></a></h2>
+          <p class="font-bold"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+          <p class="mb-3"><%= event.locationText %></p>
+          <%- include('../partials/eventTags', { event, state, isMine }) %>
+          <a href="/events/<%= event.id %>" class="btn-plain mt-4"><%= t('events.see_details') %></a>
+        </div>
+      </article>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

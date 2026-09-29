@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6">Seniors</h1>
+
+<form action="/admin/seniors" method="get" class="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end">
+  <div class="field mb-0 flex-1">
+    <label for="q">Search by name or phone</label>
+    <input type="text" id="q" name="q" value="<%= q %>">
+  </div>
+  <button class="btn-plain">Search</button>
+</form>
+
+<% if (seniors.length === 0) { %>
+  <p class="panel">No seniors found.</p>
+<% } %>
+
+<ul class="space-y-4">
+  <% seniors.forEach(function (s) { %>
+    <li class="border-b border-gray-300 pb-4">
+      <strong><%= s.fullName %></strong><br>
+      <%= s.phone %><%= s.email ? ', ' + s.email : '' %><br>
+      <span class="text-base">Joined <%= formatDate(s.createdAt) %>. Language: <%= s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English' %>.
+        ID: <%= { unverified: 'not sent', pending: 'waiting for check', approved: 'verified', rejected: 'sent back', social_removed: 'removed from social' }[s.verificationStatus] %>.</span>
+      <% const safeName = s.fullName.replace(/'/g, ''); %>
+      <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+        <form action="/admin/seniors/<%= s.id %>/reset-password" method="post"
+              onsubmit="return confirm('Reset the password for <%= safeName %>? They will get a text with a temporary one.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="font-bold text-indigo underline">Reset password</button>
+        </form>
+        <% if (s.verificationStatus === 'approved') { %>
+          <form action="/admin/seniors/<%= s.id %>/remove-from-social" method="post"
+                onsubmit="return confirm('Remove <%= safeName %> from Find Seniors and messages? Their events are not affected.');">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="font-bold text-full-tag underline">Remove from social</button>
+          </form>
+        <% } %>
+        <form action="/admin/seniors/<%= s.id %>/delete" method="post"
+              onsubmit="return confirm('Delete the account of <%= safeName %>? Upcoming places are cancelled. Past attendance is kept.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="font-bold text-full-tag underline">Delete account</button>
+        </form>
+      </div>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

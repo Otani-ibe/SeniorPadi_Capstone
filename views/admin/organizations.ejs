@@ -1,0 +1,27 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6">Organizations</h1>
+
+<% if (organizations.length === 0) { %>
+  <p class="panel mb-8">No organizations yet. Add the first one below.</p>
+<% } else { %>
+  <ul class="mb-10 space-y-3">
+    <% organizations.forEach(function (org) { %>
+      <li class="border-b border-gray-300 pb-3">
+        <strong><%= org.name %></strong>
+        <% if (org.contactName || org.contactPhone) { %><br><%= [org.contactName, org.contactPhone, org.contactEmail].filter(Boolean).join(', ') %><% } %>
+        <br><a href="/admin/organizations/<%= org.id %>/edit">Edit</a>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<h2 class="mb-4">Add an organization</h2>
+<% if (error) { %><div role="alert" class="mb-4 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold"><%= error %></div><% } %>
+<form action="/admin/organizations" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <%- include('orgFields', { org: {} }) %>
+  <button class="btn">Add organization</button>
+</form>
+
+<%- include('../partials/footer') %>

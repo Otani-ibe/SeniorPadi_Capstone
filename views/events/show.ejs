@@ -1,0 +1,104 @@
+<%- include('../partials/header') %>
+
+<p class="mb-4"><a href="/events"><%= t('events.back') %></a></p>
+
+<%- include('../partials/eventImage', { event }) %>
+
+<h1 class="mb-3 mt-5"><%= event.title %></h1>
+<div class="mb-5"><%- include('../partials/eventTags', { event, state, isMine: mine.attendee }) %></div>
+
+<dl class="mb-6 space-y-3">
+  <div>
+    <dt class="font-bold"><%= t('event.when') %></dt>
+    <dd><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %></dd>
+  </div>
+  <div>
+    <dt class="font-bold"><%= t('event.where') %></dt>
+    <dd><%= event.locationText %>
+      <% if (event.locationMapsUrl) { %><br><a href="<%= event.locationMapsUrl %>" rel="noopener" target="_blank"><%= t('event.open_map') %></a><% } %>
+    </dd>
+  </div>
+  <div>
+    <dt class="font-bold"><%= t('event.run_by') %></dt>
+    <dd><%= event.Organization ? event.Organization.name : '' %></dd>
+  </div>
+  <% if (state.isOpen) { %>
+    <div>
+      <dt class="font-bold"><%= t('event.deadline') %></dt>
+      <dd><%= formatDate(event.registrationDeadline) %>, <%= formatTime(event.registrationDeadline) %></dd>
+    </div>
+  <% } %>
+</dl>
+
+<div class="mb-8 whitespace-pre-line"><%= event.description %></div>
+
+<section class="panel" aria-labelledby="join-heading">
+  <h2 id="join-heading" class="mb-4"><%= t('event.join_title') %></h2>
+
+  <% if (state.isCancelled) { %>
+    <p><%= t('event.cancelled_note') %></p>
+
+  <% } else if (!state.isOpen) { %>
+    <p><%= state.isPast ? t('event.past_note') : t('event.closed_note') %></p>
+
+  <% } else if (!currentUser) { %>
+    <p class="mb-4"><%= t('event.login_to_join') %></p>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <a href="/login" class="btn"><%= t('home.login') %></a>
+      <a href="/signup" class="btn-plain"><%= t('home.create_account') %></a>
+    </div>
+
+  <% } else { %>
+    <div class="grid gap-4 <%= state.volunteerEnabled ? 'sm:grid-cols-2' : '' %>">
+      <%# attend %>
+      <div>
+        <% if (mine.attendee) { %>
+          <p class="mb-2 font-bold"><%= t('event.you_are_going') %></p>
+          <a href="/registrations" class="btn-plain"><%= t('event.manage') %></a>
+        <% } else if (state.attendeeFull) { %>
+          <button class="btn" disabled><%= t('tag.full') %></button>
+        <% } else { %>
+          <form action="/events/<%= event.id %>/register" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn w-full"><%= t('event.register') %></button>
+          </form>
+        <% } %>
+      </div>
+
+      <%# volunteer: same size and weight as attending %>
+      <% if (state.volunteerEnabled) { %>
+        <div>
+          <% if (mine.volunteer) { %>
+            <p class="mb-2 font-bold"><%= t('event.you_are_volunteering') %></p>
+            <a href="/registrations" class="btn-plain"><%= t('event.manage') %></a>
+          <% } else if (state.volunteerFull) { %>
+            <button class="btn-volunteer" disabled><%= t('tag.volunteer_full') %></button>
+          <% } else { %>
+            <form action="/events/<%= event.id %>/volunteer" method="post">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn-volunteer w-full"><%= t('event.volunteer') %></button>
+            </form>
+          <% } %>
+          <p class="mt-2 text-base"><%= t('event.volunteer_hint') %></p>
+        </div>
+      <% } %>
+    </div>
+
+    <%# calm alternative when it's full %>
+    <% if (state.attendeeFull && !mine.attendee) { %>
+      <div class="mt-6 border-t-2 border-white pt-5">
+        <% if (interested) { %>
+          <p class="font-bold"><%= t('notify_me.already') %></p>
+        <% } else { %>
+          <p class="mb-3"><%= t('notify_me.offer') %></p>
+          <form action="/events/<%= event.id %>/notify-me" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn-plain"><%= t('notify_me.button') %></button>
+          </form>
+        <% } %>
+      </div>
+    <% } %>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

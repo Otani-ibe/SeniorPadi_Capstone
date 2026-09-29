@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6"><%= t('reset.title') %></h1>
+<% if (error) { %><div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold"><%= error %></div><% } %>
+
+<form action="<%= action %>" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="field">
+    <label for="password"><%= t('reset.new_password') %></label>
+    <input type="password" id="password" name="password" autocomplete="new-password" required>
+    <span class="hint"><%= t('signup.password_hint') %></span>
+  </div>
+  <button class="btn"><%= t('reset.submit') %></button>
+</form>
+
+<%- include('../partials/footer') %>

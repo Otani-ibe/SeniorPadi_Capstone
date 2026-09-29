@@ -1,0 +1,76 @@
+<%- include('../partials/header') %>
+<% const status = currentUser.verificationStatus; %>
+
+<h1 class="mb-4"><%= t('find.title') %></h1>
+
+<% if (status === 'approved') { %>
+
+  <% if (next) { %>
+    <article class="rounded-xl border-2 border-gray-300 p-5">
+      <div class="mb-4 flex items-center gap-4">
+        <% if (next.profilePictureUrl) { %>
+          <img src="<%= next.profilePictureUrl %>" alt="" width="96" height="96" class="h-24 w-24 rounded-full object-cover">
+        <% } else { %>
+          <div class="adire flex h-24 w-24 items-center justify-center rounded-full" aria-hidden="true">
+            <span class="rounded-full bg-white px-3 py-1 text-2xl font-bold text-indigo"><%= next.fullName.charAt(0) %></span>
+          </div>
+        <% } %>
+        <div>
+          <h2><%= next.firstName() %></h2>
+          <% if (next.area) { %><p><%= next.area %></p><% } %>
+        </div>
+      </div>
+      <p class="mb-5 whitespace-pre-line"><%= next.bio || t('find.no_bio') %></p>
+
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <a href="/messages/<%= next.id %>" class="btn"><%= t('find.message', { name: next.firstName() }) %></a>
+        <form action="/find-seniors/<%= next.id %>/skip" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn-plain w-full"><%= t('find.skip') %></button>
+        </form>
+      </div>
+      <p class="mt-5 text-base"><a href="/report/<%= next.id %>"><%= t('find.report') %></a></p>
+    </article>
+  <% } else { %>
+    <div class="panel">
+      <p class="mb-3 font-bold"><%= t('find.seen_everyone') %></p>
+      <a href="/messages"><%= t('find.go_messages') %></a>
+    </div>
+  <% } %>
+
+<% } else if (status === 'pending') { %>
+  <div class="panel">
+    <p class="mb-2 font-bold"><%= t('find.pending') %></p>
+    <p><%= t('find.pending_more') %></p>
+  </div>
+
+<% } else if (status === 'social_removed') { %>
+  <div class="panel">
+    <p class="mb-2"><%= t('find.removed') %></p>
+    <a href="/events"><%= t('home.see_events') %></a>
+  </div>
+
+<% } else { %>
+  <% if (status === 'rejected') { %>
+    <div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4">
+      <p class="font-bold"><%= t('find.rejected') %></p>
+      <p><%= currentUser.verificationRejectionReason %></p>
+    </div>
+  <% } else { %>
+    <p class="mb-3"><%= t('find.intro') %></p>
+    <p class="mb-6"><%= t('find.why_id') %></p>
+  <% } %>
+
+  <form action="/find-seniors/id?_csrf=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" data-upload class="panel">
+    <div class="field">
+      <label for="idDocument"><%= t('find.id_label') %></label>
+      <input type="file" id="idDocument" name="idDocument" accept="image/jpeg,image/png,application/pdf" class="block w-full text-lg">
+      <span class="hint"><%= t('find.id_hint') %></span>
+    </div>
+    <button class="btn" data-uploading-text="<%= t('upload.uploading') %>"><%= status === 'rejected' ? t('find.id_resend') : t('find.id_send') %></button>
+  </form>
+  <p class="mt-4 text-base"><%= t('find.events_unaffected') %></p>
+  <script src="/js/upload.js" defer></script>
+<% } %>
+
+<%- include('../partials/footer') %>

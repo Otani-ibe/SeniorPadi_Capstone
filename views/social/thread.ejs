@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+
+<p class="mb-4"><a href="/messages"><%= t('messages.back') %></a></p>
+<h1 class="mb-6"><%= other.firstName() %></h1>
+
+<% if (olderLink) { %><p class="mb-4 text-center"><a href="<%= olderLink %>"><%= t('messages.older') %></a></p><% } %>
+
+<% if (messages.length === 0) { %>
+  <p id="thread-empty" class="panel mb-6"><%= t("messages.start", { name: other.firstName() }) %></p>
+<% } %>
+
+<ol id="thread" class="mb-6 space-y-3" aria-label="<%= t('messages.title') %>" aria-live="polite"
+    data-me="<%= currentUser.id %>" data-other="<%= other.id %>" data-other-name="<%= other.firstName() %>"
+    data-you="<%= t('messages.you') %>" data-just-now="<%= t('messages.just_now') %>">
+  <% messages.forEach(function (m) { const mine = m.senderId === currentUser.id; %>
+    <li id="msg-<%= m.id %>" class="flex <%= mine ? 'justify-end' : 'justify-start' %>">
+      <div class="max-w-[85%] rounded-xl px-4 py-3 <%= mine ? 'bg-indigo text-white' : 'bg-mist text-ink' %>">
+        <p class="sr-only"><%= mine ? t('messages.you') : other.firstName() + ':' %></p>
+        <p class="whitespace-pre-line"><%= m.body %></p>
+        <p class="mt-1 text-base <%= mine ? 'text-white/80' : 'text-gray-700' %>"><%= formatDate(m.createdAt) %>, <%= formatTime(m.createdAt) %></p>
+      </div>
+    </li>
+  <% }) %>
+</ol>
+
+<form action="/messages/<%= other.id %>" method="post" id="latest" data-chat-form>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="field">
+    <label for="body"><%= t('messages.write', { name: other.firstName() }) %></label>
+    <textarea id="body" name="body" rows="3" maxlength="1000" required></textarea>
+  </div>
+  <button class="btn"><%= t('messages.send') %></button>
+</form>
+
+<p class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-base">
+  <a href="/report/<%= other.id %>"><%= t('find.report') %></a>
+  <a href="/block/<%= other.id %>"><%= t('block.link', { name: other.firstName() }) %></a>
+</p>
+
+<%# optional: live messages. If these fail to load, the form above still works. %>
+<script src="/socket.io/socket.io.js" defer></script>
+<script src="/js/chat.js" defer></script>
+<%- include('../partials/footer') %>

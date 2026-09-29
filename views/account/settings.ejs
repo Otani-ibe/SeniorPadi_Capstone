@@ -1,0 +1,87 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6"><%= t('settings.title') %></h1>
+
+<form action="/settings" method="post" class="mb-10">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <fieldset class="field">
+    <legend class="label"><%= t('settings.language') %></legend>
+    <% [['en', 'English'], ['yo', 'Yorùbá']].forEach(function (opt) { %>
+      <label class="mb-2 flex items-center gap-3 font-normal">
+        <input type="radio" name="preferredLanguage" value="<%= opt[0] %>" class="h-6 w-6" <%= currentUser.preferredLanguage === opt[0] ? 'checked' : '' %>>
+        <%= opt[1] %>
+      </label>
+    <% }) %>
+    <span class="hint"><%= t('settings.language_hint') %></span>
+  </fieldset>
+
+  <div class="field">
+    <label for="reminderDaysBefore"><%= t('settings.reminder') %></label>
+    <select id="reminderDaysBefore" name="reminderDaysBefore">
+      <% [1, 2, 3].forEach(function (d) { %>
+        <option value="<%= d %>" <%= currentUser.reminderDaysBefore === d ? 'selected' : '' %>><%= d === 1 ? t('settings.reminder_one') : t('settings.reminder_days', { days: d }) %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="email"><%= t('signup.email') %></label>
+    <input type="email" id="email" name="email" value="<%= currentUser.email || '' %>">
+    <span class="hint"><%= t('signup.email_hint') %></span>
+    <% if (errors.email) { %><span class="error"><%= errors.email %></span><% } %>
+  </div>
+
+  <div class="field">
+    <label for="area"><%= t('settings.area') %></label>
+    <input type="text" id="area" name="area" value="<%= currentUser.area || '' %>">
+    <span class="hint"><%= t('settings.area_hint') %></span>
+  </div>
+
+  <div class="field">
+    <label for="bio"><%= t('settings.bio') %></label>
+    <textarea id="bio" name="bio" rows="4" maxlength="500"><%= currentUser.bio || '' %></textarea>
+    <span class="hint"><%= t('settings.bio_hint') %></span>
+  </div>
+
+  <button class="btn"><%= t('settings.save') %></button>
+</form>
+
+<section class="mb-10">
+  <h2 class="mb-3"><%= t('settings.picture') %></h2>
+  <div class="mb-4 flex items-center gap-4">
+    <% if (currentUser.profilePictureUrl) { %>
+      <img src="<%= currentUser.profilePictureUrl %>" alt="<%= t('settings.picture_alt') %>" width="96" height="96" class="h-24 w-24 rounded-full object-cover">
+    <% } else { %>
+      <div class="flex h-24 w-24 items-center justify-center rounded-full bg-mist text-3xl font-bold text-indigo" aria-hidden="true"><%= currentUser.fullName.charAt(0) %></div>
+    <% } %>
+  </div>
+  <%# token goes in the URL because this is a file upload form %>
+  <form action="/settings/profile-picture?_csrf=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" data-upload>
+    <div class="field">
+      <label for="picture"><%= t('settings.picture_choose') %></label>
+      <input type="file" id="picture" name="picture" accept="image/jpeg,image/png,image/webp" class="block w-full text-lg">
+      <span class="hint"><%= t('settings.picture_hint') %></span>
+    </div>
+    <button class="btn-plain" data-uploading-text="<%= t('upload.uploading') %>"><%= t('settings.picture_upload') %></button>
+  </form>
+</section>
+
+<section>
+  <h2 class="mb-3"><%= t('settings.password') %></h2>
+  <a href="/change-password" class="btn-plain"><%= t('change.title') %></a>
+</section>
+
+<section class="mt-10">
+  <h2 class="mb-3"><%= t('onboarding.title') %></h2>
+  <a href="/onboarding" class="btn-plain"><%= t('onboarding.watch_again') %></a>
+</section>
+
+<section class="mt-12 border-t-2 border-gray-300 pt-6">
+  <h2 class="mb-2"><%= t('delete.title') %></h2>
+  <p class="mb-3"><%= t('delete.settings_intro') %></p>
+  <a href="/account/delete" class="font-bold text-full-tag"><%= t('delete.title') %></a>
+</section>
+
+<script src="/js/upload.js" defer></script>
+<%- include('../partials/footer') %>

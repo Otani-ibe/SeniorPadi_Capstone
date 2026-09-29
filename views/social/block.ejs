@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-4"><%= t('block.title_name', { name: other.firstName() }) %></h1>
+<p class="mb-3"><%= t('block.explain', { name: other.firstName() }) %></p>
+<p class="mb-6 font-bold"><%= t('block.permanent') %></p>
+
+<form action="/block/<%= other.id %>" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <button class="btn"><%= t('block.submit', { name: other.firstName() }) %></button>
+</form>
+<p class="mt-4"><%= t('block.report_instead') %> <a href="/report/<%= other.id %>"><%= t('find.report') %></a></p>
+<p class="mt-4"><a href="/messages/<%= other.id %>"><%= t('common.go_back') %></a></p>
+
+<%- include('../partials/footer') %>

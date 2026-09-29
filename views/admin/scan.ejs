@@ -1,0 +1,29 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6">Check in</h1>
+
+<% if (!registration) { %>
+  <p class="panel">This code doesn't match any registration. Use the printed list instead.</p>
+<% } else { const r = registration; %>
+  <div class="panel mb-6">
+    <p class="text-2xl font-bold"><%= r.senior ? r.senior.fullName : '(deleted account)' %></p>
+    <p><%= r.type === 'volunteer' ? 'Volunteer' : 'Attendee' %></p>
+    <p class="mt-3 font-bold"><%= r.Event.title %></p>
+    <p><%= formatDate(r.Event.startsAt) %>, <%= formatTime(r.Event.startsAt) %></p>
+  </div>
+
+  <% if (r.status === 'attended') { %>
+    <p class="mb-6 rounded-lg border-l-8 border-leaf bg-green-50 p-4 text-xl font-bold">Checked in.</p>
+  <% } else if (r.status === 'cancelled') { %>
+    <p class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold">This place was cancelled. If they're here, welcome them and note it on the paper list.</p>
+  <% } else { %>
+    <form action="/admin/scan/<%= r.qrToken %>" method="post" class="mb-6">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="btn-volunteer w-full text-xl">Mark as came</button>
+    </form>
+  <% } %>
+
+  <a href="/admin/events/<%= r.Event.id %>/attendance">Open the full list for this event</a>
+<% } %>
+
+<%- include('../partials/footer') %>

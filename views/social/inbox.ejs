@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6"><%= t('messages.title') %></h1>
+
+<% if (conversations.length === 0) { %>
+  <div class="panel">
+    <p class="mb-3"><%= t('messages.none') %></p>
+    <a href="/find-seniors" class="btn"><%= t('nav.find') %></a>
+  </div>
+<% } %>
+
+<ul class="space-y-3">
+  <% conversations.forEach(function (c) { const unread = unreadIds.has(c.person.id); %>
+    <li>
+      <a href="/messages/<%= c.person.id %>" class="flex items-center gap-4 rounded-xl border-2 <%= unread ? 'border-indigo bg-mist' : 'border-gray-300' %> p-4 text-ink no-underline">
+        <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-mist text-xl font-bold text-indigo" aria-hidden="true">
+          <% if (c.person.profilePictureUrl) { %><img src="<%= c.person.profilePictureUrl %>" alt="" class="h-full w-full object-cover"><% } else { %><%= c.person.fullName.charAt(0) %><% } %>
+        </span>
+        <span class="min-w-0">
+          <span class="block font-bold"><%= c.person.firstName() %><% if (unread) { %> <span class="tag-mine"><%= t('messages.new') %></span><% } %></span>
+          <span class="block truncate"><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %></span>
+        </span>
+      </a>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

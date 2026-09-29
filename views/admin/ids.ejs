@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-2">ID checks</h1>
+<p class="mb-6">Check that the name matches and the person looks 60 or older. Rejecting never affects their events.</p>
+
+<% if (pending.length === 0) { %>
+  <p class="panel">No IDs waiting.</p>
+<% } %>
+
+<ul class="space-y-6">
+  <% pending.forEach(function (s) { %>
+    <li class="rounded-xl border-2 border-gray-300 p-4">
+      <h2 class="mb-1"><%= s.fullName %></h2>
+      <p class="mb-3"><%= s.phone %>. Sent <%= formatDate(s.updatedAt) %>.</p>
+
+      <%# no auto-loading: the link makes a 5-minute signed URL and is logged %>
+      <a href="/admin/ids/<%= s.id %>/view" target="_blank" rel="noopener" class="btn-plain mb-4">View ID</a>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <form action="/admin/ids/<%= s.id %>/approve" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn-volunteer w-full">Approve</button>
+        </form>
+        <form action="/admin/ids/<%= s.id %>/reject" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="field mb-2">
+            <label for="reason-<%= s.id %>">Reason (they will see this)</label>
+            <input type="text" id="reason-<%= s.id %>" name="reason" placeholder="e.g. The picture is too blurry to read">
+          </div>
+          <button class="btn-plain w-full">Send back</button>
+        </form>
+      </div>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

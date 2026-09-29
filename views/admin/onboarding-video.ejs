@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-2">Welcome video</h1>
+<p class="mb-8">Seniors see this once after signing up, in their language. The transcript is always shown under the video, and it's all they see if no video is uploaded or it won't play.</p>
+
+<% [['en', 'English'], ['yo', 'Yorùbá']].forEach(function (lang) { const v = videos[lang[0]]; %>
+  <section class="mb-12">
+    <h2 class="mb-2"><%= lang[1] %></h2>
+    <p class="mb-4">
+      <% if (v && v.videoPublicId) { %>
+        <span class="tag-leaf">Video uploaded</span> Last changed <%= formatDate(v.updatedAt) %>.
+      <% } else if (v) { %>
+        <span class="tag-amber">Transcript only</span> No video yet.
+      <% } else { %>
+        <span class="tag-full">Not set up</span>
+      <% } %>
+    </p>
+
+    <form action="/admin/onboarding-video/<%= lang[0] %>?_csrf=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" data-upload>
+      <div class="field">
+        <label for="transcript-<%= lang[0] %>">Transcript</label>
+        <textarea id="transcript-<%= lang[0] %>" name="transcript" rows="10"><%= v ? v.transcript : '' %></textarea>
+      </div>
+      <div class="field">
+        <label for="video-<%= lang[0] %>"><%= v && v.videoPublicId ? 'Replace the video (optional)' : 'Video (optional)' %></label>
+        <input type="file" id="video-<%= lang[0] %>" name="video" accept="video/mp4,video/webm" class="block w-full text-lg">
+        <span class="hint">MP4 or WebM, up to 50MB. Keep it under 3 minutes. It's shown at 480p to save data.</span>
+      </div>
+      <button class="btn" data-uploading-text="Uploading… this can take a minute">Save <%= lang[1] %></button>
+    </form>
+  </section>
+<% }) %>
+
+<script src="/js/upload.js" defer></script>
+<%- include('../partials/footer') %>

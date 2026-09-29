@@ -1,0 +1,18 @@
+<%# shows the status tags for an event. needs: state, (optional) isMine %>
+<div class="flex flex-wrap gap-2">
+  <% if (typeof isMine !== 'undefined' && isMine) { %><span class="tag-mine"><%= t('tag.going') %></span><% } %>
+  <% if (event.hostedBySenior) { %><span class="tag-leaf"><%= t('tag.hosted_by_senior') %></span><% } %>
+  <% if (state.isCancelled) { %>
+    <span class="tag-full"><%= t('tag.cancelled') %></span>
+  <% } else if (state.attendeeFull) { %>
+    <span class="tag-full"><%= t('tag.full') %></span>
+  <% } else if (state.attendeeAlmostFull) { %>
+    <span class="tag-amber"><%= t('tag.almost_full') %></span>
+  <% } %>
+  <% if (state.closesSoon) { %>
+    <span class="tag-amber"><%= state.daysToDeadline === 1 ? t('tag.closes_tomorrow') : t('tag.closes_in', { days: state.daysToDeadline }) %></span>
+  <% } %>
+  <% if (state.volunteerEnabled && !state.volunteerFull && !state.isCancelled) { %>
+    <span class="tag-leaf"><%= t('tag.volunteers_needed') %></span>
+  <% } %>
+</div>

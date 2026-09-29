@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+
+<p class="mb-4"><a href="/admin/events">Back to events</a></p>
+<h1 class="mb-1">Attendance</h1>
+<p class="mb-1 text-xl font-bold"><%= event.title %></p>
+<p class="mb-6"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %>, <%= event.Organization.name %></p>
+
+<% if (!hasStarted) { %>
+  <div class="panel mb-6">
+    <p class="mb-2">This event hasn't happened yet. Print this page and take it to the event to tick people off, then come back and enter it here.</p>
+    <button type="button" onclick="window.print()" class="btn-plain">Print list</button>
+  </div>
+<% } %>
+
+<% if (registrations.length === 0) { %>
+  <p class="panel">Nobody is registered for this event.</p>
+<% } else { %>
+  <form action="/admin/events/<%= event.id %>/attendance" method="post">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="overflow-x-auto">
+      <table class="admin-table mb-6">
+        <thead>
+          <tr><th>Name</th><th>Phone</th><th>As</th><th>Came</th><th>Didn't come</th><th>Not marked</th></tr>
+        </thead>
+        <tbody>
+          <% registrations.forEach(function (reg) { %>
+            <tr>
+              <td><strong><%= reg.senior ? reg.senior.fullName : '(deleted)' %></strong></td>
+              <td><%= reg.senior ? reg.senior.phone : '' %></td>
+              <td><%= reg.type === 'volunteer' ? 'Volunteer' : 'Attendee' %></td>
+              <% [['attended', 'Came'], ['no_show', "Didn't come"], ['registered', 'Not marked']].forEach(function (opt) { %>
+                <td>
+                  <label class="flex items-center gap-2">
+                    <input type="radio" name="status_<%= reg.id %>" value="<%= opt[0] %>" class="h-6 w-6" <%= reg.status === opt[0] ? 'checked' : '' %>>
+                    <span class="sr-only"><%= opt[1] %></span>
+                  </label>
+                </td>
+              <% }) %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <button class="btn">Save attendance</button>
+  </form>
+<% } %>
+
+<%- include('../partials/footer') %>

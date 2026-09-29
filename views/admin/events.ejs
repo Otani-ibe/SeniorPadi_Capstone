@@ -1,0 +1,39 @@
+<%- include('../partials/header') %>
+
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <h1>Events</h1>
+  <a href="/admin/events/new" class="btn">Add event</a>
+</div>
+
+<% if (events.length === 0) { %>
+  <p class="panel">No events yet.</p>
+<% } %>
+
+<ul class="space-y-5">
+  <% events.forEach(function (event) { %>
+    <li class="rounded-xl border-2 border-gray-300 p-4">
+      <p class="mb-1">
+        <% if (event.status === 'cancelled') { %><span class="tag-full">Cancelled</span>
+        <% } else if (event.status === 'completed') { %><span class="tag-mine">Finished</span>
+        <% } else { %><span class="tag-leaf">Published</span><% } %>
+        <% if (event.hostedBySenior) { %><span class="tag-leaf">Hosted by a senior</span><% } %>
+      </p>
+      <h2 class="mb-1"><%= event.title %></h2>
+      <p><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %> at <%= event.locationText %></p>
+      <p class="mb-3"><%= event.Organization.name %></p>
+      <div class="flex flex-wrap gap-x-5 gap-y-2">
+        <a href="/events/<%= event.id %>">View as senior</a>
+        <a href="/admin/events/<%= event.id %>/edit">Edit</a>
+        <a href="/admin/events/<%= event.id %>/attendance">Attendance</a>
+        <% if (event.status === 'published') { %>
+          <form action="/admin/events/<%= event.id %>/cancel" method="post" onsubmit="return confirm('Cancel this event? Everyone registered will get a message.');">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="font-bold text-full-tag underline">Cancel event</button>
+          </form>
+        <% } %>
+      </div>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

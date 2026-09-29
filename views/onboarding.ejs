@@ -1,0 +1,31 @@
+<%- include('partials/header') %>
+
+<h1 class="mb-2"><%= t('onboarding.title') %></h1>
+<p class="mb-6"><%= t('onboarding.intro') %></p>
+
+<% if (videoSrc) { %>
+  <%# preload="none": nothing downloads until they press play %>
+  <video controls preload="none" playsinline class="mb-4 aspect-video w-full rounded-lg bg-indigo">
+    <source src="<%= videoSrc %>" type="video/mp4">
+  </video>
+  <p class="mb-6 text-base"><%= t('onboarding.video_trouble') %></p>
+<% } %>
+
+<form action="/onboarding/done" method="post" class="mb-10">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <button class="btn"><%= firstTime ? t('onboarding.continue') : t('onboarding.back_to_events') %></button>
+</form>
+
+<section class="panel">
+  <h2 class="mb-3"><%= videoSrc ? t('onboarding.transcript') : t('onboarding.read_title') %></h2>
+  <div class="whitespace-pre-line"><%= transcript %></div>
+</section>
+
+<% if (firstTime) { %>
+  <form action="/onboarding/done" method="post" class="mt-6">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <button class="font-bold text-indigo underline"><%= t('onboarding.skip') %></button>
+  </form>
+<% } %>
+
+<%- include('partials/footer') %>

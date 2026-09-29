@@ -1,0 +1,19 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6"><%= t('history.title') %></h1>
+
+<% if (registrations.length === 0) { %>
+  <p class="panel"><%= t('history.none') %></p>
+<% } %>
+
+<ul class="space-y-4">
+  <% registrations.forEach(function (reg) { %>
+    <li class="border-b border-gray-300 pb-4">
+      <p class="font-bold"><%= reg.Event.title %></p>
+      <p><%= formatDate(reg.Event.startsAt) %></p>
+      <p><%= reg.type === 'volunteer' ? t('registrations.volunteering') : t('registrations.attending') %>, <%= t('history.status_' + reg.status) %></p>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

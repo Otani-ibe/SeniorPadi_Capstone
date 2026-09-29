@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+
+<p class="mb-4"><a href="/admin/reports">Back to reports</a></p>
+<h1 class="mb-4">Report</h1>
+
+<dl class="mb-6 space-y-2">
+  <div><dt class="font-bold">Reported by</dt><dd><%= report.reporter ? report.reporter.fullName + ' (' + report.reporter.phone + ')' : '(deleted)' %></dd></div>
+  <div><dt class="font-bold">About</dt><dd><%= report.reported ? report.reported.fullName + ' (' + report.reported.phone + ')' : '(deleted)' %><% if (otherReports > 0) { %> <span class="tag-amber"><%= otherReports %> other report(s)</span><% } %></dd></div>
+  <div><dt class="font-bold">When</dt><dd><%= formatDate(report.createdAt) %>, <%= formatTime(report.createdAt) %></dd></div>
+  <div><dt class="font-bold">Reason given</dt><dd><%= report.reason || 'None given' %></dd></div>
+</dl>
+
+<h2 class="mb-3">Conversation (last 50 messages)</h2>
+<% if (report.conversationSnapshot.length === 0) { %>
+  <p class="panel mb-8">They hadn't messaged each other.</p>
+<% } else { %>
+  <ol class="mb-8 space-y-2">
+    <% report.conversationSnapshot.forEach(function (m) { %>
+      <li class="rounded-lg p-3 <%= m.from === 'reported' ? 'bg-amber-bg' : 'bg-mist' %>">
+        <strong><%= m.from === 'reported' ? 'Reported senior' : 'Reporter' %>:</strong> <%= m.body %>
+        <br><span class="text-base"><%= formatDate(m.at) %>, <%= formatTime(m.at) %></span>
+      </li>
+    <% }) %>
+  </ol>
+<% } %>
+
+<% if (report.status === 'pending') { %>
+  <h2 class="mb-2">Decision</h2>
+  <p class="mb-4 text-base">Whatever you choose, the reporter keeps the reported senior hidden and their conversation stays paused.</p>
+  <form action="/admin/reports/<%= report.id %>/resolve" method="post" class="grid gap-3 sm:grid-cols-3">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <button name="action" value="warn" class="btn">Warn</button>
+    <button name="action" value="remove" class="btn bg-full-tag hover:bg-full-tag">Remove from social</button>
+    <button name="action" value="dismiss" class="btn-plain">Dismiss</button>
+  </form>
+<% } else { %>
+  <p class="panel">Closed: <%= report.status %>.</p>
+<% } %>
+
+<%- include('../partials/footer') %>

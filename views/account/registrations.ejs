@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-2"><%= t('registrations.title') %></h1>
+<p class="mb-6"><a href="/history"><%= t('registrations.see_past') %></a></p>
+
+<% if (registrations.length === 0) { %>
+  <div class="panel">
+    <p class="mb-4"><%= t('registrations.none') %></p>
+    <a href="/events" class="btn"><%= t('home.see_events') %></a>
+  </div>
+<% } %>
+
+<ul class="space-y-5">
+  <% registrations.forEach(function (reg) { const event = reg.Event; %>
+    <li class="rounded-xl border-2 border-gray-300 p-4">
+      <p class="mb-1">
+        <span class="<%= reg.type === 'volunteer' ? 'tag-leaf' : 'tag-mine' %>"><%= reg.type === 'volunteer' ? t('registrations.volunteering') : t('registrations.attending') %></span>
+      </p>
+      <h2 class="mb-1"><a href="/events/<%= event.id %>" class="text-ink"><%= event.title %></a></h2>
+      <p class="font-bold"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+      <p class="mb-4"><%= event.locationText %></p>
+      <%- include('../partials/qr', { qr: reg.qr }) %>
+      <div class="mt-4"></div>
+      <% if (new Date(event.startsAt) > new Date()) { %>
+        <form action="/registrations/<%= reg.id %>/cancel" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn-plain"><%= reg.type === 'volunteer' ? t('registrations.cancel_volunteer') : t('registrations.cancel') %></button>
+        </form>
+      <% } else { %>
+        <p class="font-bold"><%= t('registrations.happening_now') %></p>
+      <% } %>
+    </li>
+  <% }) %>
+</ul>
+
+<%- include('../partials/footer') %>

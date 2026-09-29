@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-2"><%= t('signup.title') %></h1>
+<p class="mb-6"><%= t('signup.intro') %></p>
+
+<form action="/signup" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <div class="field">
+    <label for="fullName"><%= t('signup.name') %></label>
+    <input type="text" id="fullName" name="fullName" value="<%= values.fullName || '' %>" autocomplete="name" required>
+    <% if (errors.fullName) { %><span class="error"><%= errors.fullName %></span><% } %>
+  </div>
+
+  <div class="field">
+    <label for="phone"><%= t('signup.phone') %></label>
+    <input type="tel" id="phone" name="phone" value="<%= values.phone || '' %>" autocomplete="tel" inputmode="tel" required>
+    <span class="hint"><%= t('signup.phone_hint') %></span>
+    <% if (errors.phone) { %><span class="error"><%= errors.phone %></span><% } %>
+  </div>
+
+  <div class="field">
+    <label for="email"><%= t('signup.email') %></label>
+    <input type="email" id="email" name="email" value="<%= values.email || '' %>" autocomplete="email">
+    <span class="hint"><%= t('signup.email_hint') %></span>
+    <% if (errors.email) { %><span class="error"><%= errors.email %></span><% } %>
+  </div>
+
+  <div class="field">
+    <label for="password"><%= t('signup.password') %></label>
+    <input type="password" id="password" name="password" autocomplete="new-password" required>
+    <span class="hint"><%= t('signup.password_hint') %></span>
+    <% if (errors.password) { %><span class="error"><%= errors.password %></span><% } %>
+  </div>
+
+  <div class="field">
+    <label class="flex items-start gap-3 font-normal">
+      <input type="checkbox" name="ageDeclared" value="yes" class="mt-1 h-7 w-7 shrink-0" <%= values.ageDeclared ? 'checked' : '' %>>
+      <span><strong><%= t('signup.age') %></strong></span>
+    </label>
+    <% if (errors.ageDeclared) { %><span class="error"><%= errors.ageDeclared %></span><% } %>
+  </div>
+
+  <button class="btn"><%= t('signup.submit') %></button>
+</form>
+
+<p class="mt-6"><%= t('home.have_account') %> <a href="/login"><%= t('home.login') %></a></p>
+
+<%- include('../partials/footer') %>

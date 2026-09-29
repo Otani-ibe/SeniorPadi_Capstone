@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<%
+  function status(ok, onText, offText) {
+    return ok ? '<span class="tag-leaf">' + onText + '</span>' : '<span class="tag-full">' + offText + '</span>';
+  }
+%>
+
+<h1 class="mb-2">System</h1>
+<p class="mb-8">A quick check that everything is working. If something is red, see the "Fixing problems" part of the handover guide.</p>
+
+<% if (warnings.length > 0) { %>
+  <section class="mb-8 rounded-lg border-l-8 border-amber-tag bg-amber-bg p-4">
+    <h2 class="mb-2">Needs attention</h2>
+    <ul class="list-disc space-y-1 pl-6">
+      <% warnings.forEach(function (w) { %><li><%= w %></li><% }) %>
+    </ul>
+  </section>
+<% } %>
+
+<div class="overflow-x-auto">
+  <table class="admin-table mb-10">
+    <tbody>
+      <tr><th>Website</th><td><%= appUrl %><br><span class="text-base">Running since <%= startedAt ? formatDate(startedAt) + ', ' + formatTime(startedAt) : '–' %></span></td></tr>
+      <tr><th>Database</th><td><%- status(dbOk, 'Connected', 'Not reachable') %> <span class="text-base"><%= dbHost %></span></td></tr>
+      <tr><th>Database updates</th><td>
+        <% if (migrations.pending.length === 0) { %><%- status(true, 'Up to date', '') %> <span class="text-base"><%= migrations.executed.length %> applied</span>
+        <% } else { %><%- status(false, '', migrations.pending.length + ' waiting') %> <span class="text-base">Restart the app to apply them.</span><% } %>
+      </td></tr>
+      <tr><th>Texts and emails (Brevo)</th><td>
+        <% if (brevo === 'on') { %><%- status(true, 'Sending', '') %>
+        <% } else if (brevo === 'test') { %><span class="tag-amber">Test mode, not sending</span>
+        <% } else { %><%- status(false, '', 'Not set up') %><% } %>
+      </td></tr>
+      <tr><th>Uploads (Cloudinary)</th><td><%- status(cloudinary, 'On', 'Not set up') %></td></tr>
+      <tr><th>Reminder texts</th><td>Every day at 8am. <span class="text-base">
+        <%= lastRuns.reminders ? 'Last run ' + formatDate(lastRuns.reminders) + ', ' + formatTime(lastRuns.reminders) + ' (' + lastRuns.remindersSent + ' sent)' : 'Not run since the last restart.' %></span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="mb-3">In numbers</h2>
+<ul class="space-y-1">
+  <li><strong><%= counts.seniors %></strong> seniors</li>
+  <li><strong><%= counts.upcomingEvents %></strong> upcoming events</li>
+  <li><strong><%= counts.registrations %></strong> places booked for upcoming events</li>
+</ul>
+
+<%- include('../partials/footer') %>

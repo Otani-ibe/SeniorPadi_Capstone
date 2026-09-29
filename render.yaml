@@ -1,0 +1,40 @@
+# One-click setup on Render: New > Blueprint > pick this repo.
+# Render asks for the values marked "sync: false" the first time.
+services:
+  - type: web
+    name: seniorpadi
+    runtime: node
+    region: ohio # same area as the Neon database (us-east-2)
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start # also updates the database on its own
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # paste the Neon connection string
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_NAME
+        sync: false
+      - key: ADMIN_PHONE
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SUPPORT_PHONE
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: BREVO_SENDER_NAME
+        value: SeniorPadi
+      - key: BREVO_SMS_SENDER
+        value: SeniorPadi
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

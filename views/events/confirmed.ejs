@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+
+<div class="mb-6 rounded-xl border-l-8 <%= type === 'volunteer' ? 'border-leaf' : 'border-indigo' %> bg-mist p-5">
+  <h1 class="mb-2"><%= type === 'volunteer' ? t('confirmed.volunteer_title') : t('confirmed.title') %></h1>
+  <p class="text-xl font-bold"><%= event.title %></p>
+  <p><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+  <p><%= event.locationText %></p>
+</div>
+
+<%- include('../partials/qr', { qr }) %>
+
+<h2 class="mb-3 mt-8"><%= t('confirmed.next_title') %></h2>
+<ol class="mb-8 list-decimal space-y-2 pl-6">
+  <li><%= t('confirmed.next_sms') %></li>
+  <li><%= currentUser.reminderDaysBefore === 1 ? t('confirmed.next_reminder_one') : t('confirmed.next_reminder', { days: currentUser.reminderDaysBefore }) %></li>
+  <li><%= t('confirmed.next_arrive') %></li>
+</ol>
+
+<div class="flex flex-col gap-3 sm:flex-row">
+  <a href="/registrations" class="btn"><%= t('confirmed.see_mine') %></a>
+  <a href="/events" class="btn-plain"><%= t('confirmed.more_events') %></a>
+</div>
+<p class="mt-6 text-base"><%= t('confirmed.cancel_note') %></p>
+
+<%- include('../partials/footer') %>

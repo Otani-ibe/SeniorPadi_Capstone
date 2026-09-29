@@ -1,0 +1,64 @@
+{
+  "name": "seniorpadi",
+  "version": "0.1.0",
+  "description": "Community events for seniors in Ibadan",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js --ext js,json",
+    "dev:local": "cross-env DB_TARGET=local nodemon src/server.js --ext js,json",
+    "dev:neon": "cross-env DB_TARGET=neon nodemon src/server.js --ext js,json",
+    "dev:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./public/css/main.css --watch",
+    "build:css": "npx @tailwindcss/cli -i ./src/styles/input.css -o ./public/css/main.css --minify",
+    "build": "npm run build:css",
+    "db:check": "node src/scripts/checkDb.js",
+    "db:check:local": "cross-env DB_TARGET=local node src/scripts/checkDb.js",
+    "db:check:neon": "cross-env DB_TARGET=neon node src/scripts/checkDb.js",
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:migrate:local": "cross-env DB_TARGET=local sequelize-cli db:migrate",
+    "db:migrate:neon": "cross-env DB_TARGET=neon sequelize-cli db:migrate",
+    "db:reset": "sequelize-cli db:migrate:undo:all && sequelize-cli db:migrate",
+    "seed": "node src/scripts/seed.js",
+    "seed:local": "cross-env DB_TARGET=local node src/scripts/seed.js",
+    "seed:neon": "cross-env DB_TARGET=neon node src/scripts/seed.js --yes-wipe-neon",
+    "create-admin": "node src/scripts/createAdmin.js",
+    "test": "cross-env NODE_ENV=test jest --runInBand --forceExit"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "bcrypt": "^6.0.0",
+    "cloudinary": "^2.11.0",
+    "connect-pg-simple": "^10.0.0",
+    "csrf-sync": "^4.2.1",
+    "dotenv": "^18.0.4",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "express-session": "^1.19.0",
+    "multer": "^2.4.0",
+    "node-cron": "^4.6.0",
+    "pg": "^8.23.0",
+    "pg-hstore": "^2.3.4",
+    "qrcode": "^1.5.4",
+    "sequelize": "^6.37.8",
+    "sequelize-cli": "^6.6.5",
+    "socket.io": "^4.8.4",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "socket.io-client": "^4.8.4",
+    "supertest": "^7.3.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 20000
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

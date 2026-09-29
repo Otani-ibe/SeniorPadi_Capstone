@@ -1,0 +1,11 @@
+<% if (flash) {
+     const styles = {
+       success: 'border-leaf bg-green-50',
+       error: 'border-full-tag bg-full-bg',
+       info: 'border-indigo bg-mist'
+     };
+%>
+  <div role="<%= flash.type === 'error' ? 'alert' : 'status' %>" class="mb-6 rounded-lg border-l-8 p-4 font-bold <%= styles[flash.type] || styles.info %>">
+    <%= flash.message %>
+  </div>
+<% } %>

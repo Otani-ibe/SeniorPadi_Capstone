@@ -1,0 +1,21 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-4"><%= t('report.title_name', { name: other.firstName() }) %></h1>
+<p class="mb-3"><%= t('report.what_happens') %></p>
+<ul class="mb-6 list-disc space-y-1 pl-6">
+  <li><%= t('report.point_hide', { name: other.firstName() }) %></li>
+  <li><%= t('report.point_messages') %></li>
+  <li><%= t('report.point_private', { name: other.firstName() }) %></li>
+</ul>
+
+<form action="/report/<%= other.id %>" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="field">
+    <label for="reason"><%= t('report.reason') %></label>
+    <textarea id="reason" name="reason" rows="4" maxlength="1000"></textarea>
+  </div>
+  <button class="btn"><%= t('report.submit') %></button>
+</form>
+<p class="mt-6"><a href="/find-seniors"><%= t("common.go_back") %></a></p>
+
+<%- include('../partials/footer') %>

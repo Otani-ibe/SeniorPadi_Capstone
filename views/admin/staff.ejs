@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-2">Staff</h1>
+<p class="mb-8">Staff can run everything in this admin area. Only give access to people from the NGO.</p>
+
+<ul class="mb-12 space-y-4">
+  <% staff.forEach(function (m) { const safeName = m.fullName.replace(/'/g, ''); %>
+    <li class="border-b border-gray-300 pb-4">
+      <strong><%= m.fullName %></strong><% if (m.id === currentUser.id) { %> <span class="tag-mine">You</span><% } %><br>
+      <%= m.phone %><%= m.email ? ', ' + m.email : '' %>
+      <% if (m.id !== currentUser.id) { %>
+        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+          <form action="/admin/staff/<%= m.id %>/reset-password" method="post"
+                onsubmit="return confirm('Give <%= safeName %> a new temporary password?');">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="font-bold text-indigo underline">Reset password</button>
+          </form>
+          <form action="/admin/staff/<%= m.id %>/remove" method="post"
+                onsubmit="return confirm('Remove staff access for <%= safeName %>?');">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="font-bold text-full-tag underline">Remove access</button>
+          </form>
+        </div>
+      <% } %>
+    </li>
+  <% }) %>
+</ul>
+
+<h2 class="mb-4">Add a staff member</h2>
+<form action="/admin/staff" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="field">
+    <label for="fullName">Full name</label>
+    <input type="text" id="fullName" name="fullName" value="<%= values.fullName || '' %>">
+    <% if (errors.fullName) { %><span class="error"><%= errors.fullName %></span><% } %>
+  </div>
+  <div class="field">
+    <label for="phone">Phone number</label>
+    <input type="tel" id="phone" name="phone" value="<%= values.phone || '' %>">
+    <span class="hint">They log in with this. A temporary password is shown here and sent to them by SMS.</span>
+    <% if (errors.phone) { %><span class="error"><%= errors.phone %></span><% } %>
+  </div>
+  <div class="field">
+    <label for="email">Email (optional)</label>
+    <input type="email" id="email" name="email" value="<%= values.email || '' %>">
+  </div>
+  <button class="btn">Add staff member</button>
+</form>
+
+<%- include('../partials/footer') %>

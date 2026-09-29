@@ -1,0 +1,58 @@
+<%
+  const links = currentUser.role === 'admin'
+    ? [
+        { href: '/admin', label: 'Dashboard', icon: 'home' },
+        { href: '/admin/events', label: 'Events', icon: 'calendar' },
+        { href: '/admin/organizations', label: 'Organizations', icon: 'building' },
+        { href: '/admin/seniors', label: 'Seniors', icon: 'people' },
+        { href: '/admin/ids', label: 'ID checks', icon: 'card' },
+        { href: '/admin/reports', label: 'Reports', icon: 'flag' },
+        { href: '/admin/onboarding-video', label: 'Welcome video', icon: 'play' },
+        { href: '/admin/staff', label: 'Staff', icon: 'people' },
+        { href: '/admin/system', label: 'System', icon: 'gear' }
+      ]
+    : [
+        { href: '/events', label: t('nav.events'), icon: 'calendar' },
+        { href: '/registrations', label: t('nav.registrations'), icon: 'ticket' },
+        { href: '/find-seniors', label: t('nav.find'), icon: 'people' },
+        { href: '/messages', label: t('nav.messages'), icon: 'chat' },
+        { href: '/notifications', label: unreadCount > 0 ? t('nav.notifications_count', { count: unreadCount }) : t('nav.notifications'), icon: 'bell' },
+        { href: '/settings', label: t('nav.settings'), icon: 'gear' }
+      ];
+
+  const icons = {
+    home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    building: '<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 21v-4h6v4M8 7h2M14 7h2M8 11h2M14 11h2"/>',
+    people: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c3 0 5 2.5 5 6"/>',
+    ticket: '<path d="M3 8a2 2 0 0 0 0 4v4h18v-4a2 2 0 0 1 0-4V4H3z"/><path d="M9 8h6M9 12h6"/>',
+    play: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/>',
+    bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+    card: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.7-2 3-2s2.5.5 3 2M14 10h4M14 13h3"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>'
+  };
+%>
+<nav aria-label="Main" class="mx-auto max-w-2xl px-2 pb-2">
+  <ul class="flex flex-wrap gap-1">
+    <% links.forEach(function (link) {
+         const active = currentPath === link.href || (link.href !== '/admin' && currentPath.startsWith(link.href + '/'));
+    %>
+      <li>
+        <a href="<%= link.href %>"
+           class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-bold no-underline <%= active ? 'bg-white text-indigo' : 'text-white hover:bg-indigo-dark' %>"
+           <%= active ? 'aria-current=page' : '' %>>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><%- icons[link.icon] %></svg>
+          <%= link.label %>
+        </a>
+      </li>
+    <% }) %>
+    <li>
+      <form action="/logout" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="rounded-md px-3 py-2 text-base font-bold text-white underline hover:bg-indigo-dark"><%= t('nav.logout') %></button>
+      </form>
+    </li>
+  </ul>
+</nav>

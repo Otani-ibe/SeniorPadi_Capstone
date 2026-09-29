@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-6"><%= t('login.title') %></h1>
+
+<% if (error) { %>
+  <div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold"><%= error %></div>
+<% } %>
+
+<form action="/login" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <div class="field">
+    <label for="phone"><%= t('signup.phone') %></label>
+    <input type="tel" id="phone" name="phone" value="<%= phone %>" autocomplete="tel" inputmode="tel" required>
+  </div>
+
+  <div class="field">
+    <label for="password"><%= t('signup.password') %></label>
+    <input type="password" id="password" name="password" autocomplete="current-password" required>
+  </div>
+
+  <button class="btn"><%= t('login.submit') %></button>
+</form>
+
+<p class="mt-6"><a href="/forgot-password"><%= t('login.forgot') %></a></p>
+<p class="mt-2"><%= t('login.no_account') %> <a href="/signup"><%= t('home.create_account') %></a></p>
+
+<%- include('../partials/footer') %>

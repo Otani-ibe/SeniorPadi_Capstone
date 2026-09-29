@@ -1,0 +1,23 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-4"><%= t('delete.title') %></h1>
+<p class="mb-3"><%= t('delete.what_happens') %></p>
+<ul class="mb-6 list-disc space-y-1 pl-6">
+  <li><%= t('delete.point_places') %></li>
+  <li><%= t('delete.point_login') %></li>
+  <li><%= t('delete.point_find') %></li>
+</ul>
+
+<% if (error) { %><div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold"><%= error %></div><% } %>
+
+<form action="/account/delete" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="field">
+    <label for="password"><%= t('delete.password') %></label>
+    <input type="password" id="password" name="password" autocomplete="current-password" required>
+  </div>
+  <button class="btn bg-full-tag hover:bg-full-tag"><%= t('delete.submit') %></button>
+</form>
+<p class="mt-6"><a href="/settings"><%= t('delete.keep') %></a></p>
+
+<%- include('../partials/footer') %>

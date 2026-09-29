@@ -1,0 +1,90 @@
+<%- include('../partials/header') %>
+
+<h1 class="mb-2">Dashboard</h1>
+<% const startupWarnings = typeof systemWarnings !== 'undefined' ? systemWarnings : []; %>
+<% if (startupWarnings.length > 0) { %>
+  <p class="mb-4 rounded-lg border-l-8 border-amber-tag bg-amber-bg p-3 font-bold">
+    <%= startupWarnings.length %> setting(s) need attention. <a href="/admin/system">See System</a>
+  </p>
+<% } %>
+<p class="mb-6"><%= seniorCount %> seniors signed up. <a href="/admin/events/new">Add a new event</a></p>
+
+<div class="mb-8 grid gap-3 sm:grid-cols-2">
+  <a href="/admin/ids" class="<%= pendingIds > 0 ? 'btn' : 'btn-plain' %>"><%= pendingIds %> ID(s) to check</a>
+  <a href="/admin/reports" class="<%= openReports > 0 ? 'btn' : 'btn-plain' %>"><%= openReports %> open report(s)</a>
+</div>
+
+<% if (alerts.length > 0) { %>
+  <section class="panel mb-10">
+    <h2 class="mb-3">New alerts</h2>
+    <ul class="mb-4 space-y-2">
+      <% alerts.forEach(function (a) { %>
+        <li><%= t('notification.' + a.type, a.payload) %><% if (a.link) { %> <a href="<%= a.link %>">Open</a><% } %></li>
+      <% }) %>
+    </ul>
+    <form action="/admin/alerts/read" method="post">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="btn-plain">Mark all as seen</button>
+    </form>
+  </section>
+<% } %>
+
+<section class="mb-10">
+  <h2 class="mb-3">Next 14 days</h2>
+  <% if (upcoming.length === 0) { %>
+    <p class="panel">No events in the next two weeks. <a href="/admin/events/new">Add one</a></p>
+  <% } else { %>
+    <div class="overflow-x-auto">
+      <table class="admin-table">
+        <thead><tr><th>Event</th><th>When</th><th>Attending</th><th>Volunteers</th><th></th></tr></thead>
+        <tbody>
+          <% upcoming.forEach(function (event) { %>
+            <tr>
+              <td><strong><%= event.title %></strong><br><%= event.Organization.name %></td>
+              <td><%= formatDate(event.startsAt) %><br><%= formatTime(event.startsAt) %></td>
+              <td><%= event.taken %> / <%= event.capacity %></td>
+              <td><%= event.volunteerEnabled ? event.volunteersTaken + ' / ' + event.volunteerCapacity : '–' %></td>
+              <td><a href="/admin/events/<%= event.id %>/attendance">Attendance list</a></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<section class="mb-10">
+  <h2 class="mb-3">Attendance still to enter</h2>
+  <% if (needsAttendance.length === 0) { %>
+    <p>All caught up.</p>
+  <% } else { %>
+    <ul class="space-y-2">
+      <% needsAttendance.forEach(function (event) { %>
+        <li><a href="/admin/events/<%= event.id %>/attendance"><%= event.title %></a> (<%= formatDate(event.startsAt) %>), <%= event.Registrations.length %> not marked yet</li>
+      <% }) %>
+    </ul>
+  <% } %>
+</section>
+
+<section>
+  <h2 class="mb-1">Missed events</h2>
+  <p class="mb-3 text-base">Seniors marked as no-show. Nothing happens automatically, this is just for a friendly follow-up call.</p>
+  <% if (noShows.length === 0) { %>
+    <p>No no-shows recorded.</p>
+  <% } else { %>
+    <table class="admin-table">
+      <thead><tr><th>Name</th><th>Phone</th><th>No-shows</th></tr></thead>
+      <tbody>
+        <% noShows.forEach(function (row) { %>
+          <tr>
+            <td><%= row.senior ? row.senior.fullName : '(deleted)' %></td>
+            <td><%= row.senior ? row.senior.phone : '' %></td>
+            <td><%= row.get('total') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>
