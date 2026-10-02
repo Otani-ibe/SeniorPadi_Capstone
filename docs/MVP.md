@@ -118,7 +118,7 @@ thread.appendChild(li);
 
 **Database interaction: no overbooking.** Registering locks the event row inside a transaction, so two people can't take the last seat.
 
-`src/services/capacity.js` (shortened)
+`src/services/capacity.js`
 ```js
 return sequelize.transaction(async (transaction) => {
   const event = await Event.findByPk(eventId, { transaction, lock: transaction.LOCK.UPDATE });
@@ -146,15 +146,6 @@ router.get('/ids/:userId/view', async (req, res) => {
 
 PostgreSQL. Tables are created by migrations that run automatically when the app starts.
 
-```mermaid
-erDiagram
-  Users ||--o{ Registrations : "registers for"
-  Events ||--o{ Registrations : has
-  Organizations ||--o{ Events : hosts
-  Users ||--o{ Messages : sends
-  Users ||--o{ Reports : reports
-  Users ||--o{ Notifications : receives
-```
 
 | Table | Key fields | Links to |
 |---|---|---|
