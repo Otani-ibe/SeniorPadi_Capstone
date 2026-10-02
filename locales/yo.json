@@ -24,7 +24,7 @@
   "signup.intro": "Ọ̀fẹ́ ni. Nọ́ńbà fóònù yín ni ẹ ó fi máa wọlé.",
   "signup.name": "Orúkọ kíkún",
   "signup.phone": "Nọ́ńbà fóònù",
-  "signup.phone_hint": "Fún àpẹẹrẹ 0803 123 4567. Ibẹ̀ ni a ó máa fi ìjẹ́rìí àti ìránnilétí ránṣẹ́ sí.",
+  "signup.phone_hint": "Díjítì mọ́kànlá, fún àpẹẹrẹ 08031234567. Ibẹ̀ ni a ó máa fi ìjẹ́rìí àti ìránnilétí ránṣẹ́ sí.",
   "signup.email": "Ímeèlì (kò pọn dandan)",
   "signup.email_hint": "Tí ẹ bá fi sí i, a ó tún fi ìjẹ́rìí ránṣẹ́ sí ímeèlì yín.",
   "signup.password": "Ọ̀rọ̀ aṣínà",
@@ -284,5 +284,10 @@
   "qr.show": "Fi kóòdù ìwọlé mi hàn",
   "qr.explain": "Òṣìṣẹ́ lè ṣàyẹ̀wò èyí láti kọ orúkọ yín kíákíá. Ẹ kò nílò rẹ̀. Orúkọ yín wà lórí àkọsílẹ̀ wọn.",
   "messages.just_now": "Ní báyìí",
-  "upload.wrong_type_video": "Ẹ jọ̀ọ́, ẹ yan fídíò MP4 tàbí WebM."
+  "upload.wrong_type_video": "Ẹ jọ̀ọ́, ẹ yan fídíò MP4 tàbí WebM.",
+  "phone.letters": "Nọ́ńbà nìkan ni ẹ lè kọ. Ẹ kò lè lo lẹ́tà tàbí àmì.",
+  "phone.long": "Nọ́ńbà fóònù ní díjítì mọ́kànlá. Ẹ ti dé òpin.",
+  "phone.short": "Nọ́ńbà yìí kúrú jù. Ẹ kọ gbogbo díjítì mọ́kànlá, bíi 08031234567.",
+  "phone.start": "Èyí kì í ṣe nọ́ńbà fóònù Nàìjíríà. Ó yẹ kí ó bẹ̀rẹ̀ pẹ̀lú 070, 071, 080, 081, 090 tàbí 091.",
+  "phone.empty": "Ẹ jọ̀ọ́, ẹ kọ nọ́ńbà fóònù yín."
 }

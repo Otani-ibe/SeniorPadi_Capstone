@@ -24,7 +24,7 @@
   "signup.intro": "It's free. You'll use your phone number to log in.",
   "signup.name": "Full name",
   "signup.phone": "Phone number",
-  "signup.phone_hint": "For example 0803 123 4567. We send your confirmations and reminders here.",
+  "signup.phone_hint": "11 digits, for example 08031234567. We send your confirmations and reminders here.",
   "signup.email": "Email (optional)",
   "signup.email_hint": "If you add one, we'll email your confirmations too.",
   "signup.password": "Password",
@@ -287,5 +287,10 @@
   "qr.show": "Show my check-in code",
   "qr.explain": "Staff may scan this to tick you in faster. You don't need it. Your name is on their list.",
   "messages.just_now": "Just now",
-  "upload.wrong_type_video": "Please choose an MP4 or WebM video."
+  "upload.wrong_type_video": "Please choose an MP4 or WebM video.",
+  "phone.letters": "Numbers only, please. Letters and symbols can't be used.",
+  "phone.long": "A phone number has 11 digits. You've reached the limit.",
+  "phone.short": "This number is too short. Enter all 11 digits, like 08031234567.",
+  "phone.start": "This isn't a Nigerian mobile number. It should start with 070, 071, 080, 081, 090 or 091.",
+  "phone.empty": "Please enter your phone number."
 }

@@ -1,0 +1,13 @@
+<%# phone number box: numbers only, 11 digits. needs: id, name, value, (optional) autocomplete %>
+<input type="tel" id="<%= id %>" name="<%= name %>" value="<%= value || '' %>"
+       inputmode="numeric" maxlength="11" pattern="0(70|71|80|81|90|91)[0-9]{8}" required
+       autocomplete="<%= typeof autocomplete !== 'undefined' ? autocomplete : 'tel-national' %>"
+       placeholder="08031234567"
+       data-phone
+       data-msg-letters="<%= t('phone.letters') %>"
+       data-msg-long="<%= t('phone.long') %>"
+       data-msg-short="<%= t('phone.short') %>"
+       data-msg-start="<%= t('phone.start') %>"
+       data-msg-empty="<%= t('phone.empty') %>"
+       aria-describedby="<%= id %>-error">
+<span id="<%= id %>-error" class="error" role="alert" hidden></span>

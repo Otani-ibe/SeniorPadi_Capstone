@@ -101,6 +101,20 @@
     @apply mt-1 block font-bold text-full-tag;
   }
 
+    .field .error[hidden] {
+    display: none;
+  }
+  .field input[aria-invalid="true"] {
+    @apply border-full-tag bg-full-bg;
+  }
+  .phone-shake {
+    animation: phone-shake 0.3s;
+  }
+  @keyframes phone-shake {
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
   .tag-amber,
   .tag-full,
   .tag-mine,

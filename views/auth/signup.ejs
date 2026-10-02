@@ -14,7 +14,7 @@
 
   <div class="field">
     <label for="phone"><%= t('signup.phone') %></label>
-    <input type="tel" id="phone" name="phone" value="<%= values.phone || '' %>" autocomplete="tel" inputmode="tel" required>
+    <%- include('../partials/phoneInput', { id: 'phone', name: 'phone', value: values.phone }) %>
     <span class="hint"><%= t('signup.phone_hint') %></span>
     <% if (errors.phone) { %><span class="error"><%= errors.phone %></span><% } %>
   </div>

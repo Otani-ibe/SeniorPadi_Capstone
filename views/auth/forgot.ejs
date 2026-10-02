@@ -14,7 +14,7 @@
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="field">
       <label for="phone"><%= t('signup.phone') %></label>
-      <input type="tel" id="phone" name="phone" inputmode="tel" required>
+      <%- include('../partials/phoneInput', { id: 'phone', name: 'phone', value: '' }) %>
     </div>
     <button class="btn"><%= t('forgot.submit') %></button>
   </form>

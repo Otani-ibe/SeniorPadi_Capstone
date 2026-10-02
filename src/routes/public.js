@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { User, PasswordReset } = require('../models');
-const { normalizePhone } = require('../services/phone');
+const { normalizePhone, phoneProblem } = require('../services/phone');
 const { sendEmail } = require('../services/notify');
 const { requireAuth } = require('../middleware/auth');
 const { loginLimiter, signupLimiter, resetLimiter } = require('../middleware/rateLimit');
@@ -59,7 +59,7 @@ router.post('/signup', signupLimiter, async (req, res) => {
 
   const phone = normalizePhone(values.phone);
   if (values.fullName.length < 2) errors.fullName = req.t('signup.error_name');
-  if (!phone) errors.phone = req.t('signup.error_phone');
+  if (!phone) errors.phone = req.t('phone.' + (phoneProblem(values.phone) || 'start'));
   if (values.email && !/^\S+@\S+\.\S+$/.test(values.email)) errors.email = req.t('signup.error_email');
   if (password.length < MIN_PASSWORD) errors.password = req.t('signup.error_password', { min: MIN_PASSWORD });
   if (!values.ageDeclared) errors.ageDeclared = req.t('signup.error_age');
@@ -96,6 +96,15 @@ router.get('/login', (req, res) => {
 
 router.post('/login', loginLimiter, async (req, res) => {
   const phone = normalizePhone(req.body.phone);
+  
+  // tell them clearly if the number itself is wrong, before checking the password
+  if (!phone) {
+    return res.status(400).render('auth/login', {
+      title: req.t('login.title'),
+      error: req.t('phone.' + (phoneProblem(req.body.phone) || 'start')),
+      phone: req.body.phone || ''
+    });
+  }
   const user = phone ? await User.findOne({ where: { phone } }) : null;
   const passwordOk = user && await bcrypt.compare(req.body.password || '', user.passwordHash);
 

@@ -36,7 +36,7 @@
   </div>
   <div class="field">
     <label for="phone">Phone number</label>
-    <input type="tel" id="phone" name="phone" value="<%= values.phone || '' %>">
+    <%- include('../partials/phoneInput', { id: 'phone', name: 'phone', value: values.phone, autocomplete: 'off' }) %>
     <span class="hint">They log in with this. A temporary password is shown here and sent to them by SMS.</span>
     <% if (errors.phone) { %><span class="error"><%= errors.phone %></span><% } %>
   </div>

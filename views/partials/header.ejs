@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
+    <script src="/js/phone-input.js" defer></script>
 </head>
 <body class="flex min-h-screen flex-col">
   <a href="#main" class="sr-only focus:not-sr-only focus:p-3"><%= t('nav.skip') %></a>
@@ -28,7 +29,6 @@
       <%- include('nav') %>
     <% } %>
   </header>
-  <div class="adire h-3" aria-hidden="true"></div>
 
   <main id="main" class="page flex-1">
     <%- include('flash') %>

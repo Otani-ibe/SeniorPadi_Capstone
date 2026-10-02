@@ -591,7 +591,7 @@ router.post('/staff', async (req, res) => {
   const phone = normalizePhone(values.phone);
   const errors = {};
   if (values.fullName.length < 2) errors.fullName = 'Add their full name.';
-  if (!phone) errors.phone = 'Add a Nigerian phone number, like 0803 123 4567.';
+  if (!phone) errors.phone = 'Enter an 11-digit Nigerian mobile number, like 08031234567.';
 
   let existing = null;
   if (phone) existing = await User.findOne({ where: { phone }, paranoid: false });
