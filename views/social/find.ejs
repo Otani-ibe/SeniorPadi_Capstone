@@ -11,8 +11,8 @@
         <% if (next.profilePictureUrl) { %>
           <img src="<%= next.profilePictureUrl %>" alt="" width="96" height="96" class="h-24 w-24 rounded-full object-cover">
         <% } else { %>
-          <div class="adire flex h-24 w-24 items-center justify-center rounded-full" aria-hidden="true">
-            <span class="rounded-full bg-white px-3 py-1 text-2xl font-bold text-indigo"><%= next.fullName.charAt(0) %></span>
+          <div class="flex h-24 w-24 items-center justify-center rounded-full bg-mist text-3xl font-bold text-indigo" aria-hidden="true">
+            <%= next.fullName.charAt(0) %>
           </div>
         <% } %>
         <div>

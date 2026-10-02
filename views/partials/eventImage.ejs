@@ -1,7 +1,7 @@
 <% if (event.imageUrl) { %>
   <img src="<%= event.imageUrl %>" alt="" loading="lazy" class="aspect-video w-full rounded-lg object-cover" width="800" height="450">
 <% } else { %>
-  <div class="adire flex aspect-video w-full items-end rounded-lg p-3" aria-hidden="true">
+    <div class="flex aspect-video w-full items-end rounded-lg bg-mist p-3" aria-hidden="true">
     <span class="rounded-md bg-white px-2 py-0.5 text-base font-bold text-indigo"><%= t('category.' + event.category) %></span>
   </div>
 <% } %>
