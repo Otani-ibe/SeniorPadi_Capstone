@@ -27,6 +27,7 @@ app.use(csrfProtection);
 app.use(requirePasswordChanged);
 
 app.use('/', require('./routes/public'));
+app.use('/', require('./routes/verify'));
 app.use('/', require('./routes/events'));
 app.use('/', require('./routes/account'));
 app.use('/', require('./routes/social'));

@@ -22,7 +22,8 @@
     "seed:local": "cross-env DB_TARGET=local node src/scripts/seed.js",
     "seed:neon": "cross-env DB_TARGET=neon node src/scripts/seed.js --yes-wipe-neon",
     "create-admin": "node src/scripts/createAdmin.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand --forceExit"
+    "test": "cross-env NODE_ENV=test jest --runInBand --forceExit",
+    "translate:ui": "node src/scripts/translateUi.js"
   },
   "author": "",
   "license": "MIT",

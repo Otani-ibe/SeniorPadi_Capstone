@@ -1,8 +1,11 @@
 <%- include('../partials/header') %>
 
+<div class="mx-auto grid max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2" data-reveal>
+  <%- include('../partials/authAside') %>
+  <div class="p-6 sm:p-10">
 <h1 class="mb-2"><%= t('change.title') %></h1>
 <% if (currentUser.mustChangePassword) { %><p class="mb-6"><%= t('change.intro') %></p><% } %>
-<% if (error) { %><div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold"><%= error %></div><% } %>
+<% if (error) { %><div role="alert" class="mb-6 rounded-2xl border-l-4 border-full-tag bg-full-bg p-4 font-medium"><%= error %></div><% } %>
 
 <form action="/change-password" method="post">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -11,7 +14,9 @@
     <input type="password" id="password" name="password" autocomplete="new-password" required>
     <span class="hint"><%= t('signup.password_hint') %></span>
   </div>
-  <button class="btn"><%= t('reset.submit') %></button>
+  <button class="btn w-full sm:w-full"><%= t('reset.submit') %></button>
 </form>
+  </div>
+</div>
 
 <%- include('../partials/footer') %>

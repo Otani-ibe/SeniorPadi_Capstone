@@ -13,6 +13,7 @@ async function loadVerifiedSenior(userId) {
   if (!userId) return null;
   const user = await User.findByPk(userId);
   if (!user || user.role !== 'senior' || user.verificationStatus !== 'approved') return null;
+  if (!user.contactVerified()) return null;
   return user;
 }
 

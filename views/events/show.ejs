@@ -1,10 +1,13 @@
 <%- include('../partials/header') %>
 
-<p class="mb-4"><a href="/events"><%= t('events.back') %></a></p>
+<p class="mb-4"><a href="/events" class="no-underline"><i class="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i><%= t('events.back') %></a></p>
 
-<%- include('../partials/eventImage', { event }) %>
-
-<h1 class="mb-3 mt-5"><%= event.title %></h1>
+<div class="grid gap-8 md:grid-cols-2">
+<div data-reveal="left">
+<%- include('../partials/eventImage', { event, imgClass: 'w-full rounded-[2rem] object-cover shadow-xl aspect-[4/3]' }) %>
+</div>
+<div data-reveal="right">
+<h1 class="mb-3"><%= event.tTitle || event.title %></h1>
 <div class="mb-5"><%- include('../partials/eventTags', { event, state, isMine: mine.attendee }) %></div>
 
 <dl class="mb-6 space-y-3">
@@ -30,9 +33,11 @@
   <% } %>
 </dl>
 
-<div class="mb-8 whitespace-pre-line"><%= event.description %></div>
+<div class="mb-8 whitespace-pre-line text-gray-700"><%= event.tDescription || event.description %></div>
+</div>
+</div>
 
-<section class="panel" aria-labelledby="join-heading">
+<section class="panel mt-8" aria-labelledby="join-heading" data-reveal>
   <h2 id="join-heading" class="mb-4"><%= t('event.join_title') %></h2>
 
   <% if (state.isCancelled) { %>

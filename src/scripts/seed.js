@@ -2,7 +2,7 @@
 // Usage: npm run seed
 require('dotenv').config({ quiet: true });
 const bcrypt = require('bcrypt');
-const { sequelize, User, Organization, Event, Registration, Message, OnboardingVideo } = require('../models');
+const { sequelize, User, Organization, Event, Registration, Message, OnboardingVideo, Attendance } = require('../models');
 const en = require('../../locales/en.json');
 const yo = require('../../locales/yo.json');
 const { DAY_MS } = require('../services/dates');
@@ -34,7 +34,7 @@ async function main() {
   // make sure all the tables exist first (same as when the app starts)
   await require('../services/migrate').ensureDatabase(sequelize);
 
-  await sequelize.query('TRUNCATE "OnboardingVideos", "Notifications", "ReportHides", "Reports", "Blocks", "Skips", "Messages", "Registrations", "EventInterests", "PasswordResets", "AuditLogs", "Events", "Organizations", "Users" RESTART IDENTITY CASCADE');
+  await sequelize.query('TRUNCATE "Translations", "VerificationCodes", "PhoneExchanges", "Attendances", "OnboardingVideos", "Notifications", "ReportHides", "Reports", "Blocks", "Skips", "Messages", "Registrations", "EventInterests", "PasswordResets", "AuditLogs", "Events", "Organizations", "Users" RESTART IDENTITY CASCADE');
 
   const password = await bcrypt.hash('password123', 10);
 
@@ -59,6 +59,14 @@ async function main() {
     'Retired nurse. Happy to help at health events.',
     'I play draughts and ayo. Always looking for someone to beat!'
   ];
+  // demo profile photos (randomuser.me). Seniors can upload their own in Settings.
+  const photos = [
+    'https://randomuser.me/api/portraits/men/86.jpg', 'https://randomuser.me/api/portraits/women/90.jpg',
+    'https://randomuser.me/api/portraits/men/75.jpg', 'https://randomuser.me/api/portraits/women/79.jpg',
+    'https://randomuser.me/api/portraits/women/72.jpg', 'https://randomuser.me/api/portraits/men/91.jpg',
+    'https://randomuser.me/api/portraits/women/68.jpg', 'https://randomuser.me/api/portraits/men/64.jpg',
+    'https://randomuser.me/api/portraits/women/83.jpg', 'https://randomuser.me/api/portraits/men/81.jpg'
+  ];
   const seniors = [];
   for (let i = 0; i < names.length; i++) {
     seniors.push(await User.create({
@@ -73,7 +81,11 @@ async function main() {
       // first 6 are verified for Find Seniors, number 7 is waiting for an ID check
       verificationStatus: i < 6 ? 'approved' : (i === 6 ? 'pending' : 'unverified'),
       bio: i < 6 ? bios[i] : null,
-      onboardingSeenAt: i === 9 ? null : new Date() // the last one hasn't seen the welcome guide
+      profilePictureUrl: photos[i],
+      onboardingSeenAt: i === 9 ? null : new Date(), // the last one hasn't seen the welcome guide
+      // everyone's phone is confirmed except Ayodele (08030000017), to show the code step
+      phoneVerifiedAt: i === 7 ? null : new Date(),
+      emailVerifiedAt: i < 4 && i !== 7 ? new Date() : null
     }));
   }
 
@@ -161,6 +173,43 @@ async function main() {
     capacity: 50
   });
 
+  // a few more, so the cards have something to swipe through
+  await Event.create({
+    ...base,
+    title: 'Gentle stretching and dance',
+    description: 'Light stretches and slow dancing to old highlife favourites. Sit down whenever you like.',
+    startsAt: daysFromNow(3, 16), endsAt: daysFromNow(3, 17),
+    registrationDeadline: daysFromNow(2, 20),
+    locationText: 'Agodi Gardens, pavilion',
+    category: 'fitness', organizationId: gym.id,
+    capacity: 25, volunteerEnabled: true, volunteerCapacity: 2
+  });
+  await Event.create({
+    ...base,
+    title: 'Smartphone photos for beginners',
+    description: 'Learn to take clear photos of your family and send them on WhatsApp. Bring your phone.',
+    startsAt: daysFromNow(8, 11), endsAt: daysFromNow(8, 13),
+    registrationDeadline: daysFromNow(7, 18),
+    locationText: 'Bodija Community Centre, Computer Room',
+    category: 'learning', organizationId: school.id,
+    capacity: 12
+  });
+  await Event.create({
+    ...base,
+    title: 'Ayo and draughts afternoon',
+    description: 'Friendly games of ayo and draughts, with tea and puff-puff. Beginners welcome.',
+    startsAt: daysFromNow(10, 15), endsAt: daysFromNow(10, 18),
+    registrationDeadline: daysFromNow(9, 18),
+    locationText: 'St. Anne\u2019s Church hall, Molete',
+    category: 'social', organizationId: church.id,
+    capacity: 30, hostedBySenior: true
+  });
+
+  // every event gets a picture (the colourful cover for its type)
+  for (const e of await Event.findAll()) {
+    await e.update({ imageUrl: '/images/events/' + e.category + '.jpg' });
+  }
+
   // past event, for attendance and history
   const past = await Event.create({
     ...base,
@@ -184,7 +233,8 @@ async function main() {
   for (let i = 0; i < 4; i++) await reg(beading, seniors[i + 3]); // 4 of 8 left -> almost full
   for (let i = 0; i < 3; i++) await reg(phones, seniors[i + 4]); // full
   await reg(stories, seniors[0], 'volunteer');
-  await reg(past, seniors[0], 'attendee', 'attended');
+  const came = await reg(past, seniors[0], 'attendee', 'attended');
+  await Attendance.create({ eventId: past.id, registrationId: came.id, seniorId: seniors[0].id, method: 'manual', checkedInAt: past.startsAt, markedByAdminId: admin.id });
   await reg(past, seniors[1], 'attendee', 'no_show');
   await reg(past, seniors[2]); // not marked yet
 
@@ -206,6 +256,7 @@ async function main() {
   console.log('  Admin:  08000000001');
   console.log('  Senior: 08030000011 (' + seniors[1].fullName + ', English)');
   console.log('  Senior: 08030000010 (' + seniors[0].fullName + ', Yoruba)');
+  console.log('  Senior: 08030000017 (' + seniors[7].fullName + ', phone not confirmed yet)');
   await sequelize.close();
 }
 

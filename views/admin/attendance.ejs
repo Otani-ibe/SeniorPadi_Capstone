@@ -12,6 +12,18 @@
   </div>
 <% } %>
 
+<form action="/admin/events/<%= event.id %>/checkin" method="post" class="panel mb-6">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="field mb-3">
+    <label for="ticket">Check in by ticket number</label>
+    <input type="text" id="ticket" name="ticket" placeholder="SP-7K3QX9" autocapitalize="characters" required>
+    <span class="hint">The number is in the senior's SMS or email.</span>
+  </div>
+  <button class="btn">Check in</button>
+</form>
+
+<p class="mb-4 font-bold"><%= registrations.filter(function (r) { return r.Attendance; }).length %> of <%= registrations.length %> checked in.</p>
+
 <% if (registrations.length === 0) { %>
   <p class="panel">Nobody is registered for this event.</p>
 <% } else { %>
@@ -20,13 +32,13 @@
     <div class="overflow-x-auto">
       <table class="admin-table mb-6">
         <thead>
-          <tr><th>Name</th><th>Phone</th><th>As</th><th>Came</th><th>Didn't come</th><th>Not marked</th></tr>
+          <tr><th>Name</th><th>Ticket</th><th>As</th><th>Came</th><th>Didn't come</th><th>Not marked</th></tr>
         </thead>
         <tbody>
           <% registrations.forEach(function (reg) { %>
             <tr>
               <td><strong><%= reg.senior ? reg.senior.fullName : '(deleted)' %></strong></td>
-              <td><%= reg.senior ? reg.senior.phone : '' %></td>
+              <td><%= reg.ticketNumber %><% if (reg.Attendance) { %><br><span class="text-base text-gray-700"><%= { manual: 'list', qr: 'QR', ticket: 'ticket' }[reg.Attendance.method] %>, <%= formatTime(reg.Attendance.checkedInAt) %></span><% } %></td>
               <td><%= reg.type === 'volunteer' ? 'Volunteer' : 'Attendee' %></td>
               <% [['attended', 'Came'], ['no_show', "Didn't come"], ['registered', 'Not marked']].forEach(function (opt) { %>
                 <td>

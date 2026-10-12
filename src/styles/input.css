@@ -3,85 +3,99 @@
 @source "../../public/js";
 
 /*
-  SeniorPadi look: adire indigo (the Yoruba resist-dye cloth) on plain white.
-  Big type, strong contrast, one pattern used as the only decoration.
+  SeniorPadi look: deep indigo with warm coral and sunny accents,
+  soft rounded cards, gentle motion, and readable (not heavy) type.
 */
 @theme {
-  --font-sans: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Segoe UI", Roboto, Arial, sans-serif;
 
-  --color-ink: #16213e;        /* body text */
-  --color-indigo: #22407a;     /* main actions, header */
+  --color-ink: #16213e;
+  --color-indigo: #22407a;
   --color-indigo-dark: #172d57;
-  --color-mist: #e8edf7;       /* soft panels */
-  --color-leaf: #175a3a;       /* volunteering */
-  --color-leaf-dark: #0f4029;
+  --color-mist: #eef2fa;
+  --color-coral: #f2795b;
+  --color-coral-dark: #d9583a;
+  --color-sun: #f6b93b;
+  --color-mint: #3bb89f;
+  --color-lilac: #8e7cc3;
+  --color-leaf: #1f7a5c;
+  --color-leaf-dark: #155c45;
   --color-amber-tag: #7a4b00;
   --color-amber-bg: #fdf0d2;
-  --color-full-tag: #8f1d1d;
+  --color-full-tag: #9f1d1d;
   --color-full-bg: #fde8e8;
 }
 
 @layer base {
   html {
-    font-size: 112.5%; /* 18px body text */
+    font-size: 106.25%; /* 17px body text */
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-white text-ink leading-relaxed;
+    @apply bg-[#fafbff] text-ink leading-relaxed antialiased;
   }
   h1 {
-    @apply text-[1.7rem] font-bold leading-tight;
+    @apply text-[1.75rem] font-semibold leading-tight tracking-tight md:text-[2rem];
   }
   h2 {
-    @apply text-[1.3rem] font-bold leading-snug;
+    @apply text-[1.3rem] font-semibold leading-snug;
+  }
+  h3 {
+    @apply font-semibold;
   }
   a {
-    @apply text-indigo underline underline-offset-4;
+    @apply text-indigo underline decoration-1 underline-offset-4;
   }
   :focus-visible {
-    @apply outline-3 outline-offset-2 outline-amber-tag;
+    @apply outline-3 outline-offset-2 outline-coral;
   }
 }
 
 @layer components {
   .page {
-    @apply mx-auto w-full max-w-2xl px-4 py-6;
+    @apply mx-auto w-full max-w-4xl px-4 py-8;
+  }
+  .page-wide {
+    @apply mx-auto w-full max-w-6xl px-4 py-8 md:py-12;
   }
 
-  /* the adire strip: small indigo dots and rings, used under the header
-     and as the picture for events without a photo */
-  .adire {
-    background-color: var(--color-indigo);
-    background-image:
-      radial-gradient(circle at 50% 50%, #ffffff 0 3px, transparent 4px),
-      radial-gradient(circle at 50% 50%, transparent 0 9px, rgb(255 255 255 / 0.55) 10px 11px, transparent 12px);
-    background-size: 28px 28px, 28px 28px;
-    background-position: 0 0, 14px 14px;
-  }
-
+  /* ---------- buttons ---------- */
   .btn,
-  .btn-volunteer {
-    @apply flex min-h-12 w-full items-center justify-center rounded-lg bg-indigo px-5 py-3 text-center
-      text-lg font-bold text-white no-underline hover:bg-indigo-dark sm:w-auto;
+  .btn-volunteer,
+  .btn-coral {
+    @apply inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-indigo px-6 py-3 text-center
+      font-semibold text-white no-underline shadow-md shadow-indigo/20 transition hover:-translate-y-0.5 hover:bg-indigo-dark sm:w-auto;
   }
   .btn-volunteer {
-    @apply bg-leaf hover:bg-leaf-dark;
+    @apply bg-leaf shadow-leaf/20 hover:bg-leaf-dark;
+  }
+  .btn-coral {
+    @apply bg-coral shadow-coral/30 hover:bg-coral-dark;
   }
   .btn-plain {
-    @apply flex min-h-12 w-full items-center justify-center rounded-lg border-2 border-indigo bg-white px-5 py-3
-      text-center text-lg font-bold text-indigo no-underline hover:bg-mist sm:w-auto;
+    @apply inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-indigo/20 bg-white px-6 py-3
+      text-center font-semibold text-indigo no-underline transition hover:border-indigo hover:bg-mist sm:w-auto;
   }
   .btn[disabled],
   .btn-volunteer[disabled] {
-    @apply cursor-not-allowed bg-gray-500 hover:bg-gray-500;
+    @apply cursor-not-allowed bg-gray-400 shadow-none hover:translate-y-0 hover:bg-gray-400;
   }
 
+  /* ---------- surfaces ---------- */
+  .panel {
+    @apply rounded-3xl bg-mist p-6;
+  }
+  .card {
+    @apply rounded-3xl border border-gray-200 bg-white p-5 shadow-sm;
+  }
+
+  /* ---------- forms ---------- */
   .field {
     @apply mb-5 block;
   }
   .field label,
   .field .label {
-    @apply mb-1 block font-bold;
+    @apply mb-1.5 block font-medium;
   }
   .field input[type="text"],
   .field input[type="tel"],
@@ -92,53 +106,113 @@
   .field input[type="datetime-local"],
   .field select,
   .field textarea {
-    @apply block min-h-12 w-full rounded-lg border-2 border-gray-500 bg-white px-3 py-2 text-lg text-ink;
+    @apply block min-h-12 w-full rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-ink shadow-sm
+      transition focus:border-indigo focus:ring-4 focus:ring-indigo/10 focus:outline-none;
   }
   .field .hint {
-    @apply mt-1 block text-base text-gray-700;
+    @apply mt-1.5 block text-[0.9rem] text-gray-600;
   }
   .field .error {
-    @apply mt-1 block font-bold text-full-tag;
+    @apply mt-1.5 block font-medium text-full-tag;
   }
-
-    .field .error[hidden] {
+  .field .error[hidden] {
     display: none;
   }
   .field input[aria-invalid="true"] {
     @apply border-full-tag bg-full-bg;
   }
-  .phone-shake {
-    animation: phone-shake 0.3s;
-  }
-  @keyframes phone-shake {
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-  }
 
+  /* ---------- tags ---------- */
   .tag-amber,
   .tag-full,
   .tag-mine,
   .tag-leaf {
-    @apply inline-block rounded-md px-2 py-0.5 text-base font-bold;
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.85rem] font-medium;
   }
   .tag-amber { @apply bg-amber-bg text-amber-tag; }
   .tag-full { @apply bg-full-bg text-full-tag; }
   .tag-mine { @apply bg-mist text-indigo; }
-  .tag-leaf { @apply bg-green-100 text-leaf; }
+  .tag-leaf { @apply bg-emerald-50 text-leaf; }
 
-  .panel {
-    @apply rounded-xl bg-mist p-5;
-  }
-
+  /* ---------- admin tables ---------- */
   .admin-table {
-    @apply w-full border-collapse text-base;
+    @apply w-full border-collapse text-[0.95rem];
   }
-  .admin-table th,
+  .admin-table th {
+    @apply border-b border-gray-200 px-3 py-2.5 text-left text-[0.8rem] font-semibold uppercase tracking-wide text-gray-500;
+  }
   .admin-table td {
-    @apply border-b border-gray-300 px-2 py-2 text-left align-top;
+    @apply border-b border-gray-100 px-3 py-3 text-left align-top;
   }
+
+  
+}
+
+/* readable weight everywhere: nothing heavier than semibold */
+.font-bold { font-weight: 600; }
+
+/* ---------- motion ---------- */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes drift {
+  from { background-position: 0 0; }
+  to { background-position: 56px 56px; }
+}
+.float { animation: float 6s ease-in-out infinite; }
+.float-slow { animation: float 9s ease-in-out infinite; }
+.dots-drift { animation: drift 12s linear infinite; }
+
+/* sections slide in as you scroll (the class is added by public/js/reveal.js) */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.js [data-reveal="left"] { transform: translateX(-36px); }
+.js [data-reveal="right"] { transform: translateX(36px); }
+.js [data-reveal].revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- swipe cards (Find events, Find seniors) ---------- */
+.swipe-stack {
+  position: relative;
+}
+.swipe-card {
+  position: relative;
+  z-index: 2;
+  touch-action: pan-y;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  will-change: transform;
+}
+.swipe-card.dragging {
+  transition: none;
+  cursor: grabbing;
+}
+.swipe-peek {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform: translateY(14px) scale(0.96);
+  opacity: 0.7;
+}
+.swipe-badge {
+  position: absolute;
+  top: 1.5rem;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .float, .float-slow, .dots-drift { animation: none; }
+  .js [data-reveal] { opacity: 1; transform: none; transition: none; }
   * { transition: none !important; }
+
+  .dots-drift { animation: drift 12s linear infinite; }
+  
 }

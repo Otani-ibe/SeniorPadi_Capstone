@@ -15,6 +15,17 @@ const numericId = require('../middleware/numericId');
 const router = express.Router();
 router.param('id', numericId);
 
+// ---------- My account: my events + links to everything else ----------
+router.get('/account', requireAuth, async (req, res) => {
+  if (req.user.role === 'admin') return res.redirect('/admin');
+  // events live under Events > My tickets, so this page is just about the person
+  const ticketCount = await Registration.count({
+    where: { seniorId: req.user.id, status: 'registered' },
+    include: [{ model: Event, where: { endsAt: { [Op.gt]: new Date() } } }]
+  });
+  res.render('account/account', { title: req.t('account.title'), wide: true, ticketCount });
+});
+
 // ---------- my registrations (upcoming) ----------
 router.get('/registrations', requireAuth, async (req, res) => {
   const registrations = await Registration.findAll({
@@ -23,7 +34,7 @@ router.get('/registrations', requireAuth, async (req, res) => {
     order: [[Event, 'startsAt', 'ASC']]
   });
   for (const reg of registrations) reg.qr = await qrSvg(reg.qrToken);
-  res.render('account/registrations', { title: req.t('registrations.title'), registrations });
+  res.render('account/registrations', { title: req.t('stack.my_tickets'), wide: true, registrations });
 });
 
 router.post('/registrations/:id/cancel', requireAuth, async (req, res) => {
@@ -45,7 +56,7 @@ router.post('/registrations/:id/cancel', requireAuth, async (req, res) => {
   }, ['sms']);
 
   req.flash('success', req.t('registrations.cancelled', { event: registration.Event.title }));
-  res.redirect('/registrations');
+  res.redirect(req.body.from === 'account' ? '/account' : '/registrations');
 });
 
 // ---------- history (events that have ended) ----------
@@ -73,11 +84,14 @@ router.post('/settings', requireAuth, async (req, res) => {
   }
 
   const days = Number(req.body.reminderDaysBefore);
+  const emailChanged = (email || null) !== (req.user.email || null);
   try {
     await req.user.update({
       preferredLanguage: req.body.preferredLanguage === 'yo' ? 'yo' : 'en',
-      reminderDaysBefore: [1, 2, 3].includes(days) ? days : 1,
+      reminderDaysBefore: [1, 2, 3, 7].includes(days) ? days : 2,
+      remindersEnabled: req.body.remindersEnabled === 'yes',
       email: email || null,
+      emailVerifiedAt: emailChanged ? null : req.user.emailVerifiedAt,
       area: (req.body.area || '').trim() || null,
       bio: (req.body.bio || '').trim().slice(0, 500) || null
     });
@@ -104,13 +118,8 @@ router.post('/settings/profile-picture', requireAuth, uploadLimiter, imageUpload
     req.flash('error', req.t('upload.no_file'));
     return res.redirect('/settings');
   }
-  if (!cloud.isConfigured()) {
-    req.flash('error', req.t('upload.not_setup'));
-    return res.redirect('/settings');
-  }
-
   try {
-    const uploaded = await cloud.uploadBuffer(req.file.buffer, 'profile');
+    const uploaded = await cloud.uploadBuffer(req.file.buffer, 'profile', req.file.mimetype);
     const oldPublicId = req.user.profilePicturePublicId;
     await req.user.update({ profilePictureUrl: uploaded.url, profilePicturePublicId: uploaded.publicId });
     await cloud.deleteFile(oldPublicId);

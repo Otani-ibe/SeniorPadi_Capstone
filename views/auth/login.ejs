@@ -1,13 +1,18 @@
 <%- include('../partials/header') %>
 
+<div class="mx-auto grid max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2" data-reveal>
+  <%- include('../partials/authAside') %>
+  <div class="p-6 sm:p-10">
 <h1 class="mb-6"><%= t('login.title') %></h1>
 
 <% if (error) { %>
-  <div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold"><%= error %></div>
+  <div role="alert" class="mb-6 rounded-2xl border-l-4 border-full-tag bg-full-bg p-4 font-medium"><%= error %></div>
 <% } %>
 
 <form action="/login" method="post">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="registerEventId" value="<%= typeof after !== 'undefined' ? after.registerEventId : '' %>">
+  <input type="hidden" name="next" value="<%= typeof after !== 'undefined' ? after.next : '' %>">
 
   <div class="field">
     <label for="phone"><%= t('signup.phone') %></label>
@@ -19,10 +24,12 @@
     <input type="password" id="password" name="password" autocomplete="current-password" required>
   </div>
 
-  <button class="btn"><%= t('login.submit') %></button>
+  <button class="btn w-full sm:w-full"><%= t('login.submit') %></button>
 </form>
 
 <p class="mt-6"><a href="/forgot-password"><%= t('login.forgot') %></a></p>
-<p class="mt-2"><%= t('login.no_account') %> <a href="/signup"><%= t('home.create_account') %></a></p>
+<p class="mt-2"><%= t('login.no_account') %> <a href="/signup<%= typeof after !== 'undefined' && after.registerEventId ? '?register=' + after.registerEventId : '' %>"><%= t('home.create_account') %></a></p>
+  </div>
+</div>
 
 <%- include('../partials/footer') %>

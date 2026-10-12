@@ -1,50 +1,140 @@
 <%- include('../partials/header') %>
+<%
+  const statCards = [
+    { key: 'events', label: 'Events listed', icon: 'fa-calendar-days', color: 'bg-indigo text-white' },
+    { key: 'registrations', label: 'Registrations', icon: 'fa-ticket', color: 'bg-coral text-white' },
+    { key: 'attendees', label: 'Attendees', icon: 'fa-user-check', color: 'bg-mint text-white' },
+    { key: 'seniors', label: 'Seniors signed up', icon: 'fa-users', color: 'bg-lilac text-white' }
+  ];
+  const maxDay = Math.max(1, ...stats.days.map((d) => d.total));
+  const maxCat = Math.max(1, ...stats.categories.map((c) => c.total));
+  const catIcons = { fitness: 'fa-person-walking', faith: 'fa-hands-praying', learning: 'fa-book-open-reader', skills: 'fa-palette', social: 'fa-people-group', health: 'fa-heart-pulse' };
+  const startupWarnings = typeof systemWarnings !== 'undefined' ? systemWarnings : [];
+%>
 
-<h1 class="mb-2">Dashboard</h1>
-<% const startupWarnings = typeof systemWarnings !== 'undefined' ? systemWarnings : []; %>
+<div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <p class="text-gray-500">Welcome back, <%= currentUser.firstName() %></p>
+    <h1>Dashboard</h1>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="/admin/events/new" class="btn"><i class="fa-solid fa-plus" aria-hidden="true"></i>New event</a>
+    <a href="/admin/organizations" class="btn-plain"><i class="fa-solid fa-building" aria-hidden="true"></i>Organizations</a>
+  </div>
+</div>
+
 <% if (startupWarnings.length > 0) { %>
-  <p class="mb-4 rounded-lg border-l-8 border-amber-tag bg-amber-bg p-3 font-bold">
-    <%= startupWarnings.length %> setting(s) need attention. <a href="/admin/system">See System</a>
-  </p>
+  <a href="/admin/system" class="mb-6 flex items-center gap-3 rounded-2xl bg-amber-bg p-4 text-amber-tag no-underline">
+    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+    <span><strong><%= startupWarnings.length %> setting(s)</strong> need attention. Open System to see which.</span>
+  </a>
 <% } %>
-<p class="mb-6"><%= seniorCount %> seniors signed up. <a href="/admin/events/new">Add a new event</a></p>
 
-<div class="mb-8 grid gap-3 sm:grid-cols-2">
-  <a href="/admin/ids" class="<%= pendingIds > 0 ? 'btn' : 'btn-plain' %>"><%= pendingIds %> ID(s) to check</a>
-  <a href="/admin/reports" class="<%= openReports > 0 ? 'btn' : 'btn-plain' %>"><%= openReports %> open report(s)</a>
+<%# ---------- the big numbers (refresh themselves every 20 seconds) ---------- %>
+<div id="live-stats" class="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4" aria-live="polite">
+  <% statCards.forEach(function (card) { %>
+    <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="text-[0.95rem] text-gray-500"><%= card.label %></span>
+        <span class="flex h-10 w-10 items-center justify-center rounded-2xl <%= card.color %>"><i class="fa-solid <%= card.icon %>" aria-hidden="true"></i></span>
+      </div>
+      <p class="text-[2.2rem] font-semibold leading-none text-ink" data-stat="<%= card.key %>"><%= stats.totals[card.key] %></p>
+    </div>
+  <% }) %>
+</div>
+
+<div class="mb-8 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+  <%# ---------- registrations over the last 14 days ---------- %>
+  <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <div class="mb-5 flex items-center justify-between">
+      <h2 class="text-[1.1rem]">Registrations, last 14 days</h2>
+      <span class="text-[0.85rem] text-gray-500"><i class="fa-solid fa-rotate mr-1" aria-hidden="true"></i><span id="stats-updated">Live</span></span>
+    </div>
+    <div id="day-chart" class="flex h-48 items-end gap-1.5" role="img" aria-label="Registrations per day for the last 14 days">
+      <% stats.days.forEach(function (d) { %>
+        <div class="flex h-full flex-1 flex-col items-center justify-end gap-1" title="<%= d.label %>: <%= d.total %>">
+          <span class="text-[0.75rem] text-gray-500" data-day-total="<%= d.key %>"><%= d.total || '' %></span>
+          <div class="w-full rounded-t-lg bg-gradient-to-t from-indigo to-lilac transition-all duration-500" data-day-bar="<%= d.key %>" style="height: <%= Math.max(4, Math.round((d.total / maxDay) * 100)) %>%"></div>
+        </div>
+      <% }) %>
+    </div>
+    <div class="mt-2 flex justify-between text-[0.75rem] text-gray-500">
+      <span><%= stats.days[0].label %></span><span>Today</span>
+    </div>
+  </section>
+
+  <%# ---------- attendance rate + by type ---------- %>
+  <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <h2 class="mb-4 text-[1.1rem]">Attendance</h2>
+    <div class="mb-6 flex items-center gap-4">
+      <div class="relative h-24 w-24 shrink-0 rounded-full" id="rate-ring"
+           style="background: conic-gradient(var(--color-mint) <%= stats.totals.attendanceRate %>%, #eef2fa 0)">
+        <div class="absolute inset-2.5 flex items-center justify-center rounded-full bg-white text-[1.3rem] font-semibold" data-stat="attendanceRate-label"><%= stats.totals.attendanceRate %>%</div>
+      </div>
+      <p class="text-[0.95rem] text-gray-600">of people registered for past events actually came.</p>
+    </div>
+    <h3 class="mb-3 text-[0.95rem] text-gray-500">Registrations by type</h3>
+    <ul class="space-y-2.5">
+      <% stats.categories.forEach(function (c) { %>
+        <li>
+          <div class="mb-1 flex justify-between text-[0.9rem]"><span><i class="fa-solid <%= catIcons[c.category] || 'fa-tag' %> mr-2 text-indigo" aria-hidden="true"></i><%= t('category.' + c.category) %></span><span class="text-gray-500"><%= c.total %></span></div>
+          <div class="h-2 rounded-full bg-mist"><div class="h-2 rounded-full bg-coral" style="width: <%= Math.round((c.total / maxCat) * 100) %>%"></div></div>
+        </li>
+      <% }) %>
+      <% if (stats.categories.length === 0) { %><li class="text-gray-500">No registrations yet.</li><% } %>
+    </ul>
+  </section>
+</div>
+
+<%# ---------- things to do ---------- %>
+<div class="mb-8 grid gap-4 md:grid-cols-2">
+  <a href="/admin/ids" class="flex items-center gap-4 rounded-3xl bg-white p-5 text-ink no-underline shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:shadow-md">
+    <span class="flex h-12 w-12 items-center justify-center rounded-2xl <%= pendingIds > 0 ? 'bg-sun text-white' : 'bg-mist text-indigo' %>"><i class="fa-solid fa-id-card" aria-hidden="true"></i></span>
+    <span><span class="block text-[1.4rem] font-semibold"><%= pendingIds %></span><span class="text-gray-600">ID(s) waiting to be checked</span></span>
+  </a>
+  <a href="/admin/reports" class="flex items-center gap-4 rounded-3xl bg-white p-5 text-ink no-underline shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:shadow-md">
+    <span class="flex h-12 w-12 items-center justify-center rounded-2xl <%= openReports > 0 ? 'bg-coral text-white' : 'bg-mist text-indigo' %>"><i class="fa-solid fa-flag" aria-hidden="true"></i></span>
+    <span><span class="block text-[1.4rem] font-semibold"><%= openReports %></span><span class="text-gray-600">open report(s)</span></span>
+  </a>
 </div>
 
 <% if (alerts.length > 0) { %>
-  <section class="panel mb-10">
-    <h2 class="mb-3">New alerts</h2>
-    <ul class="mb-4 space-y-2">
+  <section class="mb-8 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="text-[1.1rem]"><i class="fa-solid fa-bell mr-2 text-coral" aria-hidden="true"></i>New alerts</h2>
+      <form action="/admin/alerts/read" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="text-[0.9rem] font-medium text-indigo hover:underline">Mark all as seen</button>
+      </form>
+    </div>
+    <ul class="divide-y divide-gray-100">
       <% alerts.forEach(function (a) { %>
-        <li><%= t('notification.' + a.type, a.payload) %><% if (a.link) { %> <a href="<%= a.link %>">Open</a><% } %></li>
+        <li class="flex justify-between gap-3 py-2.5"><span><%= t('notification.' + a.type, a.payload) %></span><% if (a.link) { %><a href="<%= a.link %>">Open</a><% } %></li>
       <% }) %>
     </ul>
-    <form action="/admin/alerts/read" method="post">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button class="btn-plain">Mark all as seen</button>
-    </form>
   </section>
 <% } %>
 
-<section class="mb-10">
-  <h2 class="mb-3">Next 14 days</h2>
+<%# ---------- next two weeks ---------- %>
+<section class="mb-8 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+  <h2 class="mb-4 text-[1.1rem]">Next 14 days</h2>
   <% if (upcoming.length === 0) { %>
-    <p class="panel">No events in the next two weeks. <a href="/admin/events/new">Add one</a></p>
+    <p class="text-gray-600">No events in the next two weeks. <a href="/admin/events/new">Add one</a></p>
   <% } else { %>
     <div class="overflow-x-auto">
       <table class="admin-table">
-        <thead><tr><th>Event</th><th>When</th><th>Attending</th><th>Volunteers</th><th></th></tr></thead>
+        <thead><tr><th>Event</th><th>When</th><th>Places taken</th><th>Volunteers</th><th></th></tr></thead>
         <tbody>
-          <% upcoming.forEach(function (event) { %>
+          <% upcoming.forEach(function (event) { const pct = Math.min(100, Math.round((event.taken / event.capacity) * 100)); %>
             <tr>
-              <td><strong><%= event.title %></strong><br><%= event.Organization.name %></td>
-              <td><%= formatDate(event.startsAt) %><br><%= formatTime(event.startsAt) %></td>
-              <td><%= event.taken %> / <%= event.capacity %></td>
+              <td><span class="font-medium"><%= event.title %></span><br><span class="text-[0.85rem] text-gray-500"><%= event.Organization.name %></span></td>
+              <td><%= formatDate(event.startsAt) %><br><span class="text-[0.85rem] text-gray-500"><%= formatTime(event.startsAt) %></span></td>
+              <td class="min-w-[9rem]">
+                <span class="text-[0.9rem]"><%= event.taken %> / <%= event.capacity %></span>
+                <div class="mt-1 h-2 rounded-full bg-mist"><div class="h-2 rounded-full <%= pct >= 90 ? 'bg-coral' : 'bg-indigo' %>" style="width: <%= pct %>%"></div></div>
+              </td>
               <td><%= event.volunteerEnabled ? event.volunteersTaken + ' / ' + event.volunteerCapacity : '–' %></td>
-              <td><a href="/admin/events/<%= event.id %>/attendance">Attendance list</a></td>
+              <td><a href="/admin/events/<%= event.id %>/attendance" class="whitespace-nowrap"><i class="fa-solid fa-clipboard-check mr-1" aria-hidden="true"></i>Attendance</a></td>
             </tr>
           <% }) %>
         </tbody>
@@ -53,38 +143,37 @@
   <% } %>
 </section>
 
-<section class="mb-10">
-  <h2 class="mb-3">Attendance still to enter</h2>
-  <% if (needsAttendance.length === 0) { %>
-    <p>All caught up.</p>
-  <% } else { %>
-    <ul class="space-y-2">
-      <% needsAttendance.forEach(function (event) { %>
-        <li><a href="/admin/events/<%= event.id %>/attendance"><%= event.title %></a> (<%= formatDate(event.startsAt) %>), <%= event.Registrations.length %> not marked yet</li>
-      <% }) %>
-    </ul>
-  <% } %>
-</section>
-
-<section>
-  <h2 class="mb-1">Missed events</h2>
-  <p class="mb-3 text-base">Seniors marked as no-show. Nothing happens automatically, this is just for a friendly follow-up call.</p>
-  <% if (noShows.length === 0) { %>
-    <p>No no-shows recorded.</p>
-  <% } else { %>
-    <table class="admin-table">
-      <thead><tr><th>Name</th><th>Phone</th><th>No-shows</th></tr></thead>
-      <tbody>
-        <% noShows.forEach(function (row) { %>
-          <tr>
-            <td><%= row.senior ? row.senior.fullName : '(deleted)' %></td>
-            <td><%= row.senior ? row.senior.phone : '' %></td>
-            <td><%= row.get('total') %></td>
-          </tr>
+<div class="grid gap-6 md:grid-cols-2">
+  <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <h2 class="mb-3 text-[1.1rem]">Attendance still to enter</h2>
+    <% if (needsAttendance.length === 0) { %>
+      <p class="text-gray-600"><i class="fa-solid fa-circle-check mr-1 text-mint" aria-hidden="true"></i>All caught up.</p>
+    <% } else { %>
+      <ul class="space-y-2">
+        <% needsAttendance.forEach(function (event) { %>
+          <li><a href="/admin/events/<%= event.id %>/attendance"><%= event.title %></a> <span class="text-gray-500">(<%= formatDate(event.startsAt) %>), <%= event.Registrations.length %> not marked</span></li>
         <% }) %>
-      </tbody>
-    </table>
-  <% } %>
-</section>
+      </ul>
+    <% } %>
+  </section>
 
+  <section class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <h2 class="mb-1 text-[1.1rem]">Missed events</h2>
+    <p class="mb-3 text-[0.9rem] text-gray-500">For a friendly follow-up call. Nothing happens automatically.</p>
+    <% if (noShows.length === 0) { %>
+      <p class="text-gray-600">No no-shows recorded.</p>
+    <% } else { %>
+      <table class="admin-table">
+        <thead><tr><th>Name</th><th>Phone</th><th>Missed</th></tr></thead>
+        <tbody>
+          <% noShows.forEach(function (row) { %>
+            <tr><td><%= row.senior ? row.senior.fullName : '(deleted)' %></td><td><%= row.senior ? row.senior.phone : '' %></td><td><%= row.get('total') %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </section>
+</div>
+
+<script src="/js/dashboard.js" defer></script>
 <%- include('../partials/footer') %>

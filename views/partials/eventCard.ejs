@@ -1,0 +1,72 @@
+<%# one event: picture first, details underneath (side by side on bigger screens).
+    needs: event, showButtons (true on the Find events stack), category (optional) %>
+<% const swipe = typeof showButtons !== 'undefined' && showButtons; %>
+<article class="<%= swipe ? 'swipe-card' : '' %> overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-xl shadow-indigo/10 md:grid md:grid-cols-2"
+  <% if (swipe) { %>data-swipe-card tabindex="0" aria-label="<%= event.tTitle || event.title %>" data-left="skip-<%= event.id %>" data-right="register-<%= event.id %>"<% } %>>
+
+  <div class="relative">
+    <%- include('eventImage', { event, imgClass: 'h-64 w-full object-cover select-none md:h-full md:min-h-[26rem]' }) %>
+    <span class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1 text-[0.85rem] font-medium text-indigo shadow">
+      <i class="fa-solid fa-tag" aria-hidden="true"></i><%= t('category.' + event.category) %>
+    </span>
+    <% if (event.hostedBySenior) { %>
+      <span class="absolute bottom-4 left-4 tag-leaf shadow"><i class="fa-solid fa-star" aria-hidden="true"></i><%= t('tag.hosted_by_senior') %></span>
+    <% } %>
+    <% if (swipe) { %>
+      <span class="swipe-badge left-4 rounded-2xl border-4 border-coral bg-white px-4 py-1 text-xl font-semibold uppercase text-coral" data-badge="left"><%= t('stack.skip') %></span>
+      <span class="swipe-badge right-4 rounded-2xl border-4 border-mint bg-white px-4 py-1 text-xl font-semibold uppercase text-leaf" data-badge="right"><%= t('stack.register') %></span>
+    <% } %>
+  </div>
+
+  <div class="flex flex-col p-6 md:p-8">
+    <h2 class="mb-4 text-[1.6rem] leading-tight"><%= event.tTitle || event.title %></h2>
+
+    <ul class="mb-5 space-y-2.5">
+      <li class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-mist text-indigo"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span><span class="font-medium"><%= formatDate(event.startsAt) %></span></li>
+      <li class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-mist text-indigo"><i class="fa-regular fa-clock" aria-hidden="true"></i></span><span><%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %></span></li>
+      <li class="flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-mist text-indigo"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
+        <span><%= event.locationText %>
+          <% if (event.locationMapsUrl) { %><br><a href="<%= event.locationMapsUrl %>" rel="noopener" target="_blank" class="text-[0.9rem]"><%= t('event.open_map') %></a><% } %>
+        </span>
+      </li>
+    </ul>
+
+    <h3 class="mb-1 text-[0.95rem] uppercase tracking-wide text-gray-500"><%= t('stack.about') %></h3>
+    <p class="mb-4 whitespace-pre-line text-gray-700"><%= event.tDescription || event.description %></p>
+    <p class="mb-6 text-[0.9rem] text-gray-500">
+      <i class="fa-solid fa-building-columns mr-1" aria-hidden="true"></i><%= event.Organization ? event.Organization.name : '' %> ·
+      <%= t('stack.register_by', { date: formatDate(event.registrationDeadline) }) %>
+    </p>
+
+    <% if (swipe) { %>
+      <div class="mt-auto flex items-center justify-center gap-6">
+        <form id="skip-<%= event.id %>" action="/events/<%= event.id %>/skip" method="post" class="text-center">
+          <input type="hidden" name="category" value="<%= typeof category !== 'undefined' ? category : '' %>">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="flex h-16 w-16 items-center justify-center rounded-full border-2 border-coral/30 bg-white text-2xl text-coral shadow-lg transition hover:scale-105" aria-label="<%= t('stack.skip') %>">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+          <span class="mt-1 block text-[0.85rem] text-gray-600"><%= t('stack.skip') %></span>
+        </form>
+        <% if (currentUser) { %>
+          <form id="register-<%= event.id %>" action="/events/<%= event.id %>/register" method="post" class="text-center">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo text-3xl text-white shadow-xl shadow-indigo/30 transition hover:scale-105" aria-label="<%= t('stack.register') %>">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+            </button>
+            <span class="mt-1 block text-[0.85rem] font-medium text-indigo"><%= t('stack.register') %></span>
+          </form>
+        <% } else { %>
+          <%# not logged in: the sign-up pop-up opens for this event %>
+          <div class="text-center">
+            <a id="register-<%= event.id %>" href="/events?login=<%= event.id %>#login" class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo text-3xl text-white no-underline shadow-xl shadow-indigo/30 transition hover:scale-105" aria-label="<%= t('stack.register') %>">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+            </a>
+            <span class="mt-1 block text-[0.85rem] font-medium text-indigo"><%= t('stack.register') %></span>
+          </div>
+        <% } %>
+      </div>
+      <p class="mt-4 hidden text-center text-[0.85rem] text-gray-500 md:block"><i class="fa-solid fa-hand-pointer mr-1" aria-hidden="true"></i><%= t('stack.swipe_hint') %></p>
+    <% } %>
+  </div>
+</article>

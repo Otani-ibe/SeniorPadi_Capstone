@@ -2,8 +2,10 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
-const { User, PasswordReset } = require('../models');
+const { User, PasswordReset, Event, Organization } = require('../models');
+const { translateEvents } = require('../services/translate');
 const { normalizePhone, phoneProblem } = require('../services/phone');
+const { registerAndNotify, safeNext } = require('../services/registration');
 const { sendEmail } = require('../services/notify');
 const { requireAuth } = require('../middleware/auth');
 const { loginLimiter, signupLimiter, resetLimiter } = require('../middleware/rateLimit');
@@ -27,9 +29,31 @@ router.get('/health', async (req, res) => {
   }
 });
 
-router.get('/', (req, res) => {
-  if (req.user) return res.redirect(req.user.role === 'admin' ? '/admin' : '/events');
-  res.render('home', { title: 'SeniorPadi' });
+router.get('/', async (req, res) => {
+  if (req.user && req.user.role === 'admin') return res.redirect('/admin');
+
+  // a few upcoming events for the landing page
+  const upcoming = await Event.findAll({
+    where: { status: 'published', startsAt: { [Op.gt]: new Date() } },
+    include: [Organization],
+    order: [['startsAt', 'ASC']],
+    limit: 4
+  });
+  await translateEvents(upcoming, req.lang);
+
+  res.render('home', { title: 'SeniorPadi', fullWidth: true, upcoming });
+});
+
+router.get('/about', (req, res) => {
+  res.render('about', { title: req.t('about.title'), wide: true });
+});
+
+// Call SeniorPadi: account help, questions, listing an event
+router.get('/call', (req, res) => {
+  res.render('call', {
+    title: req.t('call.title'),
+    hours: process.env.SUPPORT_HOURS || req.t('call.hours_default')
+  });
 });
 
 // switch language (works logged in or out)
@@ -43,8 +67,33 @@ router.post('/language', async (req, res) => {
 });
 
 // ---------- sign up ----------
+// what to do after logging in or signing up (from the pop-ups)
+function afterAuth(source) {
+  return {
+    registerEventId: /^\d+$/.test(source.register || source.registerEventId || '') ? String(source.register || source.registerEventId) : '',
+    next: safeNext(source.next) || ''
+  };
+}
+
+// log them in, then register them if they came from an event's Register button
+async function finishAuth(req, res, user, after, fallback) {
+  if (after.registerEventId && !user.contactVerified()) {
+    // confirm their phone (and email) first, then register them
+    req.session.afterVerify = { registerEventId: after.registerEventId, type: 'attendee' };
+    return res.redirect('/verify');
+  }
+  if (after.registerEventId) {
+    const result = await registerAndNotify(user, after.registerEventId, 'attendee');
+    if (result.ok) return res.redirect('/events/' + result.event.id + '/registered');
+    req.flash('error', req.t(result.errorKey));
+    return res.redirect('/events');
+  }
+  if (after.next) return res.redirect(after.next);
+  return res.redirect(fallback);
+}
+
 router.get('/signup', (req, res) => {
-  res.render('auth/signup', { title: req.t('signup.title'), errors: {}, values: {} });
+  res.render('auth/signup', { title: req.t('signup.title'), errors: {}, values: {}, after: afterAuth(req.query) });
 });
 
 router.post('/signup', signupLimiter, async (req, res) => {
@@ -72,7 +121,7 @@ router.post('/signup', signupLimiter, async (req, res) => {
   }
 
   if (Object.keys(errors).length > 0) {
-    return res.status(400).render('auth/signup', { title: req.t('signup.title'), errors, values });
+    return res.status(400).render('auth/signup', { title: req.t('signup.title'), errors, values, after: afterAuth(req.body) });
   }
 
   const user = await User.create({
@@ -86,25 +135,27 @@ router.post('/signup', signupLimiter, async (req, res) => {
 
   logIn(req, user);
   req.flash('success', req.t('signup.welcome', { name: user.firstName() }));
-  res.redirect('/onboarding');
+  return finishAuth(req, res, user, afterAuth(req.body), '/onboarding');
 });
 
 // ---------- log in / out ----------
 router.get('/login', (req, res) => {
-  res.render('auth/login', { title: req.t('login.title'), error: null, phone: '' });
+  res.render('auth/login', { title: req.t('login.title'), error: null, phone: '', after: afterAuth(req.query) });
 });
 
 router.post('/login', loginLimiter, async (req, res) => {
   const phone = normalizePhone(req.body.phone);
-  
+
   // tell them clearly if the number itself is wrong, before checking the password
   if (!phone) {
     return res.status(400).render('auth/login', {
       title: req.t('login.title'),
       error: req.t('phone.' + (phoneProblem(req.body.phone) || 'start')),
-      phone: req.body.phone || ''
+      phone: req.body.phone || '',
+      after: afterAuth(req.body)
     });
   }
+
   const user = phone ? await User.findOne({ where: { phone } }) : null;
   const passwordOk = user && await bcrypt.compare(req.body.password || '', user.passwordHash);
 
@@ -112,7 +163,8 @@ router.post('/login', loginLimiter, async (req, res) => {
     return res.status(400).render('auth/login', {
       title: req.t('login.title'),
       error: req.t('login.error'),
-      phone: req.body.phone || ''
+      phone: req.body.phone || '',
+      after: afterAuth(req.body)
     });
   }
 
@@ -123,8 +175,10 @@ router.post('/login', loginLimiter, async (req, res) => {
   if (user.role === 'admin') {
     return res.redirect(returnTo && returnTo.startsWith('/admin') ? returnTo : '/admin');
   }
+  const after = afterAuth(req.body);
+  if (after.registerEventId || after.next) return finishAuth(req, res, user, after, '/');
   if (!user.onboardingSeenAt) return res.redirect('/onboarding'); // e.g. a relative signed them up
-  res.redirect(returnTo || '/events');
+  res.redirect(returnTo || '/');
 });
 
 router.post('/logout', (req, res) => {

@@ -16,6 +16,10 @@ function line(text) {
 // 1. check the settings and fill in safe defaults. Must run before anything else loads.
 function prepareEnvironment() {
   require('dotenv').config({ quiet: true, path: path.join(ROOT, '.env') });
+
+  // tidy up NODE_ENV so "Production " or "prod" still work
+  const env = (process.env.NODE_ENV || 'development').trim().toLowerCase();
+  process.env.NODE_ENV = env.startsWith('prod') ? 'production' : env === 'test' ? 'test' : 'development';
   const isProduction = process.env.NODE_ENV === 'production';
   const warnings = [];
 
@@ -49,6 +53,10 @@ function prepareEnvironment() {
 
   if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_SECRET) {
     warnings.push('Cloudinary is not set up. Picture, ID and video uploads are switched off.');
+  }
+
+  if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
+    warnings.push('Google Translate is not set up. Menus are still in Yorùbá, but event text stays in English.');
   }
 
   return warnings;

@@ -1,34 +1,70 @@
+<%
+  // seniors and visitors get the simple menu; staff get the admin sidebar
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  const otherLang = lang === 'en' ? 'yo' : 'en';
+  const isWide = typeof wide !== 'undefined' && wide;
+  const isFull = typeof fullWidth !== 'undefined' && fullWidth; // landing page: sections go edge to edge
+%>
 <!DOCTYPE html>
 <html lang="<%= lang %>">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title %> | SeniorPadi</title>
+  <script>document.documentElement.classList.add('js');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/css/main.css">
-    <script src="/js/phone-input.js" defer></script>
+  <script src="/js/phone-input.js" defer></script>
+  <script src="/js/reveal.js" defer></script>
 </head>
-<body class="flex min-h-screen flex-col">
+
+<% if (isAdmin) { %>
+<body class="min-h-screen bg-[#f4f6fb] md:flex">
+  <a href="#main" class="sr-only focus:not-sr-only focus:p-3">Skip to main content</a>
+  <%- include('nav') %>
+  <div class="flex min-h-screen flex-1 flex-col">
+    <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-10 md:py-10">
+      <%- include('flash') %>
+<% } else { %>
+<body class="flex min-h-screen flex-col pb-24 md:pb-0">
   <a href="#main" class="sr-only focus:not-sr-only focus:p-3"><%= t('nav.skip') %></a>
 
-  <header class="bg-indigo text-white">
-    <div class="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <a href="/" class="text-2xl font-bold text-white no-underline">SeniorPadi</a>
+  <header class="sticky top-0 z-30 border-b border-gray-200/70 bg-white/85 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+      <a href="/" class="flex items-center gap-2 text-[1.35rem] font-semibold text-indigo no-underline">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo text-white"><i class="fa-solid fa-hand-holding-heart text-base" aria-hidden="true"></i></span>
+        SeniorPadi
+      </a>
 
-      <form action="/language" method="post" class="flex gap-1">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <input type="hidden" name="back" value="<%= currentPath %>">
-        <button name="lang" value="en" class="rounded-md px-3 py-1 text-base font-bold <%= lang === 'en' ? 'bg-white text-indigo' : 'text-white underline' %>">English</button>
-        <button name="lang" value="yo" class="rounded-md px-3 py-1 text-base font-bold <%= lang === 'yo' ? 'bg-white text-indigo' : 'text-white underline' %>">Yorùbá</button>
-      </form>
+      <div class="hidden md:block"><%- include('seniorNav', { placement: 'top' }) %></div>
+
+      <div class="flex items-center gap-2">
+        <%# one button that always shows the OTHER language %>
+        <form action="/language" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="back" value="<%= currentPath %>">
+          <button name="lang" value="<%= otherLang %>" lang="<%= otherLang %>"
+                  class="inline-flex items-center gap-2 rounded-full border border-indigo/20 bg-white px-4 py-2 text-[0.95rem] font-medium text-indigo hover:bg-mist">
+            <i class="fa-solid fa-language" aria-hidden="true"></i>
+            <%= otherLang === 'yo' ? 'Yorùbá' : 'English' %>
+          </button>
+        </form>
+        <a href="/call" class="hidden items-center gap-2 rounded-full bg-coral px-4 py-2 text-[0.95rem] font-medium text-white no-underline hover:bg-coral-dark lg:inline-flex">
+          <i class="fa-solid fa-phone" aria-hidden="true"></i><%= t('call.title') %>
+        </a>
+        <% if (!currentUser) { %>
+          <a href="/login" class="hidden rounded-full px-3 py-2 text-[0.95rem] font-medium text-indigo no-underline hover:bg-mist sm:inline-flex"><%= t('home.login') %></a>
+        <% } %>
+      </div>
     </div>
-
-    <% if (currentUser) { %>
-      <%- include('nav') %>
-    <% } %>
   </header>
 
-  <main id="main" class="page flex-1">
-    <%- include('flash') %>
+  <%# on phones the same menu sits at the bottom of the screen %>
+  <div class="md:hidden"><%- include('seniorNav', { placement: 'bottom' }) %></div>
+
+  <main id="main" class="<%= isFull ? 'w-full' : (isWide ? 'page-wide' : 'page') %> flex-1">
+    <% if (isFull) { %><div class="mx-auto max-w-6xl px-4 pt-4"><%- include('flash') %></div><% } else { %><%- include('flash') %><% } %>
+<% } %>

@@ -20,6 +20,7 @@ async function sendReminders(now = new Date()) {
   let sent = 0;
   for (const reg of registrations) {
     const senior = reg.senior;
+    if (!senior.remindersEnabled) continue;
     const reminderDay = lagosDayString(new Date(reg.Event.startsAt).getTime() - senior.reminderDaysBefore * DAY_MS);
 
     if (reminderDay === lagosDayString(now)) {
@@ -28,8 +29,9 @@ async function sendReminders(now = new Date()) {
         event: reg.Event.title,
         date: shortDate(reg.Event.startsAt),
         time: formatTime(reg.Event.startsAt),
-        place: reg.Event.locationText
-      }, ['sms']);
+        place: reg.Event.locationText,
+        ticket: reg.ticketNumber
+      }, ['sms', 'email']);
       await reg.update({ reminderSentAt: now });
       sent++;
     }

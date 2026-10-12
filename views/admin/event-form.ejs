@@ -108,13 +108,25 @@
 
   <%# keep the file last so the text fields are read even if the file is too big %>
   <div class="field">
-    <label for="image">Picture (optional)</label>
-    <% if (event && event.imageUrl) { %><img src="<%= event.imageUrl %>" alt="Current picture" class="mb-2 w-60 rounded-lg"><% } %>
-    <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="block w-full text-lg">
-    <span class="hint">JPG, PNG or WebP, up to 3MB. Without one, the card shows the SeniorPadi pattern.</span>
+    <label for="image">Event picture</label>
+    <label for="image" class="flex cursor-pointer flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-indigo/30 bg-mist/50 p-5 text-center transition hover:border-indigo">
+      <img id="image-preview" src="<%= event && event.imageUrl ? event.imageUrl : '/images/events/' + (values.category || 'social') + '.png' %>"
+           alt="Picture preview" class="h-48 w-full max-w-md rounded-2xl object-cover shadow">
+      <span class="font-medium text-indigo"><i class="fa-solid fa-image mr-2" aria-hidden="true"></i>Choose a photo</span>
+      <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="text-[0.9rem]">
+    </label>
+    <span class="hint">JPG, PNG or WebP, up to 3MB. Without one, the event uses a colourful cover for its category.</span>
   </div>
 
-  <button class="btn" data-uploading-text="Saving…"><%= event ? 'Save changes' : 'Publish event' %></button>
+  <script>
+    // show the chosen photo straight away
+    document.getElementById('image').addEventListener('change', function (e) {
+      var file = e.target.files[0];
+      if (file) document.getElementById('image-preview').src = URL.createObjectURL(file);
+    });
+  </script>
+
+  <button class="btn" data-uploading-text="Saving…"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><%= event ? 'Save changes' : 'Publish event' %></button>
 </form>
 
 <script src="/js/upload.js" defer></script>

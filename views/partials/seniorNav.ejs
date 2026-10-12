@@ -1,0 +1,31 @@
+<%
+  // Home, Find events, Find seniors, Messages, My account
+  const path = currentPath;
+  const items = [
+    { href: '/', label: t('nav.home'), icon: 'fa-house', active: path === '/' || path === '/call' || path === '/about' },
+    { href: '/events', label: t('nav.find_events'), short: t('nav.events'), icon: 'fa-calendar-days', active: path.startsWith('/events') || path.startsWith('/registrations') },
+    { href: '/find-seniors', label: t('nav.find_seniors'), short: t('nav.seniors'), icon: 'fa-user-group', active: path.startsWith('/find-seniors') || path.startsWith('/report') || path.startsWith('/block') },
+    { href: '/messages', label: t('nav.messages'), icon: 'fa-comments', active: path.startsWith('/messages') },
+    { href: '/account', label: t('nav.account'), icon: 'fa-circle-user', badge: unreadCount, active: ['/account', '/history', '/settings', '/notifications', '/change-password', '/onboarding', '/verify'].some((p) => path.startsWith(p)) }
+  ];
+  const bottom = placement === 'bottom';
+%>
+<nav aria-label="Main"
+     class="<%= bottom ? 'fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/95 px-1 py-1 backdrop-blur' : '' %>">
+  <ul class="<%= bottom ? 'grid grid-cols-5' : 'flex items-center gap-1' %>">
+    <% items.forEach(function (item) { %>
+      <li>
+        <a href="<%= item.href %>" <%= item.active ? 'aria-current=page' : '' %>
+           class="relative flex items-center rounded-full no-underline transition
+                  <%= bottom ? 'flex-col gap-1 rounded-2xl px-1 py-2 text-[0.75rem]' : 'gap-2 px-3.5 py-2 text-[0.95rem]' %>
+                  <%= item.active ? 'bg-mist font-semibold text-indigo' : 'font-medium text-gray-600 hover:bg-mist hover:text-indigo' %>">
+          <i class="fa-solid <%= item.icon %> <%= bottom ? 'text-lg' : '' %>" aria-hidden="true"></i>
+          <span><%= bottom && item.short ? item.short : item.label %></span>
+          <% if (item.badge > 0) { %>
+            <span class="absolute right-1 top-0.5 rounded-full bg-coral px-1.5 text-[0.7rem] font-semibold text-white"><%= item.badge %></span>
+          <% } %>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+</nav>

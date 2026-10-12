@@ -44,13 +44,13 @@
         show(input.getAttribute('data-msg-letters'));
         return;
       }
-      // more than 11 digits (e.g. pasted)
+      // more than 11 digits
       if (cleaned.length > 11) {
         input.value = cleaned.slice(0, 11);
         show(input.getAttribute('data-msg-long'));
         return;
       }
-      // hide the message once it's complete and valid
+      // all good so far: hide the message once it's complete and valid
       if (cleaned.length === 11 && PATTERN.test(cleaned)) clear();
       else if (!error.hidden && error.textContent === input.getAttribute('data-msg-letters')) clear();
     });

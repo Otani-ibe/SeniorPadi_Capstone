@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+
+<%# the event stays in the background, the pop-up sits on top %>
+<div class="mx-auto max-w-5xl" aria-hidden="true">
+  <%- include('../partials/eventCard', { event, showButtons: false }) %>
+</div>
+
+<div class="fixed inset-0 z-40 bg-ink/60" aria-hidden="true"></div>
+<div role="dialog" aria-modal="true" aria-labelledby="done-title"
+     class="fixed left-1/2 top-1/2 z-50 max-h-[92vh] w-[92%] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 text-center md:p-8">
+  <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-leaf text-white">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>
+  </div>
+  <h2 id="done-title" class="mb-2 text-[1.8rem]"><%= t('registered.title') %></h2>
+  <p class="font-bold"><%= event.tTitle || event.title %></p>
+  <p class="mb-3"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+  <div class="mx-auto mb-4 rounded-xl border-2 border-dashed border-indigo bg-mist px-4 py-3">
+    <p class="text-base text-gray-700"><%= t('ticket.label') %></p>
+    <p class="text-[1.8rem] font-bold tracking-widest text-indigo"><%= ticket %></p>
+    <p class="text-base text-gray-700"><%= t('ticket.hint') %></p>
+  </div>
+  <p class="mb-6"><%= currentUser.email ? t('registered.sent_both') : t('registered.sent_sms') %></p>
+
+  <% if (canVolunteer) { %>
+    <div class="border-t-2 border-gray-300 pt-5">
+      <p class="mb-4 text-xl font-bold"><%= t('registered.volunteer_question') %></p>
+      <form action="/events/<%= event.id %>/volunteer" method="post" class="mb-3">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="from" value="popup">
+        <button class="btn-volunteer w-full sm:w-full"><%= t('registered.volunteer_yes') %></button>
+      </form>
+      <a href="/events" class="btn-plain w-full sm:w-full"><%= t('registered.volunteer_no') %></a>
+    </div>
+  <% } else { %>
+    <a href="/events" class="btn w-full sm:w-full"><%= t('registered.continue') %></a>
+  <% } %>
+  <p class="mt-4"><a href="/account"><%= t('registered.see_mine') %></a></p>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,35 +1,127 @@
 <%- include('partials/header') %>
 
-<section class="mb-10">
-  <h1 class="mb-4 text-[2.2rem] leading-tight"><%= t('home.headline') %></h1>
-  <p class="mb-6 text-xl"><%= t('home.intro') %></p>
-  <div class="flex flex-col gap-3 sm:flex-row">
-    <a href="/events" class="btn"><%= t('home.see_events') %></a>
-    <a href="/signup" class="btn-plain"><%= t('home.create_account') %></a>
+<%# ================= HERO ================= %>
+<section class="relative overflow-hidden">
+  <div class="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-coral/20 blur-3xl float-slow" aria-hidden="true"></div>
+  <div class="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-sun/25 blur-3xl float" aria-hidden="true"></div>
+
+  <div class="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-2 md:py-20">
+    <div data-reveal="left">
+      <span class="mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-[0.9rem] font-medium text-indigo shadow-sm ring-1 ring-gray-200">
+        <i class="fa-solid fa-location-dot text-coral" aria-hidden="true"></i><%= t('home.eyebrow') %>
+      </span>
+      <h1 class="mb-5 text-[2.4rem] font-extrabold leading-[1.1] tracking-tight md:text-[3.4rem]">
+        <%= currentUser ? t('home.welcome_back', { name: currentUser.firstName() }) : t('home.hero_title') %>
+        <span class="block text-coral"><%= t('home.hero_highlight') %></span>
+      </h1>
+      <p class="mb-8 max-w-lg text-[1.1rem] text-gray-600"><%= t('home.tagline') %></p>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <a href="/events" class="btn"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><%= t('nav.find_events') %></a>
+        <a href="/find-seniors" class="btn-plain"><i class="fa-solid fa-user-group" aria-hidden="true"></i><%= t('nav.find_seniors') %></a>
+      </div>
+      <ul class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-[0.95rem] text-gray-600">
+        <li><i class="fa-solid fa-circle-check mr-1.5 text-mint" aria-hidden="true"></i><%= t('home.trust_free') %></li>
+        <li><i class="fa-solid fa-circle-check mr-1.5 text-mint" aria-hidden="true"></i><%= t('home.trust_language') %></li>
+        <li><i class="fa-solid fa-circle-check mr-1.5 text-mint" aria-hidden="true"></i><%= t('home.trust_safe') %></li>
+      </ul>
+    </div>
+
+    <div class="relative" data-reveal="right">
+      <img src="/images/hero.png" alt="<%= t('home.hero_alt') %>" class="float relative mx-auto w-full max-w-md drop-shadow-2xl" width="900" height="1000">
+    </div>
   </div>
-  <p class="mt-4"><%= t('home.have_account') %> <a href="/login"><%= t('home.login') %></a></p>
 </section>
 
-<section class="mb-10">
-  <h2 class="mb-4"><%= t('home.how_title') %></h2>
-  <ol class="space-y-4">
-    <% ['step1', 'step2', 'step3'].forEach(function (step, i) { %>
-      <li class="flex gap-4">
-        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo text-xl font-bold text-white"><%= i + 1 %></span>
-        <span class="pt-1"><%= t('home.' + step) %></span>
-      </li>
+<%# ================= THREE THINGS YOU CAN DO ================= %>
+<section class="mx-auto max-w-6xl px-4 py-12">
+  <div class="mb-8 max-w-xl" data-reveal>
+    <p class="mb-2 font-medium text-coral"><%= t('home.what_kicker') %></p>
+    <h2 class="text-[1.9rem] md:text-[2.2rem]"><%= t('home.what_title') %></h2>
+  </div>
+  <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+    <% [
+         { href: '/events', icon: 'fa-calendar-days', title: t('nav.find_events'), text: t('home.card_events'), style: 'bg-indigo text-white', iconBg: 'bg-white/15 text-white' },
+         { href: '/find-seniors', icon: 'fa-user-group', title: t('nav.find_seniors'), text: t('home.card_seniors'), style: 'bg-white text-ink ring-1 ring-gray-200', iconBg: 'bg-mist text-indigo' },
+         { href: '/call', icon: 'fa-phone-volume', title: t('call.title'), text: t('home.card_call'), style: 'bg-coral text-white', iconBg: 'bg-white/20 text-white' }
+       ].forEach(function (card, i) { %>
+      <a href="<%= card.href %>" data-reveal data-reveal-delay="<%= i * 120 %>"
+         class="group flex flex-col gap-4 rounded-[2rem] p-7 no-underline shadow-lg shadow-indigo/5 transition hover:-translate-y-1 hover:shadow-xl <%= card.style %>">
+        <span class="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl <%= card.iconBg %>"><i class="fa-solid <%= card.icon %>" aria-hidden="true"></i></span>
+        <span class="text-[1.35rem] font-semibold"><%= card.title %></span>
+        <span class="opacity-85"><%= card.text %></span>
+        <span class="mt-auto inline-flex items-center gap-2 font-medium"><%= t('home.open') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></span>
+      </a>
     <% }) %>
-  </ol>
+  </div>
 </section>
 
-<section class="panel">
-  <h2 class="mb-2"><%= t('home.volunteer_title') %></h2>
-  <p><%= t('home.volunteer_text') %></p>
+<%# ================= COMING UP ================= %>
+<% if (upcoming.length > 0) { %>
+<section class="bg-mist/60 py-14">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-4" data-reveal>
+      <div>
+        <p class="mb-2 font-medium text-coral"><%= t('home.upcoming_kicker') %></p>
+        <h2 class="text-[1.9rem] md:text-[2.2rem]"><%= t('home.upcoming_title') %></h2>
+      </div>
+      <a href="/events" class="btn-plain"><%= t('home.see_all') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    <div class="grid gap-6 md:grid-cols-2">
+      <% upcoming.forEach(function (event, i) { %>
+        <a href="/events/<%= event.id %>" data-reveal="<%= i % 2 ? 'right' : 'left' %>"
+           class="group flex overflow-hidden rounded-[1.75rem] bg-white text-ink no-underline shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+          <%- include('partials/eventImage', { event, imgClass: 'w-36 shrink-0 object-cover sm:w-44' }) %>
+          <span class="flex flex-col justify-center gap-1.5 p-5">
+            <span class="tag-mine self-start"><%= t('category.' + event.category) %></span>
+            <span class="text-[1.15rem] font-semibold leading-snug"><%= event.tTitle || event.title %></span>
+            <span class="text-[0.95rem] text-gray-600"><i class="fa-regular fa-calendar mr-1.5" aria-hidden="true"></i><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></span>
+            <span class="text-[0.95rem] text-gray-600"><i class="fa-solid fa-location-dot mr-1.5" aria-hidden="true"></i><%= event.locationText %></span>
+          </span>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<%# ================= HOW IT WORKS ================= %>
+<section class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2">
+  <div class="relative grid grid-cols-2 gap-4" data-reveal="left" aria-hidden="true">
+    <img src="/images/events/fitness.png" alt="" class="float-slow rounded-3xl shadow-lg" width="800" height="600">
+    <img src="/images/events/skills.png" alt="" class="float mt-10 rounded-3xl shadow-lg" width="800" height="600">
+    <img src="/images/events/social.png" alt="" class="float -mt-6 rounded-3xl shadow-lg" width="800" height="600">
+    <img src="/images/events/faith.png" alt="" class="float-slow mt-4 rounded-3xl shadow-lg" width="800" height="600">
+  </div>
+  <div data-reveal="right">
+    <p class="mb-2 font-medium text-coral"><%= t('home.how_kicker') %></p>
+    <h2 class="mb-6 text-[1.9rem] md:text-[2.2rem]"><%= t('home.how_title') %></h2>
+    <ol class="space-y-5">
+      <% [['fa-user-plus', t('home.step1')], ['fa-hand-pointer', t('home.step2')], ['fa-message', t('home.step3')]].forEach(function (step, i) { %>
+        <li class="flex gap-4">
+          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo text-lg text-white shadow-md"><i class="fa-solid <%= step[0] %>" aria-hidden="true"></i></span>
+          <span class="pt-2.5 text-[1.05rem]"><span class="mr-1 font-semibold text-coral"><%= i + 1 %>.</span><%= step[1] %></span>
+        </li>
+      <% }) %>
+    </ol>
+  </div>
 </section>
 
-<section class="mt-8">
-  <h2 class="mb-2"><%= t('home.family_title') %></h2>
-  <p><%= t('home.family_text') %></p>
+<%# ================= VOLUNTEER + CALL ================= %>
+<section class="mx-auto max-w-6xl px-4 pb-6">
+  <div class="grid gap-6 md:grid-cols-2">
+    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-leaf to-mint p-8 text-white" data-reveal="left">
+      <i class="fa-solid fa-hands-holding-circle absolute -bottom-6 -right-4 text-[9rem] opacity-15" aria-hidden="true"></i>
+      <h2 class="mb-3 text-[1.6rem]"><%= t('home.volunteer_title') %></h2>
+      <p class="mb-6 max-w-sm opacity-90"><%= t('home.volunteer_text') %></p>
+      <a href="/events" class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-medium text-leaf no-underline shadow"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i><%= t('nav.find_events') %></a>
+    </div>
+    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-coral to-sun p-8 text-white" data-reveal="right">
+      <i class="fa-solid fa-phone-volume absolute -bottom-6 -right-4 text-[9rem] opacity-15" aria-hidden="true"></i>
+      <h2 class="mb-3 text-[1.6rem]"><%= t('home.family_title') %></h2>
+      <p class="mb-6 max-w-sm opacity-90"><%= t('home.family_text') %></p>
+      <a href="/call" class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-medium text-coral-dark no-underline shadow"><i class="fa-solid fa-phone" aria-hidden="true"></i><%= t('call.title') %></a>
+    </div>
+  </div>
 </section>
 
 <%- include('partials/footer') %>

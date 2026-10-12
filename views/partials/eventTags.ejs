@@ -6,8 +6,6 @@
     <span class="tag-full"><%= t('tag.cancelled') %></span>
   <% } else if (state.attendeeFull) { %>
     <span class="tag-full"><%= t('tag.full') %></span>
-  <% } else if (state.attendeeAlmostFull) { %>
-    <span class="tag-amber"><%= t('tag.almost_full') %></span>
   <% } %>
   <% if (state.closesSoon) { %>
     <span class="tag-amber"><%= state.daysToDeadline === 1 ? t('tag.closes_tomorrow') : t('tag.closes_in', { days: state.daysToDeadline }) %></span>

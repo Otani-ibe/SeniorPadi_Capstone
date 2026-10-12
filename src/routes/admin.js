@@ -2,7 +2,8 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
-const { sequelize, User, Organization, Event, Registration, EventInterest, Report, Notification, OnboardingVideo } = require('../models');
+const { sequelize, User, Organization, Event, Registration, EventInterest, Report, Notification, OnboardingVideo, Attendance } = require('../models');
+const { markAttended, markNotAttended } = require('../services/attendance');
 const capacity = require('../services/capacity');
 const cloud = require('../services/cloudinary');
 const { notify } = require('../services/notify');
@@ -21,6 +22,67 @@ router.param('userId', numericId);
 router.use(requireAdmin);
 
 // ---------- dashboard ----------
+
+// the numbers on the dashboard. Also sent as JSON so the page can refresh itself.
+async function dashboardStats() {
+  const totals = {
+    events: await Event.count({ where: { status: { [Op.ne]: 'cancelled' } } }),
+    registrations: await Registration.count({ where: { status: { [Op.ne]: 'cancelled' } } }),
+    attendees: await Attendance.count(),
+    seniors: await User.count({ where: { role: 'senior' } })
+  };
+
+  // how many people came, out of those whose event has already happened
+  const finished = await Registration.count({
+    where: { status: { [Op.in]: ['attended', 'no_show', 'registered'] } },
+    include: [{ model: Event, where: { endsAt: { [Op.lt]: new Date() } }, attributes: [] }]
+  });
+  totals.attendanceRate = finished ? Math.round((totals.attendees / finished) * 100) : 0;
+
+  // registrations per day for the last 14 days (Lagos time)
+  const since = new Date(Date.now() - 13 * DAY_MS);
+  since.setUTCHours(0, 0, 0, 0);
+  const rows = await Registration.findAll({
+    attributes: [
+      [sequelize.literal('to_char("createdAt" AT TIME ZONE \'Africa/Lagos\', \'YYYY-MM-DD\')'), 'day'],
+      [sequelize.fn('COUNT', '*'), 'total']
+    ],
+    where: { createdAt: { [Op.gte]: since } },
+    group: ['day'],
+    raw: true
+  });
+  const byDay = {};
+  rows.forEach((r) => { byDay[r.day] = Number(r.total); });
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(Date.now() - i * DAY_MS);
+    const key = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos' }).format(d);
+    const label = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short' }).format(d);
+    days.push({ key, label, total: byDay[key] || 0 });
+  }
+
+  // registrations by type of event
+  const byCategory = await Registration.findAll({
+    attributes: [[sequelize.col('Event.category'), 'category'], [sequelize.fn('COUNT', sequelize.col('Registration.id')), 'total']],
+    where: { status: { [Op.ne]: 'cancelled' } },
+    include: [{ model: Event, attributes: [] }],
+    group: ['Event.category'],
+    raw: true
+  });
+
+  return {
+    totals,
+    days,
+    categories: byCategory.map((c) => ({ category: c.category, total: Number(c.total) })),
+    updatedAt: new Date().toISOString()
+  };
+}
+
+// the dashboard asks for fresh numbers every 20 seconds
+router.get('/stats.json', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json(await dashboardStats());
+});
 router.get('/', async (req, res) => {
   const now = new Date();
 
@@ -53,6 +115,8 @@ router.get('/', async (req, res) => {
     limit: 10
   });
 
+  const stats = await dashboardStats();
+
   const pendingIds = await User.count({ where: { role: 'senior', verificationStatus: 'pending' } });
   const openReports = await Report.count({ where: { status: 'pending' } });
   const alerts = await Notification.findAll({
@@ -62,7 +126,7 @@ router.get('/', async (req, res) => {
   });
 
   res.render('admin/dashboard', {
-    title: 'Admin', upcoming, needsAttendance, seniorCount, noShows, pendingIds, openReports, alerts,
+    title: 'Admin', stats, totals: stats.totals, upcoming, needsAttendance, seniorCount, noShows, pendingIds, openReports, alerts,
     systemWarnings: req.app.get('startupWarnings') || []
   });
 });
@@ -186,10 +250,9 @@ async function renderEventForm(res, status, options) {
 async function handleEventImage(req, event) {
   if (req.uploadError) return req.uploadError;
   if (!req.file) return null;
-  if (!cloud.isConfigured()) return 'Image uploads are not set up yet (add the Cloudinary keys to .env). The event was saved without it.';
 
   try {
-    const uploaded = await cloud.uploadBuffer(req.file.buffer, 'event');
+    const uploaded = await cloud.uploadBuffer(req.file.buffer, 'event', req.file.mimetype);
     const oldPublicId = event.imagePublicId;
     await event.update({ imageUrl: uploaded.url, imagePublicId: uploaded.publicId });
     await cloud.deleteFile(oldPublicId);
@@ -307,7 +370,7 @@ router.get('/events/:id/attendance', async (req, res) => {
 
   const registrations = await Registration.findAll({
     where: { eventId: event.id, status: { [Op.in]: ['registered', 'attended', 'no_show'] } },
-    include: [{ model: User, as: 'senior', paranoid: false }],
+    include: [{ model: User, as: 'senior', paranoid: false }, Attendance],
     order: [['type', 'ASC'], [{ model: User, as: 'senior' }, 'fullName', 'ASC']]
   });
 
@@ -333,13 +396,37 @@ router.post('/events/:id/attendance', async (req, res) => {
   for (const reg of registrations) {
     const newStatus = req.body['status_' + reg.id];
     if (allowed.includes(newStatus) && newStatus !== reg.status) {
-      await reg.update({ status: newStatus });
+      if (newStatus === 'attended') await markAttended(reg, 'manual', req.user.id);
+      else await markNotAttended(reg, newStatus);
       changed++;
     }
   }
 
   await audit(req.user.id, 'attendance.record', 'Event', event.id, { changed });
   req.flash('success', 'Attendance saved.');
+  res.redirect('/admin/events/' + event.id + '/attendance');
+});
+
+// check someone in by typing the ticket number from their SMS or email
+router.post('/events/:id/checkin', async (req, res) => {
+  const event = await Event.findByPk(req.params.id);
+  if (!event) return res.redirect('/admin/events');
+
+  const ticket = (req.body.ticket || '').trim().toUpperCase().replace(/\s/g, '');
+  const reg = await Registration.findOne({
+    where: { eventId: event.id, ticketNumber: ticket.startsWith('SP-') ? ticket : 'SP-' + ticket },
+    include: [{ model: User, as: 'senior', paranoid: false }]
+  });
+
+  if (!reg) {
+    req.flash('error', 'No ticket ' + (ticket || '(empty)') + ' for this event. Check the number, or use the list below.');
+  } else if (reg.status === 'cancelled') {
+    req.flash('error', reg.ticketNumber + ' was cancelled. If they are here, welcome them and tick them on the list.');
+  } else {
+    await markAttended(reg, 'ticket', req.user.id);
+    await audit(req.user.id, 'attendance.ticket', 'Registration', reg.id);
+    req.flash('success', (reg.senior ? reg.senior.fullName : 'Senior') + ' (' + reg.ticketNumber + ') is checked in.');
+  }
   res.redirect('/admin/events/' + event.id + '/attendance');
 });
 
@@ -404,6 +491,11 @@ router.get('/ids/:userId/view', async (req, res) => {
 
   await audit(req.user.id, 'id.view', 'User', senior.id);
   res.set('Cache-Control', 'no-store');
+
+  // saved on this computer (no Cloudinary): send the file straight to the admin
+  const local = cloud.localPath(senior.idDocumentPublicId);
+  if (local) return res.sendFile(local);
+
   res.redirect(cloud.signedIdUrl(senior.idDocumentPublicId, senior.idDocumentFormat || 'jpg'));
 });
 
@@ -516,7 +608,7 @@ router.post('/scan/:qrToken', async (req, res) => {
   if (!registration) return res.redirect('/admin/scan/' + req.params.qrToken);
 
   if (['registered', 'no_show'].includes(registration.status)) {
-    await registration.update({ status: 'attended' });
+    await markAttended(registration, 'qr', req.user.id);
     await audit(req.user.id, 'attendance.qr', 'Registration', registration.id);
   }
   req.flash('success', (registration.senior ? registration.senior.fullName : 'Senior') + ' is checked in.');
@@ -551,13 +643,8 @@ router.post('/onboarding-video/:lang', videoUpload('video'), async (req, res) =>
   video.uploadedByAdminId = req.user.id;
 
   if (req.file) {
-    if (!cloud.isConfigured()) {
-      req.flash('error', 'Video uploads need the Cloudinary keys in .env. The transcript was saved.');
-      await video.save();
-      return res.redirect('/admin/onboarding-video');
-    }
     try {
-      const uploaded = await cloud.uploadBuffer(req.file.buffer, 'video');
+      const uploaded = await cloud.uploadBuffer(req.file.buffer, 'video', req.file.mimetype);
       await cloud.deleteFile(video.videoPublicId, 'upload', 'video');
       video.videoUrl = uploaded.url;
       video.videoPublicId = uploaded.publicId;

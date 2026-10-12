@@ -1,55 +1,62 @@
 <%- include('../partials/header') %>
+<%
+  const catIcons = { fitness: 'fa-person-walking', faith: 'fa-hands-praying', learning: 'fa-book-open-reader', skills: 'fa-palette', social: 'fa-people-group', health: 'fa-heart-pulse' };
+%>
 
-<h1 class="mb-4"><%= t('events.title') %></h1>
+<div class="mx-auto max-w-5xl">
+  <div class="mb-5 flex flex-wrap items-end justify-between gap-3" data-reveal>
+    <div>
+      <h1><%= t('stack.title') %></h1>
+      <% if (event) { %><p class="text-gray-600"><%= t('stack.counter', { n: position, total: total }) %></p><% } %>
+    </div>
+    <% if (currentUser) { %>
+      <a href="/registrations" class="btn-plain"><i class="fa-solid fa-ticket" aria-hidden="true"></i><%= t('stack.my_tickets') %></a>
+    <% } %>
+  </div>
 
-<% if (!currentUser) { %>
-  <p class="panel mb-6"><%= t('events.guest_note') %> <a href="/signup"><%= t('home.create_account') %></a></p>
-<% } %>
-
-<nav aria-label="<%= t('events.when') %>" class="mb-4 grid grid-cols-2 gap-2">
-  <% [['week', t('events.this_week')], ['upcoming', t('events.upcoming')]].forEach(function (item) { %>
-    <a href="/events?tab=<%= item[0] %><%= category ? '&category=' + category : '' %>"
-       class="<%= tab === item[0] ? 'btn' : 'btn-plain' %>"
-       <%= tab === item[0] ? 'aria-current=page' : '' %>><%= item[1] %></a>
-  <% }) %>
-</nav>
-
-<form action="/events" method="get" class="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end">
-  <input type="hidden" name="tab" value="<%= tab %>">
-  <div class="field mb-0 flex-1">
-    <label for="category"><%= t('events.filter') %></label>
-    <select id="category" name="category">
-      <option value=""><%= t('events.all_types') %></option>
+  <%# filter by type of event %>
+  <nav aria-label="<%= t('events.filter') %>" class="-mx-4 mb-6 overflow-x-auto px-4" data-reveal>
+    <ul class="flex gap-2 pb-1">
+      <li><a href="/events" class="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] no-underline transition <%= category ? 'bg-white text-indigo shadow-sm ring-1 ring-gray-200 hover:bg-mist' : 'bg-indigo text-white shadow-md' %>"><i class="fa-solid fa-border-all" aria-hidden="true"></i><%= t('events.all_types') %></a></li>
       <% categories.forEach(function (c) { %>
-        <option value="<%= c %>" <%= category === c ? 'selected' : '' %>><%= t('category.' + c) %></option>
+        <li><a href="/events?category=<%= c %>" class="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] no-underline transition <%= category === c ? 'bg-indigo text-white shadow-md' : 'bg-white text-indigo shadow-sm ring-1 ring-gray-200 hover:bg-mist' %>"><i class="fa-solid <%= catIcons[c] %>" aria-hidden="true"></i><%= t('category.' + c) %></a></li>
       <% }) %>
-    </select>
-  </div>
-  <button class="btn-plain"><%= t('events.show') %></button>
-</form>
+    </ul>
+  </nav>
 
-<% if (cards.length === 0) { %>
-  <div class="panel">
-    <p class="mb-3 font-bold"><%= tab === 'week' ? t('events.none_week') : t('events.none_upcoming') %></p>
-    <% if (tab === 'week') { %><a href="/events?tab=upcoming"><%= t('events.see_upcoming') %></a><% } %>
-  </div>
-<% } %>
-
-<ul class="space-y-8">
-  <% cards.forEach(function (card) { const event = card.event; const state = card.state; const isMine = card.isMine; %>
-    <li>
-      <article class="rounded-xl border-2 border-gray-300 p-3">
-        <%- include('../partials/eventImage', { event }) %>
-        <div class="px-1 pt-3">
-          <h2 class="mb-1"><a href="/events/<%= event.id %>" class="text-ink"><%= event.title %></a></h2>
-          <p class="font-bold"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
-          <p class="mb-3"><%= event.locationText %></p>
-          <%- include('../partials/eventTags', { event, state, isMine }) %>
-          <a href="/events/<%= event.id %>" class="btn-plain mt-4"><%= t('events.see_details') %></a>
+  <% if (event) { %>
+    <div class="swipe-stack" data-reveal>
+      <% if (nextEvent) { %>
+        <%# the next card peeks out from behind %>
+        <div class="swipe-peek overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-lg" aria-hidden="true">
+          <%- include('../partials/eventImage', { event: nextEvent, imgClass: 'h-64 w-full object-cover md:h-full md:w-1/2' }) %>
         </div>
-      </article>
-    </li>
-  <% }) %>
-</ul>
+      <% } %>
+      <%- include('../partials/eventCard', { event, showButtons: true, category }) %>
+    </div>
+  <% } else { %>
+    <div class="panel text-center" data-reveal>
+      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo shadow"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
+      <p class="mb-5 text-xl font-medium"><%= canStartAgain ? t('stack.all_seen') : t('stack.none') %></p>
+      <% if (canStartAgain) { %>
+        <form action="/events/start-again" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="category" value="<%= category %>">
+          <button class="btn"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('stack.start_again') %></button>
+        </form>
+      <% } %>
+    </div>
+  <% } %>
+</div>
+
+<% if (event && loginFor === event.id) { %>
+  <%# signing up is the default here; "Log in" switches the same pop-up %>
+  <%- include('../partials/loginModal', {
+        heading: t('modal.title_register'),
+        mode: modalMode,
+        switchHref: '/events?login=' + event.id + '&mode=' + (modalMode === 'signup' ? 'login' : 'signup') + '#login',
+        registerEventId: event.id,
+        closeHref: '/events' }) %>
+<% } %>
 
 <%- include('../partials/footer') %>

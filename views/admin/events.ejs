@@ -9,9 +9,11 @@
   <p class="panel">No events yet.</p>
 <% } %>
 
-<ul class="space-y-5">
+<ul class="grid gap-4 lg:grid-cols-2">
   <% events.forEach(function (event) { %>
-    <li class="rounded-xl border-2 border-gray-300 p-4">
+    <li class="flex gap-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-gray-200">
+      <%- include('../partials/eventImage', { event, imgClass: 'h-24 w-24 shrink-0 rounded-2xl object-cover sm:h-28 sm:w-36' }) %>
+      <div class="min-w-0 flex-1">
       <p class="mb-1">
         <% if (event.status === 'cancelled') { %><span class="tag-full">Cancelled</span>
         <% } else if (event.status === 'completed') { %><span class="tag-mine">Finished</span>
@@ -31,6 +33,7 @@
             <button class="font-bold text-full-tag underline">Cancel event</button>
           </form>
         <% } %>
+      </div>
       </div>
     </li>
   <% }) %>

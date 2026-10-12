@@ -2,8 +2,9 @@ const express = require('express');
 const { Op } = require('sequelize');
 const { Event, Organization, Registration, EventInterest } = require('../models');
 const capacity = require('../services/capacity');
-const { notify } = require('../services/notify');
-const { shortDate, formatTime, DAY_MS } = require('../services/dates');
+const { registerAndNotify } = require('../services/registration');
+const { translateEvents } = require('../services/translate');
+const { needsContactCheck } = require('./verify');
 const { requireAuth } = require('../middleware/auth');
 const { qrSvg } = require('../services/qr');
 
@@ -32,48 +33,77 @@ async function seatCounts(eventIds) {
   return counts;
 }
 
-// ---------- list ----------
+// ---------- Find events: one card at a time ----------
+// Shows events people can still join, one by one. Skip moves to the next card.
+// Skipped events are remembered in the session, so this works without an account.
 router.get('/events', async (req, res) => {
-  const tab = req.query.tab === 'upcoming' ? 'upcoming' : 'week';
-  const category = Event.CATEGORIES.includes(req.query.category) ? req.query.category : '';
   const now = new Date();
-  const weekEnd = new Date(now.getTime() + 7 * DAY_MS);
-
+  const category = Event.CATEGORIES.includes(req.query.category) ? req.query.category : '';
   const where = {
     status: 'published',
-    startsAt: tab === 'week' ? { [Op.gt]: now, [Op.lte]: weekEnd } : { [Op.gt]: weekEnd }
+    startsAt: { [Op.gt]: now },
+    registrationDeadline: { [Op.gt]: now }
   };
   if (category) where.category = category;
 
   const events = await Event.findAll({ where, include: [Organization], order: [['startsAt', 'ASC']] });
   const counts = await seatCounts(events.map((e) => e.id));
 
-  // which events is this senior already signed up for?
-  let myEventIds = [];
+  // events this senior already has a place at
+  let mine = [];
   if (req.user) {
-    const mine = await Registration.findAll({
-      where: { seniorId: req.user.id, status: 'registered', eventId: events.map((e) => e.id) },
+    const regs = await Registration.findAll({
+      where: { seniorId: req.user.id, status: 'registered', type: 'attendee', eventId: events.map((e) => e.id) },
       attributes: ['eventId']
     });
-    myEventIds = mine.map((r) => r.eventId);
+    mine = regs.map((r) => r.eventId);
   }
 
-  const cards = events.map((event) => {
-    const c = counts[event.id] || { attendee: 0, volunteer: 0 };
-    return {
-      event,
-      state: capacity.eventState(event, c.attendee, c.volunteer, now),
-      isMine: myEventIds.includes(event.id)
-    };
+  // full events and ones they're already going to aren't shown
+  const open = events.filter((e) => {
+    const taken = counts[e.id] ? counts[e.id].attendee : 0;
+    return taken < e.capacity && !mine.includes(e.id);
   });
 
+  const skipped = req.session.skippedEvents || [];
+  const remaining = open.filter((e) => !skipped.includes(e.id));
+  const event = remaining[0] || null;
+  const nextEvent = remaining[1] || null; // shown peeking behind the card
+
+  // a guest tapped Register: show the log-in pop-up for this event
+  const loginFor = !req.user && /^\d+$/.test(req.query.login || '') ? Number(req.query.login) : null;
+
+  // event text in Yorùbá through Google Translate (if it's set up)
+  if (event) await translateEvents([event], req.lang);
+
   res.render('events/index', {
-    title: req.t('events.title'),
-    cards,
-    tab,
+    title: req.t('stack.title'),
+    wide: true,
+    event,
+    position: open.length - remaining.length + 1,
+    total: open.length,
+    canStartAgain: open.length > 0 && remaining.length === 0,
+    nextEvent,
+    loginFor,
+    modalMode: req.query.mode === 'login' ? 'login' : 'signup',
     category,
     categories: Event.CATEGORIES
   });
+});
+
+router.post('/events/start-again', (req, res) => {
+  req.session.skippedEvents = [];
+  const category = Event.CATEGORIES.includes(req.body.category) ? req.body.category : '';
+  res.redirect('/events' + (category ? '?category=' + category : ''));
+});
+
+router.post('/events/:id/skip', (req, res) => {
+  const skipped = req.session.skippedEvents || [];
+  const id = Number(req.params.id);
+  if (!skipped.includes(id)) skipped.push(id);
+  req.session.skippedEvents = skipped;
+  const category = Event.CATEGORIES.includes(req.body.category) ? req.body.category : '';
+  res.redirect('/events' + (category ? '?category=' + category : ''));
 });
 
 // ---------- one event ----------
@@ -102,40 +132,60 @@ router.get('/events/:id', async (req, res) => {
     }));
   }
 
-  res.render('events/show', { title: event.title, event, state, mine, interested });
+  await translateEvents([event], req.lang);
+  res.render('events/show', { title: event.tTitle || event.title, wide: true, event, state, mine, interested });
 });
 
 // ---------- register / volunteer ----------
 async function signUp(req, res, type) {
-  const result = await capacity.register(req.params.id, req.user.id, type);
+  // phone (and email) must be confirmed before joining an event
+  if (needsContactCheck(req, res, { registerEventId: req.params.id, type })) return;
+
+  const result = await registerAndNotify(req.user, req.params.id, type);
 
   if (!result.ok) {
-    const messages = {
-      full: type === 'volunteer' ? 'register.volunteer_full' : 'register.full',
-      closed: 'register.closed',
-      already: 'register.already',
-      not_found: 'events.not_found'
-    };
-    req.flash('error', req.t(messages[result.reason]));
-    return res.redirect('/events/' + req.params.id);
+    req.flash('error', req.t(result.errorKey));
+    return res.redirect(req.body.from === 'popup' ? '/events' : '/events/' + req.params.id);
   }
 
-  const event = result.event;
-  const user = req.user;
-  notify(user, type === 'volunteer' ? 'event.volunteered' : 'event.registered', {
-    name: user.firstName(),
-    event: event.title,
-    date: shortDate(event.startsAt),
-    time: formatTime(event.startsAt),
-    place: event.locationText,
-    days: user.reminderDaysBefore
-  });
+  // registering from the card: show the "you're registered" pop-up
+  if (type === 'attendee') return res.redirect('/events/' + result.event.id + '/registered');
 
-  res.redirect('/events/' + event.id + '/confirmed?type=' + type);
+  // "Yes, I'll volunteer" in that pop-up: back to the next card
+  if (req.body.from === 'popup') {
+    req.flash('success', req.t('registered.thanks_volunteer', { event: result.event.title }));
+    return res.redirect('/events');
+  }
+  res.redirect('/events/' + result.event.id + '/confirmed?type=' + type);
 }
 
 router.post('/events/:id/register', requireAuth, (req, res) => signUp(req, res, 'attendee'));
 router.post('/events/:id/volunteer', requireAuth, (req, res) => signUp(req, res, 'volunteer'));
+
+// the pop-up after registering: confirmation sent + volunteer or not
+router.get('/events/:id/registered', requireAuth, async (req, res) => {
+  const event = await loadEvent(req, res);
+  if (!event) return;
+
+  const place = await Registration.findOne({
+    where: { eventId: event.id, seniorId: req.user.id, type: 'attendee', status: 'registered' }
+  });
+  if (!place) return res.redirect('/events');
+
+  const state = await capacity.getEventState(event);
+  const volunteering = await Registration.findOne({
+    where: { eventId: event.id, seniorId: req.user.id, type: 'volunteer', status: 'registered' }
+  });
+
+  await translateEvents([event], req.lang);
+  res.render('events/registered', {
+    title: req.t('registered.title'),
+    wide: true,
+    event,
+    ticket: place.ticketNumber,
+    canVolunteer: state.volunteerEnabled && !state.volunteerFull && !volunteering
+  });
+});
 
 router.get('/events/:id/confirmed', requireAuth, async (req, res) => {
   const event = await loadEvent(req, res);

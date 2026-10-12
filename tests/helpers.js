@@ -15,6 +15,7 @@ async function makeUser(extra = {}) {
     phone: '+2348031000' + phoneCounter,
     passwordHash: await bcrypt.hash('password123', 4),
     ageDeclared: true,
+    phoneVerifiedAt: new Date(), // most tests assume a confirmed phone
     ...extra
   });
 }

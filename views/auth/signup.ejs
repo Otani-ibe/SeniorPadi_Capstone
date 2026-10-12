@@ -1,10 +1,15 @@
 <%- include('../partials/header') %>
 
+<div class="mx-auto grid max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2" data-reveal>
+  <%- include('../partials/authAside') %>
+  <div class="p-6 sm:p-10">
 <h1 class="mb-2"><%= t('signup.title') %></h1>
 <p class="mb-6"><%= t('signup.intro') %></p>
 
 <form action="/signup" method="post" novalidate>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="registerEventId" value="<%= typeof after !== 'undefined' ? after.registerEventId : '' %>">
+  <input type="hidden" name="next" value="<%= typeof after !== 'undefined' ? after.next : '' %>">
 
   <div class="field">
     <label for="fullName"><%= t('signup.name') %></label>
@@ -41,9 +46,11 @@
     <% if (errors.ageDeclared) { %><span class="error"><%= errors.ageDeclared %></span><% } %>
   </div>
 
-  <button class="btn"><%= t('signup.submit') %></button>
+  <button class="btn w-full sm:w-full"><%= t('signup.submit') %></button>
 </form>
 
 <p class="mt-6"><%= t('home.have_account') %> <a href="/login"><%= t('home.login') %></a></p>
+  </div>
+</div>
 
 <%- include('../partials/footer') %>

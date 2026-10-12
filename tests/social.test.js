@@ -154,5 +154,5 @@ test('rejecting an ID keeps event access', async () => {
   const seniorAgent = await loggedInAgent(senior.phone);
   const eventPage = await seniorAgent.get('/events/' + event.id);
   const reg = await seniorAgent.post('/events/' + event.id + '/register').type('form').send({ _csrf: csrfFrom(eventPage.text) });
-  expect(reg.headers.location).toMatch(/confirmed/);
+  expect(reg.headers.location).toMatch(/registered/);
 });

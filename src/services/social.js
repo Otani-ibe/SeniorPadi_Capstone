@@ -39,6 +39,7 @@ async function canMessage(sender, recipient) {
   if (!sender || !recipient) return false;
   if (sender.id === recipient.id) return false;
   if (sender.verificationStatus !== 'approved' || recipient.verificationStatus !== 'approved') return false;
+  if (!sender.contactVerified()) return false;
   if (recipient.role !== 'senior') return false;
   return !(await isBlockedOrHidden(sender.id, recipient.id));
 }

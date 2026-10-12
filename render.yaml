@@ -38,3 +38,5 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      - key: GOOGLE_TRANSLATE_API_KEY
+        sync: false # Yorùbá for event text

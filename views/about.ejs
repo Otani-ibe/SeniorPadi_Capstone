@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+<% const tel = (supportPhone || '').replace(/[^\d+]/g, ''); %>
+
+<section class="mb-10 grid items-center gap-8 md:grid-cols-2">
+  <div data-reveal="left">
+    <p class="mb-2 font-medium text-coral"><i class="fa-solid fa-circle-info mr-2" aria-hidden="true"></i><%= t('about.title') %></p>
+    <h1 class="mb-4 text-[2rem] md:text-[2.4rem]"><%= t('about.intro') %></h1>
+  </div>
+  <img src="/images/hero.png" alt="" class="float mx-auto w-72 drop-shadow-2xl" width="900" height="1000" data-reveal="right" aria-hidden="true">
+</section>
+
+<div class="grid gap-6 md:grid-cols-2">
+  <section class="card" data-reveal="left">
+    <span class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-coral text-white"><i class="fa-solid fa-heart" aria-hidden="true"></i></span>
+    <h2 class="mb-2"><%= t('about.why_title') %></h2>
+    <p class="text-gray-700"><%= t('about.why_text') %></p>
+  </section>
+
+  <section class="card" data-reveal="right">
+    <span class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo text-white"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+    <h2 class="mb-2"><%= t('about.how_title') %></h2>
+    <ul class="space-y-2 text-gray-700">
+      <li><i class="fa-solid fa-check mr-2 text-mint" aria-hidden="true"></i><%= t('about.how_1') %></li>
+      <li><i class="fa-solid fa-check mr-2 text-mint" aria-hidden="true"></i><%= t('about.how_2') %></li>
+      <li><i class="fa-solid fa-check mr-2 text-mint" aria-hidden="true"></i><%= t('about.how_3') %></li>
+    </ul>
+  </section>
+
+  <section class="card" data-reveal="left">
+    <span class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-mint text-white"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i></span>
+    <h2 class="mb-2"><%= t('about.safety_title') %></h2>
+    <p class="text-gray-700"><%= t('about.safety_text') %></p>
+  </section>
+
+  <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-coral to-sun p-6 text-white" data-reveal="right">
+    <i class="fa-solid fa-phone-volume absolute -bottom-4 -right-2 text-[7rem] opacity-15" aria-hidden="true"></i>
+    <h2 class="mb-2"><%= t('about.contact_title') %></h2>
+    <p class="mb-5 opacity-90"><%= t('about.contact_text') %></p>
+    <% if (tel) { %><a href="tel:<%= tel %>" class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-medium text-coral-dark no-underline shadow"><i class="fa-solid fa-phone" aria-hidden="true"></i><%= t('call.call_now', { phone: supportPhone }) %></a><% } %>
+  </section>
+</div>
+
+<%- include('partials/footer') %>

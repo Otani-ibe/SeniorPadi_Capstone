@@ -51,7 +51,7 @@ test('registering for an event works with a plain form POST', async () => {
   const page = await agent.get('/events/' + event.id);
   const res = await agent.post('/events/' + event.id + '/register').type('form').send({ _csrf: csrfFrom(page.text) });
 
-  expect(res.headers.location).toBe('/events/' + event.id + '/confirmed?type=attendee');
+  expect(res.headers.location).toBe('/events/' + event.id + '/registered');
   expect(await Registration.count({ where: { eventId: event.id, seniorId: user.id } })).toBe(1);
 });
 

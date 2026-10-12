@@ -2,7 +2,8 @@
 
 <h1 class="mb-6"><%= t('settings.title') %></h1>
 
-<form action="/settings" method="post" class="mb-10">
+<div class="grid gap-6 md:grid-cols-[1.4fr_1fr]">
+<form action="/settings" method="post" class="card" data-reveal="left">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
   <fieldset class="field">
@@ -17,18 +18,28 @@
   </fieldset>
 
   <div class="field">
+    <label class="mb-3 flex items-center gap-3">
+      <input type="checkbox" name="remindersEnabled" value="yes" class="h-6 w-6" <%= currentUser.remindersEnabled ? 'checked' : '' %>>
+      <span><%= t('settings.remind_me') %></span>
+    </label>
     <label for="reminderDaysBefore"><%= t('settings.reminder') %></label>
     <select id="reminderDaysBefore" name="reminderDaysBefore">
-      <% [1, 2, 3].forEach(function (d) { %>
-        <option value="<%= d %>" <%= currentUser.reminderDaysBefore === d ? 'selected' : '' %>><%= d === 1 ? t('settings.reminder_one') : t('settings.reminder_days', { days: d }) %></option>
+      <% [1, 2, 3, 7].forEach(function (d) { %>
+        <option value="<%= d %>" <%= currentUser.reminderDaysBefore === d ? 'selected' : '' %>><%= d === 1 ? t('settings.reminder_one') : d === 7 ? t('settings.reminder_week') : t('settings.reminder_days', { days: d }) %></option>
       <% }) %>
     </select>
+    <span class="hint"><%= t('settings.reminder_hint') %></span>
   </div>
 
   <div class="field">
     <label for="email"><%= t('signup.email') %></label>
     <input type="email" id="email" name="email" value="<%= currentUser.email || '' %>">
     <span class="hint"><%= t('signup.email_hint') %></span>
+    <span class="hint">
+      <%= currentUser.phoneVerifiedAt ? t('verify.phone_ok') : t('verify.phone_not') %>
+      <% if (currentUser.email) { %>· <%= currentUser.emailVerifiedAt ? t('verify.email_ok') : t('verify.email_not') %><% } %>
+      <% if (!currentUser.contactVerified()) { %>· <a href="/verify?next=/settings"><%= t('verify.do_it') %></a><% } %>
+    </span>
     <% if (errors.email) { %><span class="error"><%= errors.email %></span><% } %>
   </div>
 
@@ -47,7 +58,8 @@
   <button class="btn"><%= t('settings.save') %></button>
 </form>
 
-<section class="mb-10">
+<div class="space-y-6" data-reveal="right">
+<section class="card">
   <h2 class="mb-3"><%= t('settings.picture') %></h2>
   <div class="mb-4 flex items-center gap-4">
     <% if (currentUser.profilePictureUrl) { %>
@@ -67,21 +79,23 @@
   </form>
 </section>
 
-<section>
+<section class="card">
   <h2 class="mb-3"><%= t('settings.password') %></h2>
   <a href="/change-password" class="btn-plain"><%= t('change.title') %></a>
 </section>
 
-<section class="mt-10">
+<section class="card">
   <h2 class="mb-3"><%= t('onboarding.title') %></h2>
   <a href="/onboarding" class="btn-plain"><%= t('onboarding.watch_again') %></a>
 </section>
 
-<section class="mt-12 border-t-2 border-gray-300 pt-6">
+<section class="card border-full-tag/30">
   <h2 class="mb-2"><%= t('delete.title') %></h2>
   <p class="mb-3"><%= t('delete.settings_intro') %></p>
   <a href="/account/delete" class="font-bold text-full-tag"><%= t('delete.title') %></a>
 </section>
+</div>
+</div>
 
 <script src="/js/upload.js" defer></script>
 <%- include('../partials/footer') %>

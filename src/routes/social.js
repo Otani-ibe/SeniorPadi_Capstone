@@ -4,6 +4,8 @@ const { Op } = require('sequelize');
 const { User, Message, Skip, Block, Report, ReportHide, Notification } = require('../models');
 const social = require('../services/social');
 const { sendMessage, MAX_MESSAGE } = require('../services/messaging');
+const exchange = require('../services/phoneExchange');
+const { translateTexts } = require('../services/translate');
 const cloud = require('../services/cloudinary');
 const { requireAuth, requireVerified } = require('../middleware/auth');
 const { idUpload } = require('../middleware/upload');
@@ -12,19 +14,34 @@ const numericId = require('../middleware/numericId');
 
 const router = express.Router();
 router.param('seniorId', numericId);
+
+// messaging needs a confirmed phone (and email). Send them to /verify first.
+function requireContactVerified(req, res, next) {
+  if (req.user.contactVerified()) return next();
+  req.session.afterVerify = { next: req.method === 'GET' ? req.originalUrl : '/messages' };
+  res.redirect('/verify');
+}
 router.param('id', numericId);
 
 const PAGE_SIZE = 50;
 
 // ---------- Find Seniors ----------
-router.get('/find-seniors', requireAuth, async (req, res) => {
+router.get('/find-seniors', async (req, res) => {
+  // not logged in (or session ended): the page shows a log-in pop-up
+  if (!req.user) {
+    return res.render('social/find', {
+      title: req.t('find.title'), wide: true, next: null,
+      modalMode: req.query.mode === 'signup' ? 'signup' : 'login'
+    });
+  }
   if (req.user.role === 'admin') return res.redirect('/admin');
 
   let next = null;
   if (req.user.verificationStatus === 'approved') {
     next = await social.nextSeniorFor(req.user);
+    if (next && next.bio) next.tBio = (await translateTexts([next.bio], req.lang))[0];
   }
-  res.render('social/find', { title: req.t('find.title'), next });
+  res.render('social/find', { title: req.t('find.title'), wide: true, next });
 });
 
 router.post('/find-seniors/id', requireAuth, uploadLimiter, idUpload('idDocument'), async (req, res) => {
@@ -39,13 +56,8 @@ router.post('/find-seniors/id', requireAuth, uploadLimiter, idUpload('idDocument
     req.flash('error', req.t('upload.no_file_id'));
     return res.redirect('/find-seniors');
   }
-  if (!cloud.isConfigured()) {
-    req.flash('error', req.t('upload.not_setup'));
-    return res.redirect('/find-seniors');
-  }
-
   try {
-    const uploaded = await cloud.uploadBuffer(req.file.buffer, 'id');
+    const uploaded = await cloud.uploadBuffer(req.file.buffer, 'id', req.file.mimetype);
     const oldPublicId = user.idDocumentPublicId;
     await user.update({
       idDocumentPublicId: uploaded.publicId,
@@ -142,7 +154,7 @@ router.post('/block/:seniorId', requireVerified, async (req, res) => {
 // ---------- messages ----------
 
 // list of conversations, newest first
-router.get('/messages', requireVerified, async (req, res) => {
+router.get('/messages', requireVerified, requireContactVerified, async (req, res) => {
   const me = req.user.id;
   const recent = await Message.findAll({
     where: { [Op.or]: [{ senderId: me }, { recipientId: me }] },
@@ -174,7 +186,7 @@ router.get('/messages', requireVerified, async (req, res) => {
   res.render('social/inbox', { title: req.t('messages.title'), conversations, unreadIds });
 });
 
-router.get('/messages/:seniorId', requireVerified, async (req, res) => {
+router.get('/messages/:seniorId', requireVerified, requireContactVerified, async (req, res) => {
   const other = await loadOtherSenior(req, res);
   if (!other) return;
 
@@ -201,15 +213,18 @@ router.get('/messages/:seniorId', requireVerified, async (req, res) => {
     { where: { userId: req.user.id, type: 'message.new', readAt: null, payload: { senderId: other.id } } }
   );
 
+  const ex = await exchange.between(req.user.id, other.id);
   res.render('social/thread', {
     title: other.firstName(),
     other,
+    exchange: ex,
+    incomingRequest: Boolean(ex && ex.status === 'pending' && ex.recipientId === req.user.id),
     messages,
     olderLink: hasOlder ? '/messages/' + other.id + '?before=' + messages[0].id : null
   });
 });
 
-router.post('/messages/:seniorId', requireVerified, messageLimiter, async (req, res) => {
+router.post('/messages/:seniorId', requireVerified, requireContactVerified, messageLimiter, async (req, res) => {
   const other = await loadOtherSenior(req, res);
   if (!other) return;
 
@@ -223,6 +238,25 @@ router.post('/messages/:seniorId', requireVerified, messageLimiter, async (req, 
     req.flash('error', req.t('messages.too_long', { max: MAX_MESSAGE }));
   }
   res.redirect('/messages/' + other.id + '#latest');
+});
+
+// ---------- swap phone numbers ----------
+router.post('/messages/:seniorId/exchange', requireVerified, requireContactVerified, async (req, res) => {
+  const other = await loadOtherSenior(req, res);
+  if (!other) return;
+  const result = await exchange.request(req.user, other);
+  if (result.ok) req.flash('success', req.t('exchange.sent', { name: other.firstName() }));
+  else if (result.reason === 'unavailable') return res.status(403).render('error', { title: req.t('messages.title'), message: req.t('messages.unavailable') });
+  res.redirect('/messages/' + other.id);
+});
+
+router.post('/messages/:seniorId/exchange/:answer', requireVerified, requireContactVerified, async (req, res) => {
+  const other = await loadOtherSenior(req, res);
+  if (!other) return;
+  const accept = req.params.answer === 'accept';
+  const result = await exchange.respond(req.user, other, accept);
+  if (result.ok) req.flash('success', req.t(accept ? 'exchange.you_accepted' : 'exchange.you_declined', { name: other.firstName() }));
+  res.redirect('/messages/' + other.id);
 });
 
 // ---------- notifications ----------

@@ -1,4 +1,6 @@
 const { Sequelize } = require('sequelize');
+// the database is chosen by DB_TARGET (see config/database.js), so the
+// settings are the same whatever NODE_ENV says
 const config = require('../config/config').development;
 
 const sequelize = new Sequelize(config.url, config);
@@ -17,6 +19,10 @@ const Report = require('./report')(sequelize);
 const ReportHide = require('./reportHide')(sequelize);
 const Notification = require('./notification')(sequelize);
 const OnboardingVideo = require('./onboardingVideo')(sequelize);
+const Attendance = require('./attendance')(sequelize);
+const PhoneExchange = require('./phoneExchange')(sequelize);
+const VerificationCode = require('./verificationCode')(sequelize);
+const Translation = require('./translation')(sequelize);
 
 // associations
 Organization.hasMany(Event, { foreignKey: 'organizationId' });
@@ -42,6 +48,17 @@ Report.belongsTo(User, { foreignKey: 'reportedId', as: 'reported' });
 
 Notification.belongsTo(User, { foreignKey: 'userId' });
 
+Event.hasMany(Attendance, { foreignKey: 'eventId' });
+Attendance.belongsTo(Event, { foreignKey: 'eventId' });
+Registration.hasOne(Attendance, { foreignKey: 'registrationId' });
+Attendance.belongsTo(Registration, { foreignKey: 'registrationId' });
+Attendance.belongsTo(User, { foreignKey: 'seniorId', as: 'senior' });
+
+PhoneExchange.belongsTo(User, { foreignKey: 'requesterId', as: 'requester' });
+PhoneExchange.belongsTo(User, { foreignKey: 'recipientId', as: 'recipient' });
+
+VerificationCode.belongsTo(User, { foreignKey: 'userId' });
+
 module.exports = {
   sequelize,
   Sequelize,
@@ -58,5 +75,9 @@ module.exports = {
   Report,
   ReportHide,
   Notification,
-  OnboardingVideo
+  OnboardingVideo,
+  Attendance,
+  PhoneExchange,
+  VerificationCode,
+  Translation
 };
