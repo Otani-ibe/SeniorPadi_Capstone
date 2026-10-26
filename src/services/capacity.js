@@ -17,12 +17,14 @@ async function countTaken(eventId, type, transaction) {
 }
 
 function capacityFor(event, type) {
-  return type === 'volunteer' ? (event.volunteerCapacity || 0) : event.capacity;
+  if (type === 'volunteer') return event.volunteerCapacity || 0;
+  return event.capacity == null ? Infinity : event.capacity; // no capacity set: no limit
 }
 
 // Works out which tags and buttons to show. Pure function so it's easy to test.
 function eventState(event, takenAttendee, takenVolunteer, now = new Date()) {
-  const attendeeLeft = event.capacity - takenAttendee;
+  const hasLimit = event.capacity != null;
+  const attendeeLeft = hasLimit ? event.capacity - takenAttendee : Infinity;
   const volunteerLeft = (event.volunteerCapacity || 0) - takenVolunteer;
 
   const msToDeadline = new Date(event.registrationDeadline) - now;
@@ -34,8 +36,9 @@ function eventState(event, takenAttendee, takenVolunteer, now = new Date()) {
     isOpen,
     isCancelled: event.status === 'cancelled',
     isPast: new Date(event.endsAt) < now,
-    attendeeFull: attendeeLeft <= 0,
-    attendeeAlmostFull: attendeeLeft > 0 && attendeeLeft <= ALMOST_FULL_AT,
+    attendeeFull: hasLimit && attendeeLeft <= 0,
+    attendeeAlmostFull: hasLimit && attendeeLeft > 0 && attendeeLeft <= ALMOST_FULL_AT,
+    slotsLeft: hasLimit ? Math.max(0, attendeeLeft) : null, // what seniors see: "23 slots left"; null shows nothing
     volunteerEnabled: event.volunteerEnabled,
     volunteerFull: event.volunteerEnabled && volunteerLeft <= 0,
     volunteerAlmostFull: event.volunteerEnabled && volunteerLeft > 0 && volunteerLeft <= ALMOST_FULL_AT,

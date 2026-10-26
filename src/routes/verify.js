@@ -24,9 +24,9 @@ async function carryOn(req, res) {
     const result = await registerAndNotify(req.user, after.registerEventId, after.type || 'attendee');
     if (!result.ok) {
       req.flash('error', req.t(result.errorKey));
-      return res.redirect('/events');
+      return res.redirect(after.home ? '/#events' : '/events');
     }
-    return res.redirect('/events/' + result.event.id + '/registered');
+    return res.redirect(after.home ? '/?registered=' + result.event.id + '#events' : '/events/' + result.event.id + '/registered');
   }
   req.flash('success', req.t('verify.all_done'));
   res.redirect((after && after.next) || '/');
@@ -38,9 +38,17 @@ router.get('/verify', requireAuth, async (req, res) => {
 
   if (req.user.contactVerified()) return carryOn(req, res);
 
+  // arriving here with an unconfirmed phone: text the code straight away (they can still ask again).
+  // If one was sent in the last minute, sendCode says "wait" and the code box is simply shown.
+  let sent = req.query.sent || '';
+  if (!sent && !req.user.phoneVerifiedAt) {
+    await sendCode(req.user, 'phone');
+    sent = 'phone';
+  }
+
   res.render('auth/verify', {
     title: req.t('verify.title'),
-    sent: req.query.sent || '',
+    sent,
     minutes: CODE_MINUTES,
     needsEmail: Boolean(req.user.email) && !req.user.emailVerifiedAt
   });

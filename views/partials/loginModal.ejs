@@ -13,11 +13,11 @@
             md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-full md:max-w-lg md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:p-8">
   <div class="mb-2 flex items-start justify-between gap-4">
     <h2 id="login-title" class="text-[1.6rem]"><%= isSignup ? t('modal.title_signup') : heading %></h2>
-    <a href="<%= closeHref %>" class="rounded-lg px-2 text-3xl leading-none text-ink no-underline" aria-label="<%= t('modal.close') %>">&times;</a>
+    <a href="<%= closeHref %>" data-modal-close class="rounded-lg px-2 text-3xl leading-none text-ink no-underline" aria-label="<%= t('modal.close') %>">&times;</a>
   </div>
 
   <% if (isSignup) { %>
-    <p class="mb-5 text-gray-700"><%= t('modal.signup_note') %></p>
+    <p class="mb-5 text-gray-700"><%= t('modal.signup_note') %> <%= t('signup.code_note') %></p>
     <form action="/signup" method="post" novalidate>
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <input type="hidden" name="registerEventId" value="<%= regId %>">
@@ -30,22 +30,13 @@
         <label for="modal-phone"><%= t('signup.phone') %></label>
         <%- include('phoneInput', { id: 'modal-phone', name: 'phone', value: '' }) %>
       </div>
-      <div class="field">
-        <label for="modal-email"><%= t('signup.email') %></label>
-        <input type="email" id="modal-email" name="email" autocomplete="email">
-      </div>
-      <div class="field">
-        <label for="modal-password"><%= t('signup.password') %></label>
-        <input type="password" id="modal-password" name="password" autocomplete="new-password" required>
-        <span class="hint"><%= t('signup.password_hint') %></span>
-      </div>
       <label class="field flex items-start gap-3 font-normal">
         <input type="checkbox" name="ageDeclared" value="yes" class="mt-1 h-7 w-7 shrink-0">
         <strong><%= t('signup.age') %></strong>
       </label>
       <button class="btn w-full sm:w-full"><%= regId ? t('modal.signup_and_register') : t('signup.submit') %></button>
     </form>
-    <p class="mt-5"><%= t('modal.have_account') %> <a href="<%= switchHref %>"><%= t('home.login') %></a></p>
+    <p class="mt-5"><%= t('modal.have_account') %> <a href="<%= switchHref %>" data-modal-switch><%= t('home.login') %></a></p>
 
   <% } else { %>
     <p class="mb-5 text-gray-700"><%= t('modal.session_note') %></p>
@@ -57,13 +48,8 @@
         <label for="modal-phone"><%= t('signup.phone') %></label>
         <%- include('phoneInput', { id: 'modal-phone', name: 'phone', value: '' }) %>
       </div>
-      <div class="field">
-        <label for="modal-password"><%= t('signup.password') %></label>
-        <input type="password" id="modal-password" name="password" autocomplete="current-password" required>
-      </div>
-      <button class="btn w-full sm:w-full"><%= regId ? t('modal.login_and_register') : t('login.submit') %></button>
+      <button class="btn w-full sm:w-full"><%= t('login.send_code') %></button>
     </form>
-    <p class="mt-5"><%= t('login.no_account') %> <a href="<%= switchHref %>"><%= t('home.create_account') %></a></p>
-    <p class="mt-2"><a href="/forgot-password"><%= t('login.forgot') %></a></p>
+    <p class="mt-5"><%= t('login.no_account') %> <a href="<%= switchHref %>" data-modal-switch><%= t('home.create_account') %></a></p>
   <% } %>
 </div>

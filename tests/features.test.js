@@ -4,15 +4,14 @@ const { Registration, Attendance, User, Translation } = require('../src/models')
 const { sendCode } = require('../src/services/verification');
 const { translateTexts } = require('../src/services/translate');
 const { sendReminders } = require('../src/services/cron');
-const { resetDb, makeUser, makeEvent, csrfFrom, sequelize, DAY } = require('./helpers');
+const { resetDb, makeUser, makeEvent, csrfFrom, sequelize, DAY, signIn } = require('./helpers');
 
 beforeEach(resetDb);
 afterAll(() => sequelize.close());
 
 async function loggedInAgent(phone) {
   const agent = request.agent(app);
-  const page = await agent.get('/login');
-  await agent.post('/login').type('form').send({ _csrf: csrfFrom(page.text), phone, password: 'password123' });
+  await signIn(agent, phone);
   return agent;
 }
 async function post(agent, url, data) {
@@ -36,9 +35,10 @@ test('registering gives a unique ticket number that is shown on the pop-up', asy
 
 // ---------- phone and email verification ----------
 test('an unconfirmed phone has to be confirmed before joining an event', async () => {
-  const user = await makeUser({ phoneVerifiedAt: null });
+  const user = await makeUser();
   const event = await makeEvent();
   const agent = await loggedInAgent(user.phone);
+  await user.update({ phoneVerifiedAt: null }); // e.g. an older account whose phone was never confirmed
 
   const res = await post(agent, '/events/' + event.id + '/register');
   expect(res.headers.location).toBe('/verify');
@@ -53,8 +53,9 @@ test('an unconfirmed phone has to be confirmed before joining an event', async (
 });
 
 test('a wrong code is refused', async () => {
-  const user = await makeUser({ phoneVerifiedAt: null });
+  const user = await makeUser();
   const agent = await loggedInAgent(user.phone);
+  await user.update({ phoneVerifiedAt: null });
   await sendCode(user, 'phone');
   const page = await agent.get('/verify?sent=phone');
   await agent.post('/verify/check').type('form').send({ _csrf: csrfFrom(page.text), channel: 'phone', code: '000000' });
@@ -70,9 +71,10 @@ test('if they gave an email, it must be confirmed too', async () => {
 });
 
 test('messaging needs a confirmed phone', async () => {
-  const me = await makeUser({ verificationStatus: 'approved', phoneVerifiedAt: null });
+  const me = await makeUser({ verificationStatus: 'approved' });
   const other = await makeUser({ verificationStatus: 'approved' });
   const agent = await loggedInAgent(me.phone);
+  await me.update({ phoneVerifiedAt: null });
   const res = await agent.get('/messages/' + other.id);
   expect(res.headers.location).toBe('/verify');
 });
@@ -214,4 +216,27 @@ test('event text is translated once and then read from the database', async () =
     global.fetch = realFetch;
     delete process.env.GOOGLE_TRANSLATE_API_KEY;
   }
+});
+
+// ---------- free or paid events ----------
+test('a paid event shows its price to seniors, a free one says Free', async () => {
+  await makeEvent({ title: 'Paid baking class', price: 2500 });
+  await makeEvent({ title: 'Morning walk', startsAt: new Date(Date.now() + 4 * DAY), endsAt: new Date(Date.now() + 4 * DAY + 3600000) });
+  const page = await request(app).get('/events?area=all');
+  expect(page.text).toMatch(/₦2,500/);
+  expect(page.text.match(/₦/g)).toHaveLength(2); // the sticker on the photo, and the price row shown on phones
+  expect(page.text.match(/data-price="free"/g)).toHaveLength(1);
+  expect(page.text.match(/data-price="paid"/g)).toHaveLength(1);
+});
+
+test('staff must give an amount when an event is paid', async () => {
+  await makeEvent(); // creates an organization, which the form needs
+  const admin = await makeUser({ role: 'admin' });
+  const agent = await loggedInAgent(admin.phone);
+  const form = await agent.get('/admin/events/new');
+  // a photo-upload form, so the token goes in the address
+  const res = await agent.post('/admin/events?_csrf=' + encodeURIComponent(csrfFrom(form.text))).type('form').send({ pricing: 'paid', price: '' });
+  expect(res.status).toBe(400);
+  expect(res.text).toMatch(/Enter how much it costs/);
+  expect(res.text).toMatch(/value="paid" class="[^"]*" checked/);
 });

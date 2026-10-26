@@ -29,7 +29,7 @@
 <% } else { %>
   <form action="/admin/events/<%= event.id %>/attendance" method="post">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-    <div class="overflow-x-auto">
+    <div class="relative overflow-x-auto">
       <table class="admin-table mb-6">
         <thead>
           <tr><th>Name</th><th>Ticket</th><th>As</th><th>Came</th><th>Didn't come</th><th>Not marked</th></tr>

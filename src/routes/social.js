@@ -41,7 +41,8 @@ router.get('/find-seniors', async (req, res) => {
     next = await social.nextSeniorFor(req.user);
     if (next && next.bio) next.tBio = (await translateTexts([next.bio], req.lang))[0];
   }
-  res.render('social/find', { title: req.t('find.title'), wide: true, next });
+  const skippedCount = req.user.verificationStatus === 'approved' ? (await social.skippedSeniorsFor(req.user)).length : 0;
+  res.render('social/find', { title: req.t('find.title'), wide: true, next, skippedCount });
 });
 
 router.post('/find-seniors/id', requireAuth, uploadLimiter, idUpload('idDocument'), async (req, res) => {
@@ -81,6 +82,24 @@ router.post('/find-seniors/:id/skip', requireVerified, async (req, res) => {
     await Skip.findOrCreate({ where: { seniorId: req.user.id, skippedId: id } });
   }
   res.redirect('/find-seniors');
+});
+
+// seniors you skipped: see them again, put them back, or send a message
+router.get('/find-seniors/skipped', requireVerified, async (req, res) => {
+  const people = await social.skippedSeniorsFor(req.user);
+  const bios = await translateTexts(people.map((p) => p.bio || ''), req.lang);
+  people.forEach((p, i) => { p.tBio = bios[i]; });
+  res.render('social/skipped', { title: req.t('find.skipped_title'), people });
+});
+
+router.post('/find-seniors/:id/unskip', requireVerified, async (req, res) => {
+  const skip = await Skip.findOne({ where: { seniorId: req.user.id, skippedId: Number(req.params.id) } });
+  if (skip) {
+    await skip.destroy();
+    const person = await User.findByPk(skip.skippedId);
+    if (person) req.flash('success', req.t('find.shown_again', { name: person.firstName() }));
+  }
+  res.redirect('/find-seniors/skipped');
 });
 
 // ---------- report ----------

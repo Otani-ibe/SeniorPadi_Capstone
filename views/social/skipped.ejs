@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+
+<div class="mx-auto max-w-2xl">
+  <p class="mb-4"><a href="/find-seniors" class="font-semibold"><i class="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i><%= t('find.back') %></a></p>
+  <h1 class="text-[2rem] md:text-[2.4rem]"><%= t('find.skipped_title') %></h1>
+
+  <% if (people.length === 0) { %>
+    <div class="mt-6 rounded-[2rem] bg-surface px-6 py-10 text-center">
+      <p class="text-[1.2rem] font-medium"><%= t('find.skipped_none') %></p>
+    </div>
+  <% } else { %>
+    <p class="mt-2 text-gray-700"><%= t('find.skipped_intro') %></p>
+
+    <ul class="mt-6 space-y-4">
+      <% people.forEach(function (person) { %>
+        <li class="rounded-[1.75rem] bg-surface p-5">
+          <div class="flex items-start gap-4">
+            <%- include('../partials/avatar', { person, cls: 'h-20 w-20 shrink-0' }) %>
+            <div class="min-w-0">
+              <h2 class="text-[1.35rem]"><%= person.firstName() %></h2>
+              <% if (placeOf(person)) { %><p class="text-gray-700"><i class="fa-solid fa-location-dot mr-1 text-indigo" aria-hidden="true"></i><%= placeOf(person) %></p><% } %>
+              <p class="mt-1 line-clamp-3 text-gray-700"><%= person.tBio || person.bio || t('find.no_bio') %></p>
+            </div>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <form action="/find-seniors/<%= person.id %>/unskip" method="post">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="flex min-h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-gray-300 bg-white px-4 font-semibold text-ink transition hover:border-ink">
+                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('find.show_again') %>
+              </button>
+            </form>
+            <a href="/messages/<%= person.id %>" class="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-indigo px-4 font-semibold text-white no-underline transition hover:bg-indigo-dark">
+              <i class="fa-solid fa-comment-dots" aria-hidden="true"></i><%= t('find.message_short') %>
+            </a>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

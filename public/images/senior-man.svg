@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Senior man">
+  <defs>
+    <clipPath id="round"><circle cx="60" cy="60" r="60"/></clipPath>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="120" height="120" fill="#ede5ff"/>
+    <!-- agbada / buba top -->
+    <path d="M12 124 C12 94 33 83 60 83 C87 83 108 94 108 124 Z" fill="#1f6f5c"/>
+    <path d="M48 84 L60 98 L72 84" fill="none" stroke="#a7e3d1" stroke-width="3" stroke-linejoin="round"/>
+    <!-- neck, ears, face -->
+    <rect x="52" y="67" width="16" height="18" rx="6" fill="#6b3f26"/>
+    <circle cx="39" cy="56" r="5" fill="#7e5034"/>
+    <circle cx="81" cy="56" r="5" fill="#7e5034"/>
+    <ellipse cx="60" cy="55" rx="21" ry="23" fill="#7e5034"/>
+    <!-- grey sideburns -->
+    <path d="M39.5 48 C39 54 40 58 41.5 60 L43 49 Z" fill="#dcd8e4"/>
+    <path d="M80.5 48 C81 54 80 58 78.5 60 L77 49 Z" fill="#dcd8e4"/>
+    <!-- fila (cap), folded to one side -->
+    <path d="M38 45 C38 30 48 24 60 24 C73 24 83 31 82 45 Z" fill="#6d28d9"/>
+    <path d="M60 24 C74 22 88 26 90 36 C82 32 72 31 66 33 Z" fill="#5b21b6"/>
+    <rect x="37" y="42" width="46" height="5" rx="2.5" fill="#5b21b6"/>
+    <!-- glasses -->
+    <circle cx="51" cy="56" r="6.5" fill="none" stroke="#1a1523" stroke-width="2"/>
+    <circle cx="69" cy="56" r="6.5" fill="none" stroke="#1a1523" stroke-width="2"/>
+    <path d="M57.5 56 H62.5" stroke="#1a1523" stroke-width="2"/>
+    <circle cx="51" cy="56.5" r="1.7" fill="#1a1523"/>
+    <circle cx="69" cy="56.5" r="1.7" fill="#1a1523"/>
+    <!-- grey moustache, smile -->
+    <path d="M50 66 Q55 62.5 60 65 Q65 62.5 70 66 Q65 68 60 66.5 Q55 68 50 66 Z" fill="#dcd8e4"/>
+    <path d="M54 70 Q60 74 66 70" fill="none" stroke="#3b1f12" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+</svg>

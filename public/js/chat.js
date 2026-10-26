@@ -47,7 +47,7 @@
     li.className = 'flex ' + (mine ? 'justify-end' : 'justify-start');
 
     var bubble = document.createElement('div');
-    bubble.className = 'max-w-[85%] rounded-xl px-4 py-3 ' + (mine ? 'bg-indigo text-white' : 'bg-mist text-ink');
+    bubble.className = mine ? 'bubble bubble-mine' : 'bubble bubble-theirs';
 
     var who = document.createElement('p');
     who.className = 'sr-only';
@@ -58,7 +58,7 @@
     body.textContent = msg.body;
 
     var when = document.createElement('p');
-    when.className = 'mt-1 text-base ' + (mine ? 'text-white/80' : 'text-gray-700');
+    when.className = 'bubble-time';
     when.textContent = thread.getAttribute('data-just-now');
 
     bubble.appendChild(who);

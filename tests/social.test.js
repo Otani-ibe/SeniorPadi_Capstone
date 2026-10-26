@@ -8,15 +8,14 @@ const app = require('../src/app');
 const { User, Registration, ReportHide, Block, Message } = require('../src/models');
 const social = require('../src/services/social');
 const { removeFromSocial, deleteAccount } = require('../src/services/removal');
-const { resetDb, makeUser, makeEvent, csrfFrom, sequelize, DAY } = require('./helpers');
+const { resetDb, makeUser, makeEvent, csrfFrom, sequelize, DAY, signIn } = require('./helpers');
 
 beforeEach(resetDb);
 afterAll(() => sequelize.close());
 
 async function loggedInAgent(phone) {
   const agent = request.agent(app);
-  const page = await agent.get('/login');
-  await agent.post('/login').type('form').send({ _csrf: csrfFrom(page.text), phone, password: 'password123' });
+  await signIn(agent, phone);
   return agent;
 }
 
@@ -87,6 +86,35 @@ test('skipped seniors do not come back', async () => {
   const page = await agent.get('/find-seniors');
   await agent.post('/find-seniors/' + other.id + '/skip').type('form').send({ _csrf: csrfFrom(page.text) });
   expect(await social.nextSeniorFor(me)).toBeNull();
+});
+
+test('seniors can see who they skipped and put them back', async () => {
+  const me = await verified();
+  const other = await makeUser({ verificationStatus: 'approved', fullName: 'Mama Ronke Bello' });
+  const agent = await loggedInAgent(me.phone);
+
+  let page = await agent.get('/find-seniors');
+  await agent.post('/find-seniors/' + other.id + '/skip').type('form').send({ _csrf: csrfFrom(page.text) });
+
+  page = await agent.get('/find-seniors/skipped');
+  expect(page.status).toBe(200);
+  expect(page.text).toMatch(/Mama/);
+
+  await agent.post('/find-seniors/' + other.id + '/unskip').type('form').send({ _csrf: csrfFrom(page.text) });
+  expect((await social.nextSeniorFor(me)).id).toBe(other.id);
+  page = await agent.get('/find-seniors/skipped');
+  expect(page.text).toMatch(/You haven't skipped anyone|You haven&#39;t skipped anyone/);
+});
+
+test('someone you blocked does not appear in your skipped list', async () => {
+  const me = await verified();
+  const other = await verified();
+  const agent = await loggedInAgent(me.phone);
+
+  const page = await agent.get('/find-seniors');
+  await agent.post('/find-seniors/' + other.id + '/skip').type('form').send({ _csrf: csrfFrom(page.text) });
+  await Block.create({ blockerId: me.id, blockedId: other.id });
+  expect(await social.skippedSeniorsFor(me)).toHaveLength(0);
 });
 
 test('removing from the social layer does not touch registrations', async () => {

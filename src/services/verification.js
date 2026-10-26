@@ -7,7 +7,8 @@ const { sendSms, sendEmail } = require('./notify');
 
 const CODE_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
-const WAIT_SECONDS = 60; // between "send me a code" taps
+const WAIT_SECONDS = process.env.NODE_ENV === 'test' ? 0 : 60; // between "send me a code" taps
+const lastCodes = {}; // test runs only: the newest plain code for each user
 
 function hash(code) {
   return crypto.createHash('sha256').update(String(code)).digest('hex');
@@ -34,6 +35,7 @@ async function sendCode(user, channel) {
   if (channel === 'phone') await sendSms(user, 'verify.code', vars);
   else await sendEmail(user, 'verify.code', vars);
   // the automated tests need the code; it's never returned anywhere else
+  if (process.env.NODE_ENV === 'test') lastCodes[user.id] = code;
   return process.env.NODE_ENV === 'test' ? { ok: true, code } : { ok: true };
 }
 
@@ -56,4 +58,8 @@ async function checkCode(user, channel, code) {
   return { ok: true };
 }
 
-module.exports = { sendCode, checkCode, CODE_MINUTES };
+function lastCodeForTests(userId) {
+  return process.env.NODE_ENV === 'test' ? lastCodes[userId] : undefined;
+}
+
+module.exports = { sendCode, checkCode, CODE_MINUTES, lastCodeForTests };

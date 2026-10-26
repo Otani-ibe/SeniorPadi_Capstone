@@ -1,15 +1,17 @@
 <%- include('../partials/header') %>
 
-<div class="mx-auto grid max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2" data-reveal>
+<div class="auth-shell">
   <%- include('../partials/authAside') %>
-  <div class="p-6 sm:p-10">
+  <div class="auth-form">
 <h1 class="mb-2"><%= t('signup.title') %></h1>
-<p class="mb-6"><%= t('signup.intro') %></p>
+<p class="mb-2"><%= t('signup.intro') %></p>
+<p class="mb-6 font-semibold"><%= t('signup.code_note') %></p>
 
 <form action="/signup" method="post" novalidate>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <input type="hidden" name="registerEventId" value="<%= typeof after !== 'undefined' ? after.registerEventId : '' %>">
   <input type="hidden" name="next" value="<%= typeof after !== 'undefined' ? after.next : '' %>">
+  <input type="hidden" name="from" value="<%= typeof after !== 'undefined' && after.home ? 'home' : '' %>">
 
   <div class="field">
     <label for="fullName"><%= t('signup.name') %></label>
@@ -22,20 +24,6 @@
     <%- include('../partials/phoneInput', { id: 'phone', name: 'phone', value: values.phone }) %>
     <span class="hint"><%= t('signup.phone_hint') %></span>
     <% if (errors.phone) { %><span class="error"><%= errors.phone %></span><% } %>
-  </div>
-
-  <div class="field">
-    <label for="email"><%= t('signup.email') %></label>
-    <input type="email" id="email" name="email" value="<%= values.email || '' %>" autocomplete="email">
-    <span class="hint"><%= t('signup.email_hint') %></span>
-    <% if (errors.email) { %><span class="error"><%= errors.email %></span><% } %>
-  </div>
-
-  <div class="field">
-    <label for="password"><%= t('signup.password') %></label>
-    <input type="password" id="password" name="password" autocomplete="new-password" required>
-    <span class="hint"><%= t('signup.password_hint') %></span>
-    <% if (errors.password) { %><span class="error"><%= errors.password %></span><% } %>
   </div>
 
   <div class="field">

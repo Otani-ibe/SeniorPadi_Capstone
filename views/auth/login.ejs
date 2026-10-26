@@ -1,34 +1,31 @@
 <%- include('../partials/header') %>
 
-<div class="mx-auto grid max-w-4xl overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2" data-reveal>
+<div class="auth-shell">
   <%- include('../partials/authAside') %>
-  <div class="p-6 sm:p-10">
-<h1 class="mb-6"><%= t('login.title') %></h1>
+  <div class="auth-form">
+<span class="icon-dot mb-4 h-14 w-14 text-[1.4rem]"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i></span>
+<h1 class="mb-2"><%= t('login.title') %></h1>
+<p class="mb-6"><%= t('login.code_intro') %></p>
 
 <% if (error) { %>
-  <div role="alert" class="mb-6 rounded-2xl border-l-4 border-full-tag bg-full-bg p-4 font-medium"><%= error %></div>
+  <div role="alert" class="mb-6 flex items-start gap-3 rounded-[1.25rem] bg-full-bg p-4 font-semibold"><i class="fa-solid fa-circle-exclamation mt-0.5 text-[1.2rem] text-full-tag" aria-hidden="true"></i><%= error %></div>
 <% } %>
 
 <form action="/login" method="post">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <input type="hidden" name="registerEventId" value="<%= typeof after !== 'undefined' ? after.registerEventId : '' %>">
   <input type="hidden" name="next" value="<%= typeof after !== 'undefined' ? after.next : '' %>">
+  <input type="hidden" name="from" value="<%= typeof after !== 'undefined' && after.home ? 'home' : '' %>">
 
   <div class="field">
     <label for="phone"><%= t('signup.phone') %></label>
     <%- include('../partials/phoneInput', { id: 'phone', name: 'phone', value: phone }) %>
   </div>
 
-  <div class="field">
-    <label for="password"><%= t('signup.password') %></label>
-    <input type="password" id="password" name="password" autocomplete="current-password" required>
-  </div>
-
-  <button class="btn w-full sm:w-full"><%= t('login.submit') %></button>
+  <button class="btn w-full sm:w-full"><%= t('login.send_code') %></button>
 </form>
 
-<p class="mt-6"><a href="/forgot-password"><%= t('login.forgot') %></a></p>
-<p class="mt-2"><%= t('login.no_account') %> <a href="/signup<%= typeof after !== 'undefined' && after.registerEventId ? '?register=' + after.registerEventId : '' %>"><%= t('home.create_account') %></a></p>
+<p class="mt-6 rounded-2xl bg-surface p-4"><%= t('login.no_account') %> <a class="font-semibold" href="/signup<%= typeof after !== 'undefined' && after.registerEventId ? '?register=' + after.registerEventId + (after.home ? '&from=home' : '') : '' %>"><%= t('home.create_account') %></a></p>
   </div>
 </div>
 
