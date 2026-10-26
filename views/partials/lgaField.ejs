@@ -1,0 +1,12 @@
+<%# where the senior lives: one of Ibadan's 11 local government areas.
+    needs: id, value; optional: error %>
+<div class="field">
+  <label for="<%= id %>"><%= t('signup.lga') %></label>
+  <select id="<%= id %>" name="lga" required <%= typeof error !== 'undefined' && error ? 'aria-invalid=true' : '' %>>
+    <option value=""><%= t('signup.lga_choose') %></option>
+    <% lgas.forEach(function (a) { %>
+      <option value="<%= a %>" <%= value === a ? 'selected' : '' %>><%= t('area.' + a) %></option>
+    <% }) %>
+  </select>
+  <% if (typeof error !== 'undefined' && error) { %><span class="error"><%= error %></span><% } %>
+</div>

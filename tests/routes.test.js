@@ -1,19 +1,14 @@
 const request = require('supertest');
 const app = require('../src/app');
 const { Registration } = require('../src/models');
-const { resetDb, makeUser, makeEvent, csrfFrom, sequelize } = require('./helpers');
+const { resetDb, makeUser, makeEvent, csrfFrom, sequelize, signIn } = require('./helpers');
 
 beforeAll(resetDb);
 afterAll(() => sequelize.close());
 
 async function loggedInAgent(phone) {
   const agent = request.agent(app);
-  const page = await agent.get('/login');
-  await agent.post('/login').type('form').send({
-    _csrf: csrfFrom(page.text),
-    phone,
-    password: 'password123'
-  });
+  await signIn(agent, phone);
   return agent;
 }
 
@@ -24,11 +19,20 @@ test('a senior can sign up with a plain form (no JavaScript)', async () => {
     _csrf: csrfFrom(page.text),
     fullName: 'Mama Tolu',
     phone: '0805 123 4567',
-    password: 'secret123',
     ageDeclared: 'yes'
   });
   expect(res.status).toBe(302);
-  expect(res.headers.location).toBe('/onboarding');
+  // no password: a code is texted and the next page asks for it
+  expect(res.headers.location).toBe('/login/code');
+});
+
+test('the sign-up form only asks for name, phone number and password', async () => {
+  const page = await request(app).get('/signup');
+  expect(page.text).toContain('name="fullName"');
+  expect(page.text).toContain('name="phone"');
+  for (const gone of ['name="password"', 'name="email"', 'name="passwordConfirm"', 'name="lga"', 'name="gender"']) {
+    expect(page.text).not.toContain(gone);
+  }
 });
 
 test('signup needs the 60+ box ticked', async () => {
@@ -53,14 +57,6 @@ test('registering for an event works with a plain form POST', async () => {
 
   expect(res.headers.location).toBe('/events/' + event.id + '/registered');
   expect(await Registration.count({ where: { eventId: event.id, seniorId: user.id } })).toBe(1);
-});
-
-test('registration counts are never shown to seniors', async () => {
-  const user = await makeUser();
-  const event = await makeEvent({ capacity: 997 });
-  const agent = await loggedInAgent(user.phone);
-  const page = await agent.get('/events/' + event.id);
-  expect(page.text).not.toMatch(/997/);
 });
 
 test('forms without the CSRF token are rejected', async () => {

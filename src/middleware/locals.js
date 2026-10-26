@@ -1,6 +1,6 @@
 // Makes the logged in user, language, translations and flash messages
 // available in every view.
-const { User, Notification } = require('../models');
+const { User, Notification, Event } = require('../models');
 const { t } = require('../services/i18n');
 const dates = require('../services/dates');
 
@@ -23,8 +23,19 @@ async function locals(req, res, next) {
   res.locals.t = req.t;
   res.locals.formatDate = (d) => dates.formatDate(d, lang);
   res.locals.formatTime = dates.formatTime;
+  res.locals.shortDate = dates.shortDate;
   res.locals.currentPath = req.path;
   res.locals.supportPhone = process.env.SUPPORT_PHONE || '';
+  // the Call and WhatsApp buttons open the phone app or WhatsApp, not another page.
+  // WHATSAPP_NUMBER is used if set, otherwise the support number. Nigerian 0... numbers become 234...
+  const waNumber = (process.env.WHATSAPP_NUMBER || process.env.SUPPORT_PHONE || '').replace(/[^\d+]/g, '');
+  const waDigits = waNumber.startsWith('+') ? waNumber.slice(1) : waNumber.startsWith('0') ? '234' + waNumber.slice(1) : waNumber;
+  res.locals.supportTel = (process.env.SUPPORT_PHONE || '').replace(/[^\d+]/g, '');
+  res.locals.whatsappUrl = waDigits ? 'https://wa.me/' + waDigits + '?text=' + encodeURIComponent(req.t('whatsapp.hello')) : '';
+  res.locals.categoryIcons = Event.CATEGORY_ICONS;
+  res.locals.lgas = Event.AREAS;
+  // "Bodija, Ibadan North": their neighbourhood and local government area, whichever they gave
+  res.locals.placeOf = (person) => [person.area, person.lga ? req.t('area.' + person.lga) : null].filter(Boolean).join(', ');
 
   // flash messages live in the session for one page view
   res.locals.flash = req.session.flash || null;

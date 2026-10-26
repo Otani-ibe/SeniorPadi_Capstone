@@ -1,127 +1,252 @@
+<%
+  // Pictures for this page. Leave '' to show an empty grey slot.
+  // Put the files in public/images/home/ and write the path, e.g. '/images/home/senior-1.jpg'.
+  const photos = {
+    centre: '/images/home/senior-centre.jpg', // big photo in the middle of the circle (stays put)
+    // six small photos around it, clockwise from the top. Men and women take turns.
+    around: [1, 2, 3, 4, 5, 6].map((n) => '/images/home/senior-' + n + '.jpg'),
+    seniors: [7, 8].map((n) => '/images/home/senior-' + n + '.jpg'), // Find seniors: the first two faces
+    // ...which then take turns changing to these
+    seniorsPool: [1, 2, 3, 4, 5, 6, 7, 8].map((n) => '/images/home/senior-' + n + '.jpg').concat('/images/home/senior-centre.jpg')
+  };
+
+  // the six small photos sit on the outer ring (40% from the centre), so they never poke
+  // past the edge of the screen as the circle turns. Sizes vary a little to look natural.
+  const spots = [-90, -30, 30, 90, 150, 210].map(function (angle, i) {
+    const rad = angle * Math.PI / 180;
+    return { x: 50 + 40 * Math.cos(rad), y: 50 + 40 * Math.sin(rad), size: [18, 15, 17, 13, 18, 14][i] };
+  });
+
+  // a senior who has added a photo sees themselves in the middle. Otherwise the page picture stays.
+  const centreSrc = currentUser && currentUser.profilePictureUrl ? currentUser.profilePictureUrl : photos.centre;
+
+  // a signed-in senior is welcomed by name, with the name in purple
+  const welcomeHeading = currentUser ? t('home.welcome_back', { name: currentUser.firstName() }) : '';
+  const highlight = currentUser ? currentUser.firstName() : '';
+%>
 <%- include('partials/header') %>
 
-<%# ================= HERO ================= %>
-<section class="relative overflow-hidden">
-  <div class="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-coral/20 blur-3xl float-slow" aria-hidden="true"></div>
-  <div class="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-sun/25 blur-3xl float" aria-hidden="true"></div>
-
-  <div class="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 md:grid-cols-2 md:py-20">
-    <div data-reveal="left">
-      <span class="mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-[0.9rem] font-medium text-indigo shadow-sm ring-1 ring-gray-200">
-        <i class="fa-solid fa-location-dot text-coral" aria-hidden="true"></i><%= t('home.eyebrow') %>
-      </span>
-      <h1 class="mb-5 text-[2.4rem] font-extrabold leading-[1.1] tracking-tight md:text-[3.4rem]">
-        <%= currentUser ? t('home.welcome_back', { name: currentUser.firstName() }) : t('home.hero_title') %>
-        <span class="block text-coral"><%= t('home.hero_highlight') %></span>
-      </h1>
-      <p class="mb-8 max-w-lg text-[1.1rem] text-gray-600"><%= t('home.tagline') %></p>
-      <div class="flex flex-col gap-3 sm:flex-row">
-        <a href="/events" class="btn"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><%= t('nav.find_events') %></a>
-        <a href="/find-seniors" class="btn-plain"><i class="fa-solid fa-user-group" aria-hidden="true"></i><%= t('nav.find_seniors') %></a>
-      </div>
-      <ul class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-[0.95rem] text-gray-600">
-        <li><i class="fa-solid fa-circle-check mr-1.5 text-mint" aria-hidden="true"></i><%= t('home.trust_free') %></li>
-        <li><i class="fa-solid fa-circle-check mr-1.5 text-mint" aria-hidden="true"></i><%= t('home.trust_language') %></li>
-        <li><i class="fa-solid fa-circle-check mr-1.5 text-mint" aria-hidden="true"></i><%= t('home.trust_safe') %></li>
-      </ul>
-    </div>
-
-    <div class="relative" data-reveal="right">
-      <img src="/images/hero.png" alt="<%= t('home.hero_alt') %>" class="float relative mx-auto w-full max-w-md drop-shadow-2xl" width="900" height="1000">
-    </div>
-  </div>
-</section>
-
-<%# ================= THREE THINGS YOU CAN DO ================= %>
-<section class="mx-auto max-w-6xl px-4 py-12">
-  <div class="mb-8 max-w-xl" data-reveal>
-    <p class="mb-2 font-medium text-coral"><%= t('home.what_kicker') %></p>
-    <h2 class="text-[1.9rem] md:text-[2.2rem]"><%= t('home.what_title') %></h2>
-  </div>
-  <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-    <% [
-         { href: '/events', icon: 'fa-calendar-days', title: t('nav.find_events'), text: t('home.card_events'), style: 'bg-indigo text-white', iconBg: 'bg-white/15 text-white' },
-         { href: '/find-seniors', icon: 'fa-user-group', title: t('nav.find_seniors'), text: t('home.card_seniors'), style: 'bg-white text-ink ring-1 ring-gray-200', iconBg: 'bg-mist text-indigo' },
-         { href: '/call', icon: 'fa-phone-volume', title: t('call.title'), text: t('home.card_call'), style: 'bg-coral text-white', iconBg: 'bg-white/20 text-white' }
-       ].forEach(function (card, i) { %>
-      <a href="<%= card.href %>" data-reveal data-reveal-delay="<%= i * 120 %>"
-         class="group flex flex-col gap-4 rounded-[2rem] p-7 no-underline shadow-lg shadow-indigo/5 transition hover:-translate-y-1 hover:shadow-xl <%= card.style %>">
-        <span class="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl <%= card.iconBg %>"><i class="fa-solid <%= card.icon %>" aria-hidden="true"></i></span>
-        <span class="text-[1.35rem] font-semibold"><%= card.title %></span>
-        <span class="opacity-85"><%= card.text %></span>
-        <span class="mt-auto inline-flex items-center gap-2 font-medium"><%= t('home.open') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></span>
-      </a>
-    <% }) %>
-  </div>
-</section>
-
-<%# ================= COMING UP ================= %>
-<% if (upcoming.length > 0) { %>
-<section class="bg-mist/60 py-14">
-  <div class="mx-auto max-w-6xl px-4">
-    <div class="mb-8 flex flex-wrap items-end justify-between gap-4" data-reveal>
-      <div>
-        <p class="mb-2 font-medium text-coral"><%= t('home.upcoming_kicker') %></p>
-        <h2 class="text-[1.9rem] md:text-[2.2rem]"><%= t('home.upcoming_title') %></h2>
-      </div>
-      <a href="/events" class="btn-plain"><%= t('home.see_all') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-    </div>
-    <div class="grid gap-6 md:grid-cols-2">
-      <% upcoming.forEach(function (event, i) { %>
-        <a href="/events/<%= event.id %>" data-reveal="<%= i % 2 ? 'right' : 'left' %>"
-           class="group flex overflow-hidden rounded-[1.75rem] bg-white text-ink no-underline shadow-md transition hover:-translate-y-1 hover:shadow-xl">
-          <%- include('partials/eventImage', { event, imgClass: 'w-36 shrink-0 object-cover sm:w-44' }) %>
-          <span class="flex flex-col justify-center gap-1.5 p-5">
-            <span class="tag-mine self-start"><%= t('category.' + event.category) %></span>
-            <span class="text-[1.15rem] font-semibold leading-snug"><%= event.tTitle || event.title %></span>
-            <span class="text-[0.95rem] text-gray-600"><i class="fa-regular fa-calendar mr-1.5" aria-hidden="true"></i><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></span>
-            <span class="text-[0.95rem] text-gray-600"><i class="fa-solid fa-location-dot mr-1.5" aria-hidden="true"></i><%= event.locationText %></span>
-          </span>
-        </a>
-      <% }) %>
-    </div>
-  </div>
-</section>
+<%# a round photo, or an empty grey circle until a picture is added %>
+<% function photo(src) { %>
+  <% if (src) { %>
+    <img src="<%= src %>" alt="" class="h-full w-full rounded-full object-cover">
+  <% } else { %>
+    <span class="flex h-full w-full items-center justify-center rounded-full bg-mist text-indigo/30">
+      <i class="fa-solid fa-user text-[1.4em]" aria-hidden="true"></i>
+    </span>
+  <% } %>
 <% } %>
 
-<%# ================= HOW IT WORKS ================= %>
-<section class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2">
-  <div class="relative grid grid-cols-2 gap-4" data-reveal="left" aria-hidden="true">
-    <img src="/images/events/fitness.png" alt="" class="float-slow rounded-3xl shadow-lg" width="800" height="600">
-    <img src="/images/events/skills.png" alt="" class="float mt-10 rounded-3xl shadow-lg" width="800" height="600">
-    <img src="/images/events/social.png" alt="" class="float -mt-6 rounded-3xl shadow-lg" width="800" height="600">
-    <img src="/images/events/faith.png" alt="" class="float-slow mt-4 rounded-3xl shadow-lg" width="800" height="600">
+<%# the main button: a pill with an arrow in a white circle %>
+<% function bigButton(href, label) { %>
+  <a href="<%= href %>" class="group inline-flex min-h-16 w-full items-center justify-between gap-4 rounded-full bg-indigo py-2 pl-7 pr-2 text-[1.15rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark sm:w-auto">
+    <%= label %>
+    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-indigo transition group-hover:translate-x-1">
+      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+    </span>
+  </a>
+<% } %>
+
+<%# ================= 1. HERO: who we are, one clear next step =================
+   phones: badge and headline, the circle, then the text and buttons. computers: text on the left, circle on the right %>
+<section class="px-4 pt-3 md:pt-6">
+  <div class="relative mx-auto flex max-w-6xl flex-col overflow-hidden rounded-[2rem] bg-gradient-to-b from-mist to-white px-5 py-7 text-center md:grid md:grid-cols-[1.1fr_1fr] md:items-center md:gap-10 md:px-14 md:py-12 md:text-left">
+    <%# a soft warm glow in the corner, so the card is not flat %>
+    <span class="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-200/60 blur-3xl md:h-72 md:w-72" aria-hidden="true"></span>
+    <div class="contents md:block">
+    <div class="relative order-1">
+      <p class="inline-flex items-center gap-2.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-[0.9rem] font-semibold text-ink shadow-sm md:text-[0.95rem]">
+        <span class="h-2.5 w-2.5 rounded-full bg-leaf" aria-hidden="true"></span><%= t('home.hero_badge') %>
+      </p>
+
+      <% if (currentUser) { %>
+        <h1 class="mt-5 text-[2.3rem] leading-tight md:text-[3.5rem] md:leading-[1.08]" aria-label="<%= welcomeHeading %>">
+          <% welcomeHeading.split(' ').forEach(function (word, i) { const isName = word.includes(highlight); %>
+            <span class="welcome-word <%= isName ? 'welcome-name text-indigo' : '' %>" style="animation-delay: <%= 150 + i * 160 %>ms" aria-hidden="true"><%= word %></span>
+          <% }) %>
+        </h1>
+      <% } else { %>
+        <h1 class="mt-5 text-[2.3rem] leading-tight md:text-[3.5rem] md:leading-[1.08]"><%= t('home.hero_title_a') %> <span class="text-indigo"><%= t('home.hero_title_b') %></span></h1>
+      <% } %>
+    </div>
+
+    <div class="relative order-3">
+      <p class="mt-4 text-[1.2rem] text-gray-700 md:text-[1.35rem]"><%= t('home.hero_subtitle') %></p>
+
+      <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center md:justify-start">
+        <% if (currentUser) { %>
+          <a href="/events" class="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-indigo px-7 text-[1.15rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
+            <%= t('home.find_near') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
+          </a>
+        <% } else { %>
+          <a href="/signup" class="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-indigo px-7 text-[1.15rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
+            <%= t('home.join') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
+          </a>
+          <a href="/events" class="inline-flex min-h-14 items-center justify-center rounded-full border-2 border-ink bg-white/70 px-7 text-[1.15rem] font-semibold text-ink no-underline transition hover:bg-ink hover:text-white"><%= t('home.browse_events') %></a>
+        <% } %>
+      </div>
+
+      <ul class="mt-6 grid grid-cols-3 gap-2 text-[0.85rem] font-semibold md:flex md:flex-wrap md:gap-x-7 md:gap-y-2 md:text-[0.98rem]">
+        <% [['home.tick_verified', 'fa-shield-heart'], ['home.tick_local', 'fa-house-chimney'], ['home.tick_booking', 'fa-hand-pointer']].forEach(function (tick) { %>
+          <li class="flex flex-col items-center gap-1.5 rounded-2xl bg-white/70 px-1 py-2.5 leading-tight md:flex-row md:gap-2 md:bg-transparent md:p-0">
+            <i class="fa-solid <%= tick[1] %> text-[1.2rem] text-indigo md:text-leaf" aria-hidden="true"></i><%= t(tick[0]) %>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+    </div>
+
+    <%# the circle of seniors. The rings and small photos turn slowly; each face turns back so it stays upright %>
+    <div class="relative order-2 mx-auto mb-1 mt-6 aspect-square w-full max-w-[15rem] md:order-none md:mb-0 md:mt-0 md:max-w-[28rem]" aria-hidden="true">
+      <span class="orbit absolute inset-0">
+        <span class="absolute inset-[10%] rounded-full border-2 border-amber-300/80"></span>
+        <span class="absolute inset-[26%] rounded-full border-2 border-indigo/15"></span>
+        <% spots.forEach(function (spot, i) { %>
+          <span class="absolute block -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-0.5 shadow-md text-[0.9rem]"
+                style="left: <%= spot.x.toFixed(1) %>%; top: <%= spot.y.toFixed(1) %>%; width: <%= spot.size %>%; height: <%= spot.size %>%;">
+            <span class="orbit-upright block h-full w-full"><% photo(photos.around[i]) %></span>
+          </span>
+        <% }) %>
+      </span>
+      <%# the middle photo stays put: a senior's own photo if they added one, otherwise the page picture %>
+      <span class="absolute left-1/2 top-1/2 block h-[36%] w-[36%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-1 shadow-lg text-[1.6rem]">
+        <% photo(centreSrc) %>
+      </span>
+    </div>
   </div>
-  <div data-reveal="right">
-    <p class="mb-2 font-medium text-coral"><%= t('home.how_kicker') %></p>
-    <h2 class="mb-6 text-[1.9rem] md:text-[2.2rem]"><%= t('home.how_title') %></h2>
-    <ol class="space-y-5">
-      <% [['fa-user-plus', t('home.step1')], ['fa-hand-pointer', t('home.step2')], ['fa-message', t('home.step3')]].forEach(function (step, i) { %>
-        <li class="flex gap-4">
-          <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo text-lg text-white shadow-md"><i class="fa-solid <%= step[0] %>" aria-hidden="true"></i></span>
-          <span class="pt-2.5 text-[1.05rem]"><span class="mr-1 font-semibold text-coral"><%= i + 1 %>.</span><%= step[1] %></span>
-        </li>
+</section>
+
+<%# ================= 2. EVENTS: picture on the left, details and Register on the right =================
+   Signed in: recommended, so events like the ones they joined before come first. Visitors: upcoming events, soonest first.
+   A visitor who taps an event or Register goes to sign up, then confirms their phone, then is registered. %>
+<section id="events" class="mx-auto max-w-5xl scroll-mt-4 px-4 pt-10 md:pt-14">
+  <p class="font-semibold uppercase tracking-wide text-indigo"><%= currentUser ? t('home.rec_kicker') : t('home.up_kicker') %></p>
+  <h2 class="mt-1 text-[1.75rem] md:text-[2.1rem]"><%= currentUser ? t('home.rec_title_user') : t('home.up_title') %></h2>
+
+  <% if (typeof recommended === 'undefined' || recommended.length === 0) { %>
+    <p class="mt-6 rounded-[1.5rem] bg-surface p-6 text-gray-700"><%= t('home.soon_empty') %></p>
+  <% } else { %>
+    <div class="mt-6 grid gap-4 md:grid-cols-2">
+      <% recommended.forEach(function (event) {
+           const detailsHref = currentUser ? '/events/' + event.id : '/signup?register=' + event.id + '&from=home'; %>
+        <article class="flex gap-4 rounded-[1.5rem] border border-gray-200 bg-white p-4 shadow-sm">
+          <%# the flyer is always shown whole, never cropped %>
+          <a href="<%= detailsHref %>" class="shrink-0 self-start" tabindex="-1" aria-hidden="true">
+            <% if (event.imageUrl) { %>
+              <img src="<%= event.imageUrl %>" alt="" loading="lazy" draggable="false" class="aspect-[4/5] w-24 rounded-xl bg-mist object-contain min-[400px]:w-28 sm:w-36">
+            <% } else { %>
+              <span class="flex aspect-[4/5] w-24 items-center justify-center rounded-xl bg-gradient-to-b from-mist to-indigo/10 text-[2.2rem] text-indigo min-[400px]:w-28 sm:w-36"><i class="fa-solid <%= categoryIcons[event.category] || 'fa-calendar-days' %>"></i></span>
+            <% } %>
+          </a>
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+            <p class="self-start whitespace-nowrap rounded-full bg-amber-bg px-3 py-0.5 text-[0.9rem] font-semibold text-amber-tag"><%= shortDate(event.startsAt) %></p>
+            <h3 class="mt-1 text-[1.2rem] font-semibold leading-snug"><a href="<%= detailsHref %>" class="text-ink no-underline hover:underline"><%= event.tTitle || event.title %></a></h3>
+            <p class="text-[0.98rem] text-gray-700"><%= formatTime(event.startsAt) %> &middot; <%= event.area ? t('area.' + event.area) : event.locationText %></p>
+            <%- include('partials/slotsLeft', { id: event.id, slotsLeft: event.slotsLeft, cls: 'text-[0.98rem]' }) %>
+            <div class="mt-auto pt-2">
+              <% if (currentUser) { %>
+                <form action="/events/<%= event.id %>/register" method="post">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="from" value="home">
+                  <button class="inline-flex min-h-12 items-center rounded-full bg-indigo px-6 font-semibold text-white transition hover:bg-indigo-dark"><%= t('stack.register') %></button>
+                </form>
+              <% } else { %>
+                <a href="<%= detailsHref %>" class="inline-flex min-h-12 items-center rounded-full bg-indigo px-6 font-semibold text-white no-underline transition hover:bg-indigo-dark"><%= t('stack.register') %></a>
+              <% } %>
+            </div>
+          </div>
+        </article>
       <% }) %>
-    </ol>
+    </div>
+    <a href="/events" class="group mt-5 ml-auto flex min-h-12 w-fit items-center gap-2 text-[1rem] font-semibold no-underline"><%= t('home.see_all_events') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></a>
+  <% } %>
+</section>
+
+<%# ================= 3. FIND SENIORS: two square photos that take turns changing (public/js/home-faces.js) ================= %>
+<section class="px-4 pt-10 md:pt-14">
+  <div class="mx-auto grid max-w-5xl gap-8 rounded-[2rem] bg-mist p-6 md:grid-cols-2 md:items-center md:gap-12 md:p-10">
+    <div class="grid max-w-lg grid-cols-2 gap-3.5" data-face-pool="<%= JSON.stringify(photos.seniorsPool) %>">
+      <% photos.seniors.forEach(function (src) { %>
+        <span class="face-slot block aspect-square overflow-hidden rounded-3xl bg-white">
+          <img src="<%= src %>" alt="" class="h-full w-full object-cover object-top">
+        </span>
+      <% }) %>
+    </div>
+    <div>
+      <p class="font-semibold uppercase tracking-wide text-indigo"><%= t('nav.find_seniors') %></p>
+      <h2 class="mt-1 text-[1.75rem] leading-tight md:text-[2.3rem]"><%= t('home.seniors_title') %></h2>
+      <p class="mt-4 text-[1.15rem] text-gray-700"><%= t('home.seniors_text') %></p>
+      <a href="/find-seniors" class="group mt-6 inline-flex min-h-14 items-center gap-3 rounded-full bg-ink px-7 text-[1.1rem] font-semibold text-white no-underline transition hover:bg-black">
+        <%= t('home.meet_seniors') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
+      </a>
+    </div>
   </div>
 </section>
 
-<%# ================= VOLUNTEER + CALL ================= %>
-<section class="mx-auto max-w-6xl px-4 pb-6">
-  <div class="grid gap-6 md:grid-cols-2">
-    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-leaf to-mint p-8 text-white" data-reveal="left">
-      <i class="fa-solid fa-hands-holding-circle absolute -bottom-6 -right-4 text-[9rem] opacity-15" aria-hidden="true"></i>
-      <h2 class="mb-3 text-[1.6rem]"><%= t('home.volunteer_title') %></h2>
-      <p class="mb-6 max-w-sm opacity-90"><%= t('home.volunteer_text') %></p>
-      <a href="/events" class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-medium text-leaf no-underline shadow"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i><%= t('nav.find_events') %></a>
-    </div>
-    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-coral to-sun p-8 text-white" data-reveal="right">
-      <i class="fa-solid fa-phone-volume absolute -bottom-6 -right-4 text-[9rem] opacity-15" aria-hidden="true"></i>
-      <h2 class="mb-3 text-[1.6rem]"><%= t('home.family_title') %></h2>
-      <p class="mb-6 max-w-sm opacity-90"><%= t('home.family_text') %></p>
-      <a href="/call" class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-medium text-coral-dark no-underline shadow"><i class="fa-solid fa-phone" aria-hidden="true"></i><%= t('call.title') %></a>
-    </div>
-  </div>
+<%# ================= 4. CALL SENIORPADI ================= %>
+<section class="mx-auto max-w-5xl px-4 pt-6">
+  <%# Call SeniorPadi: a thin button with a senior on the phone %>
+  <a href="<%= supportTel ? 'tel:' + supportTel : '/call' %>" class="group mt-4 flex items-center gap-3 rounded-full bg-indigo py-1.5 pl-1.5 pr-1.5 text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark sm:gap-4">
+    <img src="/images/senior-phone.svg" alt="" class="h-12 w-12 shrink-0 rounded-full ring-2 ring-white/40" width="48" height="48">
+    <span class="min-w-0 flex-1 leading-snug">
+      <span class="block font-semibold"><%= t('home.call_strip') %></span>
+      <span class="hidden text-[0.95rem] text-white/85 sm:block"><%= t('home.card_call') %></span>
+    </span>
+    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-indigo transition group-hover:scale-105">
+      <i class="fa-solid fa-phone" aria-hidden="true"></i>
+    </span>
+  </a>
+  <%# WhatsApp: a senior on the left, the WhatsApp logo on the right, and common questions taking turns in the middle
+      (public/js/home-whatsapp.js). WhatsApp opens with the message that is showing. %>
+  <% if (supportTel) {
+       const waMessages = [1, 2, 3, 4].map((n) => t('whatsapp.msg_' + n));
+       const waBase = whatsappUrl.split('?')[0]; %>
+    <a href="<%= waBase %>?text=<%= encodeURIComponent(waMessages[0]) %>" target="_blank" rel="noopener" data-wa data-wa-base="<%= waBase %>" data-wa-messages="<%= JSON.stringify(waMessages) %>"
+       class="group mt-3 flex items-center gap-3 rounded-full border-2 border-leaf bg-white py-1.5 pl-1.5 pr-1.5 text-ink no-underline transition hover:bg-emerald-50 sm:gap-4">
+      <img src="/images/senior-man.svg" alt="" class="h-12 w-12 shrink-0 rounded-full ring-2 ring-leaf/30" width="48" height="48">
+      <span class="min-w-0 flex-1 leading-snug">
+        <span class="block font-semibold"><%= t('whatsapp.text_us') %></span>
+        <span class="block text-[0.95rem] text-gray-700 transition-opacity duration-300" data-wa-text><%= waMessages[0] %></span>
+      </span>
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-leaf text-[1.4rem] text-white transition group-hover:scale-105">
+        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+      </span>
+    </a>
+  <% } %>
 </section>
 
+<%# ================= 5. HOW IT WORKS: three short steps ================= %>
+<section class="mx-auto max-w-5xl px-4 pt-10 md:pt-14">
+  <p class="text-center font-semibold text-indigo md:text-left"><%= t('home.how_kicker') %></p>
+  <h2 class="mt-1 text-center text-[1.75rem] md:text-left md:text-[2.1rem]"><%= t('home.how_title') %></h2>
+  <ol class="mt-6 grid gap-3 md:grid-cols-3">
+    <% [['home.step1_title', 'home.step1'], ['home.step2_title', 'home.step2'], ['home.step3_title', 'home.step3']].forEach(function (step, i) { %>
+      <li class="flex items-start gap-3.5 rounded-[1.25rem] bg-surface p-4">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo text-[1.1rem] font-semibold text-white"><%= i + 1 %></span>
+        <span>
+          <span class="block text-[1.15rem] font-semibold leading-snug"><%= t(step[0]) %></span>
+          <span class="mt-0.5 block text-[0.98rem] text-gray-700"><%= t(step[1]) %></span>
+        </span>
+      </li>
+    <% }) %>
+  </ol>
+  <a href="/about" class="mt-6 inline-flex min-h-12 items-center gap-2 font-semibold no-underline"><%= t('home.about_more') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+</section>
+
+<%# ================= 7. READY TO JOIN? (visitors only) ================= %>
+<% if (!currentUser) { %>
+  <section class="mx-auto max-w-2xl px-4 pt-10 text-center md:pt-14">
+    <h2 class="text-[1.75rem] md:text-[2.1rem]"><%= t('home.ready_title') %></h2>
+    <p class="mt-3 text-[1.15rem] text-gray-700"><%= t('home.ready_text') %></p>
+    <div class="mt-7"><% bigButton('/signup', t('home.join')) %></div>
+  </section>
+<% } %>
+
+<script src="/js/home-faces.js" defer></script>
+<script src="/js/slots-live.js" defer></script>
+<script src="/js/home-whatsapp.js" defer></script>
+<%# just registered from this page: the ticket pop-up opens right here, and Close stays on the home page %>
+<% if (typeof justRegistered !== 'undefined' && justRegistered) { %>
+  <%- include('partials/registeredPopup', { event: justRegistered.event, ticket: justRegistered.ticket, canVolunteer: justRegistered.canVolunteer, closeHref: '/#events', from: 'home' }) %>
+<% } %>
 <%- include('partials/footer') %>

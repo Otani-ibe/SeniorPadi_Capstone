@@ -93,6 +93,8 @@ router.post('/settings', requireAuth, async (req, res) => {
       email: email || null,
       emailVerifiedAt: emailChanged ? null : req.user.emailVerifiedAt,
       area: (req.body.area || '').trim() || null,
+      gender: ['female', 'male'].includes(req.body.gender) ? req.body.gender : null,
+      lga: Event.AREAS.includes(req.body.lga) ? req.body.lga : req.user.lga,
       bio: (req.body.bio || '').trim().slice(0, 500) || null
     });
   } catch (err) {

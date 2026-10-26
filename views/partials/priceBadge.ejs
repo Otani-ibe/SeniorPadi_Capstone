@@ -1,0 +1,9 @@
+<%# round white sticker cut into the bottom-right corner of an event photo:
+    the naira price (or Free) in purple, with a small line underneath.
+    Only on large screens: on a phone or tablet it would cover too much of a flyer, so the price is shown in the details instead. %>
+<% const paid = event.priceLabel(); %>
+<span class="absolute bottom-0 right-0 hidden h-28 w-28 flex-col items-center justify-center rounded-full bg-white text-center leading-tight shadow-md ring-[6px] ring-white lg:flex"
+      data-price="<%= paid ? 'paid' : 'free' %>">
+  <span class="text-[1.45rem] font-bold text-indigo"><%= paid || t('events.free') %></span>
+  <span class="text-[0.8rem] font-medium text-indigo/80"><%= t('events.entry_fee') %></span>
+</span>

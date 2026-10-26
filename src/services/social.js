@@ -57,6 +57,23 @@ async function nextSeniorFor(user) {
   });
 }
 
+// seniors this senior skipped, most recent first. Leaves out anyone blocked or reported
+// (either way) and anyone who can no longer use Find Seniors.
+async function skippedSeniorsFor(user) {
+  const skips = await Skip.findAll({ where: { seniorId: user.id }, order: [['createdAt', 'DESC']] });
+  if (skips.length === 0) return [];
+
+  const people = await User.findAll({
+    where: { id: skips.map((s) => s.skippedId), role: 'senior', verificationStatus: 'approved' }
+  });
+  const result = [];
+  for (const skip of skips) {
+    const person = people.find((p) => p.id === skip.skippedId);
+    if (person && !(await isBlockedOrHidden(user.id, person.id))) result.push(person);
+  }
+  return result;
+}
+
 async function addNotification(userId, type, payload = {}, link = null) {
   return Notification.create({ userId, type, payload, link });
 }
@@ -66,4 +83,4 @@ async function notifyAdmins(type, payload, link) {
   for (const admin of admins) await addNotification(admin.id, type, payload, link);
 }
 
-module.exports = { hiddenIdsFor, isBlockedOrHidden, canMessage, nextSeniorFor, addNotification, notifyAdmins };
+module.exports = { hiddenIdsFor, isBlockedOrHidden, canMessage, nextSeniorFor, skippedSeniorsFor, addNotification, notifyAdmins };

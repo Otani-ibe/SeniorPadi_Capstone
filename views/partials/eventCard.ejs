@@ -1,72 +1,89 @@
-<%# one event: picture first, details underneath (side by side on bigger screens).
-    needs: event, showButtons (true on the Find events stack), category (optional) %>
-<% const swipe = typeof showButtons !== 'undefined' && showButtons; %>
-<article class="<%= swipe ? 'swipe-card' : '' %> overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-xl shadow-indigo/10 md:grid md:grid-cols-2"
-  <% if (swipe) { %>data-swipe-card tabindex="0" aria-label="<%= event.tTitle || event.title %>" data-left="skip-<%= event.id %>" data-right="register-<%= event.id %>"<% } %>>
+<%# one event: name, picture, all the details, then Register and Skip.
+    On a phone the name sits above the picture; on a wide screen the picture is on the left.
+    In the Find events deck it needs: event, pos (0 = on top, 1 and 2 = peeking behind, 3 = hidden), number, total, filters.
+    Without pos (e.g. the "you're registered" pop-up) it's a plain card with no counter or buttons. %>
+<% const inDeck = typeof pos !== 'undefined'; %>
+<article class="<%= inDeck ? 'deck-card' : '' %> flex flex-col overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-ink/10 ring-1 ring-gray-200 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:grid-rows-[auto_1fr] lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]"
+  <% if (inDeck) { %>
+         data-deck-card data-pos="<%= pos %>" data-number="<%= number %>"
+         tabindex="<%= pos === 0 ? 0 : -1 %>" <%= pos === 0 ? '' : 'inert' %>
+         aria-label="<%= t('stack.counter', { n: number, total: total }) %>: <%= event.tTitle || event.title %>"
+  <% } %>>
 
-  <div class="relative">
-    <%- include('eventImage', { event, imgClass: 'h-64 w-full object-cover select-none md:h-full md:min-h-[26rem]' }) %>
-    <span class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1 text-[0.85rem] font-medium text-indigo shadow">
-      <i class="fa-solid fa-tag" aria-hidden="true"></i><%= t('category.' + event.category) %>
-    </span>
-    <% if (event.hostedBySenior) { %>
-      <span class="absolute bottom-4 left-4 tag-leaf shadow"><i class="fa-solid fa-star" aria-hidden="true"></i><%= t('tag.hosted_by_senior') %></span>
-    <% } %>
-    <% if (swipe) { %>
-      <span class="swipe-badge left-4 rounded-2xl border-4 border-coral bg-white px-4 py-1 text-xl font-semibold uppercase text-coral" data-badge="left"><%= t('stack.skip') %></span>
-      <span class="swipe-badge right-4 rounded-2xl border-4 border-mint bg-white px-4 py-1 text-xl font-semibold uppercase text-leaf" data-badge="right"><%= t('stack.register') %></span>
+  <%# name and host %>
+  <div class="px-6 pb-4 pt-6 text-center md:col-start-2 md:row-start-1 md:px-8 md:pb-0 md:pt-8 md:text-left">
+    <% if (inDeck) { %><p class="mb-2 text-[0.95rem] font-medium text-gray-700"><%= t('stack.counter', { n: number, total: total }) %></p><% } %>
+    <h2 class="text-[1.75rem] leading-tight md:text-[2rem]"><%= event.tTitle || event.title %></h2>
+    <% if (event.Organization) { %>
+      <p class="mt-2 text-gray-700"><%= t('stack.hosted_by', { org: event.Organization.name }) %></p>
     <% } %>
   </div>
 
-  <div class="flex flex-col p-6 md:p-8">
-    <h2 class="mb-4 text-[1.6rem] leading-tight"><%= event.tTitle || event.title %></h2>
+  <%# picture, with the price sticker in the corner %>
+  <div class="relative self-start px-3 md:col-start-1 md:row-span-2 md:row-start-1 md:p-3 md:pr-0">
+    <%- include('eventImage', { event, natural: true, imgClass: 'block w-full rounded-[1.5rem] select-none' }) %>
+    <%- include('priceBadge', { event }) %>
 
-    <ul class="mb-5 space-y-2.5">
-      <li class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-mist text-indigo"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span><span class="font-medium"><%= formatDate(event.startsAt) %></span></li>
-      <li class="flex items-center gap-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-mist text-indigo"><i class="fa-regular fa-clock" aria-hidden="true"></i></span><span><%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %></span></li>
-      <li class="flex items-start gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-mist text-indigo"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
-        <span><%= event.locationText %>
-          <% if (event.locationMapsUrl) { %><br><a href="<%= event.locationMapsUrl %>" rel="noopener" target="_blank" class="text-[0.9rem]"><%= t('event.open_map') %></a><% } %>
+    <% if (inDeck) { %>
+      <%# big stamps that appear as the card is thrown away %>
+      <span class="deck-stamp deck-stamp-skip" data-stamp="skip" aria-hidden="true"><%= t('stack.skip') %></span>
+      <span class="deck-stamp deck-stamp-yes" data-stamp="register" aria-hidden="true"><%= t('stack.register') %></span>
+    <% } %>
+  </div>
+
+  <div class="flex flex-1 flex-col p-6 md:col-start-2 md:row-start-2 md:px-8 md:pb-8 md:pt-0">
+    <ul class="space-y-3 md:mt-5">
+      <li class="flex items-start gap-3">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-indigo"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span>
+        <span class="pt-1.5"><span class="font-semibold"><%= formatDate(event.startsAt) %></span><br><%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %></span>
+      </li>
+      <li class="flex items-start gap-3">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-indigo"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
+        <span class="pt-1.5">
+          <span class="font-semibold"><%= event.area ? t('area.' + event.area) : t('events.area_unconfirmed') %></span><br>
+          <%= event.locationText %>
+          <% if (event.locationMapsUrl) { %><br><a href="<%= event.locationMapsUrl %>" rel="noopener" target="_blank"><%= t('event.open_map') %></a><% } %>
         </span>
       </li>
+      <%# on phones and tablets the price sticker isn't on the photo, so it goes here %>
+      <li class="flex items-start gap-3 lg:hidden">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-indigo"><i class="fa-solid <%= event.priceLabel() ? 'fa-tag' : 'fa-gift' %>" aria-hidden="true"></i></span>
+        <span class="pt-1.5"><span class="font-semibold"><%= event.priceLabel() || t('events.free') %></span><br><%= t('events.entry_fee') %></span>
+      </li>
     </ul>
+    <%- include('slotsLeft', { id: event.id, slotsLeft: typeof event.slotsLeft === 'undefined' ? null : event.slotsLeft, cls: 'mt-4 text-[1.05rem]' }) %>
 
-    <h3 class="mb-1 text-[0.95rem] uppercase tracking-wide text-gray-500"><%= t('stack.about') %></h3>
-    <p class="mb-4 whitespace-pre-line text-gray-700"><%= event.tDescription || event.description %></p>
-    <p class="mb-6 text-[0.9rem] text-gray-500">
-      <i class="fa-solid fa-building-columns mr-1" aria-hidden="true"></i><%= event.Organization ? event.Organization.name : '' %> ·
-      <%= t('stack.register_by', { date: formatDate(event.registrationDeadline) }) %>
-    </p>
+    <h3 class="mt-6 font-semibold text-indigo"><%= t('stack.about_event') %></h3>
+    <p class="mt-1 whitespace-pre-line text-gray-700"><%= event.tDescription || event.description %></p>
+    <p class="mt-3 text-[0.95rem] text-gray-700"><%= t('stack.register_by', { date: formatDate(event.registrationDeadline) }) %></p>
 
-    <% if (swipe) { %>
-      <div class="mt-auto flex items-center justify-center gap-6">
-        <form id="skip-<%= event.id %>" action="/events/<%= event.id %>/skip" method="post" class="text-center">
-          <input type="hidden" name="category" value="<%= typeof category !== 'undefined' ? category : '' %>">
+    <%# Skip and Register. They work without JavaScript too. %>
+    <% if (inDeck) { %>
+    <div class="mt-auto grid grid-cols-2 gap-3 pt-6">
+      <% if (currentUser) { %>
+        <form action="/events/<%= event.id %>/register" method="post" data-deck-register>
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button class="flex h-16 w-16 items-center justify-center rounded-full border-2 border-coral/30 bg-white text-2xl text-coral shadow-lg transition hover:scale-105" aria-label="<%= t('stack.skip') %>">
-            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          <button class="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-indigo px-4 text-[1.1rem] font-semibold text-white shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
+            <i class="fa-solid fa-check" aria-hidden="true"></i><%= t('stack.register') %>
           </button>
-          <span class="mt-1 block text-[0.85rem] text-gray-600"><%= t('stack.skip') %></span>
         </form>
-        <% if (currentUser) { %>
-          <form id="register-<%= event.id %>" action="/events/<%= event.id %>/register" method="post" class="text-center">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo text-3xl text-white shadow-xl shadow-indigo/30 transition hover:scale-105" aria-label="<%= t('stack.register') %>">
-              <i class="fa-solid fa-check" aria-hidden="true"></i>
-            </button>
-            <span class="mt-1 block text-[0.85rem] font-medium text-indigo"><%= t('stack.register') %></span>
-          </form>
-        <% } else { %>
-          <%# not logged in: the sign-up pop-up opens for this event %>
-          <div class="text-center">
-            <a id="register-<%= event.id %>" href="/events?login=<%= event.id %>#login" class="flex h-20 w-20 items-center justify-center rounded-full bg-indigo text-3xl text-white no-underline shadow-xl shadow-indigo/30 transition hover:scale-105" aria-label="<%= t('stack.register') %>">
-              <i class="fa-solid fa-check" aria-hidden="true"></i>
-            </a>
-            <span class="mt-1 block text-[0.85rem] font-medium text-indigo"><%= t('stack.register') %></span>
-          </div>
-        <% } %>
-      </div>
-      <p class="mt-4 hidden text-center text-[0.85rem] text-gray-500 md:block"><i class="fa-solid fa-hand-pointer mr-1" aria-hidden="true"></i><%= t('stack.swipe_hint') %></p>
+      <% } else { %>
+        <%# not logged in: the sign-up pop-up opens for this event %>
+        <a href="<%= eventsUrl({ category, area }) %>&login=<%= event.id %>#login" data-deck-register data-event-id="<%= event.id %>"
+           class="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-indigo px-4 text-[1.1rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
+          <i class="fa-solid fa-check" aria-hidden="true"></i><%= t('stack.register') %>
+        </a>
+      <% } %>
+      <form action="/events/<%= event.id %>/skip" method="post" data-deck-skip>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="category" value="<%= category %>">
+        <input type="hidden" name="area" value="<%= area || 'all' %>">
+        <% if (showSkipped) { %><input type="hidden" name="skipped" value="1"><% } %>
+        <button class="flex min-h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-gray-300 bg-white px-4 text-[1.1rem] font-semibold text-ink transition hover:border-ink">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i><%= t('stack.skip') %>
+        </button>
+      </form>
+    </div>
     <% } %>
   </div>
 </article>

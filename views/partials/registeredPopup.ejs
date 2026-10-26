@@ -1,0 +1,38 @@
+<%# The "You're registered" pop-up: ticket number, the text we sent, and (if needed) a volunteer question.
+    needs: event, ticket, canVolunteer, closeHref (where Close and Done go), from ('home' or 'popup': where the volunteer button returns to) %>
+<div class="fixed inset-0 z-40 bg-ink/60" aria-hidden="true"></div>
+<div role="dialog" aria-modal="true" aria-labelledby="done-title"
+     class="fixed left-1/2 top-1/2 z-50 max-h-[92vh] w-[92%] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[2rem] bg-white p-6 text-center shadow-2xl md:p-8">
+  <a href="<%= closeHref %>" class="absolute right-3 top-3 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 font-semibold text-ink no-underline transition hover:bg-gray-100">
+    <i class="fa-solid fa-xmark text-[1.2rem]" aria-hidden="true"></i><%= t('modal.close') %>
+  </a>
+  <span class="done-pop mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-leaf text-[2.2rem] text-white"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+  <h2 id="done-title" class="mt-4 text-[1.9rem]"><%= t('registered.title') %></h2>
+  <p class="mt-1 text-[1.1rem] font-semibold"><%= event.tTitle || event.title %></p>
+  <p class="text-gray-700"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+
+  <%# the ticket: looks like a real ticket stub %>
+  <div class="mx-auto mt-5 rounded-[1.25rem] border-2 border-dashed border-indigo/40 bg-mist px-4 py-4">
+    <p class="text-gray-700"><%= t('ticket.label') %></p>
+    <p class="text-[1.9rem] font-bold tracking-widest text-indigo"><%= ticket %></p>
+    <p class="text-[0.95rem] text-gray-700"><%= t('ticket.hint') %></p>
+  </div>
+  <p class="mt-4 text-gray-700"><%= currentUser.email ? t('registered.sent_both') : t('registered.sent_sms') %></p>
+
+  <% if (canVolunteer) { %>
+    <div class="mt-5 rounded-[1.25rem] bg-emerald-50 p-5">
+      <p class="mb-4 text-[1.2rem] font-semibold"><%= t('registered.volunteer_question') %></p>
+      <form action="/events/<%= event.id %>/volunteer" method="post" class="mb-3">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="from" value="<%= from %>">
+        <button class="btn-volunteer w-full sm:w-full"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i><%= t('registered.volunteer_yes') %></button>
+      </form>
+      <a href="<%= closeHref %>" class="btn-plain w-full sm:w-full"><%= t('registered.volunteer_no') %></a>
+    </div>
+  <% } else if (from === 'home') { %>
+    <a href="<%= closeHref %>" class="btn mt-6 w-full sm:w-full"><%= t('registered.done') %></a>
+  <% } else { %>
+    <a href="/events" class="btn mt-6 w-full sm:w-full"><%= t('registered.continue') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+  <% } %>
+  <p class="mt-4"><a href="/registrations" class="font-semibold"><i class="fa-solid fa-ticket mr-2" aria-hidden="true"></i><%= t('registered.see_mine') %></a></p>
+</div>

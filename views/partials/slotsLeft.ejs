@@ -1,0 +1,6 @@
+<%# "23 slots left". Shown only when the event has a capacity; hidden (and empty) when it has none.
+    public/js/slots-live.js refreshes it every few seconds, so it follows registrations and changes the admin makes.
+    needs: id, slotsLeft (a number, or null for no limit); cls (optional) %>
+<% const n = typeof slotsLeft === 'undefined' ? null : slotsLeft; %>
+<p data-slots-for="<%= id %>" data-one="<%= t('slots.left_one') %>" data-many="<%= t('slots.left', { n: '__N__' }) %>" data-full="<%= t('tag.full') %>"
+   class="<%= typeof cls !== 'undefined' ? cls : '' %> font-semibold <%= n !== null && n <= 5 ? 'text-full-tag' : 'text-leaf-dark' %>" <%= n === null ? 'hidden' : '' %>><%= n === null ? '' : n === 0 ? t('tag.full') : n === 1 ? t('slots.left_one') : t('slots.left', { n }) %></p>

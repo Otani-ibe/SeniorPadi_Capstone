@@ -12,41 +12,41 @@
     { href: '/admin/system', label: 'System', icon: 'fa-gear' }
   ];
 %>
-<aside class="bg-indigo text-white md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col">
+<aside class="border-b border-gray-100 bg-white md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-b-0 md:border-r">
   <div class="flex items-center justify-between gap-3 px-5 py-4 md:py-6">
-    <a href="/admin" class="flex items-center gap-2 text-[1.25rem] font-semibold text-white no-underline">
-      <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></span>
-      SeniorPadi
+    <a href="/admin" class="logo flex items-center gap-2 text-[1.25rem] font-bold tracking-tight text-ink no-underline">
+      <%- include('logoMark', { size: 'h-9 w-9', uid: 'n' }) %>
+      <span class="logo-word">SeniorPadi</span>
     </a>
     <span class="flex items-center gap-2">
-      <span class="rounded-full bg-coral px-2.5 py-0.5 text-[0.75rem] font-semibold">Staff</span>
+      <span class="rounded-full bg-amber-300 px-2.5 py-0.5 text-[0.75rem] font-semibold text-ink">Staff</span>
       <form action="/logout" method="post" class="md:hidden">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <button class="rounded-full px-2 py-1 text-white/85" aria-label="Log out"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></button>
+        <button class="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-ink" aria-label="Log out"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></button>
       </form>
     </span>
   </div>
-  <nav aria-label="Admin" class="overflow-x-auto px-3 pb-3 md:flex-1 md:overflow-y-auto">
+  <nav aria-label="Admin" class="relative overflow-x-auto px-3 pb-3 md:flex-1 md:overflow-y-auto">
     <ul class="flex gap-1 md:flex-col">
       <% links.forEach(function (link) {
            const active = currentPath === link.href || (link.href !== '/admin' && currentPath.startsWith(link.href));
       %>
         <li>
           <a href="<%= link.href %>" <%= active ? 'aria-current=page' : '' %>
-             class="flex items-center gap-3 whitespace-nowrap rounded-xl px-3 py-2.5 text-[0.95rem] no-underline transition
-                    <%= active ? 'bg-white font-semibold text-indigo' : 'font-medium text-white/85 hover:bg-white/10 hover:text-white' %>">
+             class="flex min-h-11 items-center gap-3 whitespace-nowrap rounded-full px-4 py-2.5 text-[0.95rem] no-underline transition
+                    <%= active ? 'bg-indigo font-semibold text-white' : 'font-medium text-gray-700 hover:bg-mist hover:text-indigo' %>">
             <i class="fa-solid <%= link.icon %> w-5 text-center" aria-hidden="true"></i><%= link.label %>
           </a>
         </li>
       <% }) %>
     </ul>
   </nav>
-  <div class="hidden border-t border-white/10 px-5 py-4 md:block">
-    <p class="text-[0.85rem] text-white/70">Logged in as</p>
+  <div class="hidden border-t border-gray-100 px-5 py-4 md:block">
+    <p class="text-[0.85rem] text-gray-700">Logged in as</p>
     <p class="mb-3 font-medium"><%= currentUser.fullName %></p>
     <form action="/logout" method="post">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button class="inline-flex items-center gap-2 text-[0.95rem] font-medium text-white/85 hover:text-white"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>Log out</button>
+      <button class="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface px-4 text-[0.95rem] font-semibold text-ink hover:bg-mist"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>Log out</button>
     </form>
   </div>
 </aside>

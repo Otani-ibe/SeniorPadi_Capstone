@@ -1,25 +1,28 @@
 <%- include('../partials/header') %>
 
-<h1 class="mb-6"><%= t('messages.title') %></h1>
+<div class="page-head"><h1><%= t('messages.title') %></h1></div>
 
 <% if (conversations.length === 0) { %>
-  <div class="panel">
-    <p class="mb-3"><%= t('messages.none') %></p>
-    <a href="/find-seniors" class="btn"><%= t('nav.find') %></a>
+  <div class="empty-state">
+    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
+    <p class="mt-4 text-[1.15rem]"><%= t('messages.none') %></p>
+    <a href="/find-seniors" class="btn mt-5"><%= t('nav.find') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
   </div>
 <% } %>
 
 <ul class="space-y-3">
   <% conversations.forEach(function (c) { const unread = unreadIds.has(c.person.id); %>
     <li>
-      <a href="/messages/<%= c.person.id %>" class="flex items-center gap-4 rounded-xl border-2 <%= unread ? 'border-indigo bg-mist' : 'border-gray-300' %> p-4 text-ink no-underline">
-        <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-mist text-xl font-bold text-indigo" aria-hidden="true">
-          <% if (c.person.profilePictureUrl) { %><img src="<%= c.person.profilePictureUrl %>" alt="" class="h-full w-full object-cover"><% } else { %><%= c.person.fullName.charAt(0) %><% } %>
+      <a href="/messages/<%= c.person.id %>" class="list-row <%= unread ? 'bg-mist ring-2 ring-indigo/30' : '' %>">
+        <%- include('../partials/avatar', { person: c.person, cls: 'h-16 w-16 shrink-0' }) %>
+        <span class="min-w-0 flex-1">
+          <span class="flex items-center gap-2">
+            <span class="text-[1.15rem] font-semibold"><%= c.person.firstName() %></span>
+            <% if (unread) { %><span class="tag-mine"><%= t('messages.new') %></span><% } %>
+          </span>
+          <span class="block truncate text-gray-700"><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %></span>
         </span>
-        <span class="min-w-0">
-          <span class="block font-bold"><%= c.person.firstName() %><% if (unread) { %> <span class="tag-mine"><%= t('messages.new') %></span><% } %></span>
-          <span class="block truncate"><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %></span>
-        </span>
+        <i class="fa-solid fa-chevron-right text-indigo" aria-hidden="true"></i>
       </a>
     </li>
   <% }) %>

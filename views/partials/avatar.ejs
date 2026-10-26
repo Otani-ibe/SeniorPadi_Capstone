@@ -1,0 +1,5 @@
+<%# a person's round picture, or the senior illustration if they haven't added one.
+    needs: person; optional: cls (size classes), alt %>
+<img src="<%= person.avatarUrl() %>"
+     alt="<%= typeof alt !== 'undefined' ? alt : '' %>"
+     class="rounded-full bg-mist object-cover <%= typeof cls !== 'undefined' ? cls : 'h-12 w-12' %>">

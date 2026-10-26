@@ -13,9 +13,9 @@
   </div>
 
   <% if (r.status === 'attended') { %>
-    <p class="mb-6 rounded-lg border-l-8 border-leaf bg-green-50 p-4 text-xl font-bold">Checked in.</p>
+    <p class="mb-6 rounded-[1.25rem] bg-emerald-50 p-4 text-xl font-bold">Checked in.</p>
   <% } else if (r.status === 'cancelled') { %>
-    <p class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold">This place was cancelled. If they're here, welcome them and note it on the paper list.</p>
+    <p class="mb-6 rounded-[1.25rem] bg-full-bg p-4 font-semibold">This place was cancelled. If they're here, welcome them and note it on the paper list.</p>
   <% } else { %>
     <form action="/admin/scan/<%= r.qrToken %>" method="post" class="mb-6">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">

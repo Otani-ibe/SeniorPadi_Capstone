@@ -1,38 +1,46 @@
 <%- include('../partials/header') %>
 
-<p class="mb-4"><a href="/messages"><%= t('messages.back') %></a></p>
-<h1 class="mb-3"><%= other.firstName() %></h1>
+<p class="mb-4"><a href="/messages"><i class="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i><%= t('messages.back') %></a></p>
+
+<%# who you are talking to: their picture (or illustration), name and where they live %>
+<div class="mb-4 flex items-center gap-4 rounded-[1.75rem] bg-surface p-4">
+  <%- include('../partials/avatar', { person: other, cls: 'h-16 w-16 shrink-0 ring-4 ring-white md:h-20 md:w-20' }) %>
+  <div class="min-w-0">
+    <h1 class="text-[1.75rem] leading-tight md:text-[2rem]"><%= other.firstName() %></h1>
+    <% if (placeOf(other)) { %><p class="text-gray-700"><i class="fa-solid fa-location-dot mr-1 text-indigo" aria-hidden="true"></i><%= placeOf(other) %></p><% } %>
+  </div>
+</div>
 
 <%# swap phone numbers %>
 <div class="mb-6">
   <% if (exchange && exchange.status === 'accepted') { %>
-    <p class="panel"><%= t('exchange.their_number', { name: other.firstName() }) %>
+    <p class="panel flex flex-wrap items-center gap-2"><i class="fa-solid fa-phone text-indigo" aria-hidden="true"></i><%= t('exchange.their_number', { name: other.firstName() }) %>
       <a href="tel:<%= other.localPhone() %>" class="font-bold"><%= other.localPhone() %></a></p>
   <% } else if (exchange && exchange.status === 'pending' && exchange.requesterId === currentUser.id) { %>
-    <p class="panel"><%= t('exchange.waiting', { name: other.firstName() }) %></p>
+    <p class="panel flex items-center gap-3"><i class="fa-solid fa-hourglass-half text-indigo" aria-hidden="true"></i><%= t('exchange.waiting', { name: other.firstName() }) %></p>
   <% } else if (!incomingRequest) { %>
     <form action="/messages/<%= other.id %>/exchange" method="post">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button class="btn-plain"><%= t('exchange.button') %></button>
+      <button class="btn-plain"><i class="fa-solid fa-phone" aria-hidden="true"></i><%= t('exchange.button') %></button>
     </form>
   <% } %>
 </div>
 
-<% if (olderLink) { %><p class="mb-4 text-center"><a href="<%= olderLink %>"><%= t('messages.older') %></a></p><% } %>
+<% if (olderLink) { %><p class="mb-4 text-center"><a href="<%= olderLink %>" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface px-5 font-semibold no-underline"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><%= t('messages.older') %></a></p><% } %>
 
 <% if (messages.length === 0) { %>
-  <p id="thread-empty" class="panel mb-6"><%= t("messages.start", { name: other.firstName() }) %></p>
+  <p id="thread-empty" class="empty-state mb-6 text-[1.1rem]"><%= t("messages.start", { name: other.firstName() }) %></p>
 <% } %>
 
-<ol id="thread" class="mb-6 space-y-3" aria-label="<%= t('messages.title') %>" aria-live="polite"
+<ol id="thread" class="mb-6 space-y-2.5" aria-label="<%= t('messages.title') %>" aria-live="polite"
     data-me="<%= currentUser.id %>" data-other="<%= other.id %>" data-other-name="<%= other.firstName() %>"
     data-you="<%= t('messages.you') %>" data-just-now="<%= t('messages.just_now') %>">
   <% messages.forEach(function (m) { const mine = m.senderId === currentUser.id; %>
     <li id="msg-<%= m.id %>" class="flex <%= mine ? 'justify-end' : 'justify-start' %>">
-      <div class="max-w-[85%] rounded-xl px-4 py-3 <%= mine ? 'bg-indigo text-white' : 'bg-mist text-ink' %>">
+      <div class="bubble <%= mine ? 'bubble-mine' : 'bubble-theirs' %>">
         <p class="sr-only"><%= mine ? t('messages.you') : other.firstName() + ':' %></p>
         <p class="whitespace-pre-line"><%= m.body %></p>
-        <p class="mt-1 text-base <%= mine ? 'text-white/80' : 'text-gray-700' %>"><%= formatDate(m.createdAt) %>, <%= formatTime(m.createdAt) %></p>
+        <p class="bubble-time"><%= formatDate(m.createdAt) %>, <%= formatTime(m.createdAt) %></p>
       </div>
     </li>
   <% }) %>
@@ -40,16 +48,20 @@
 
 <form action="/messages/<%= other.id %>" method="post" id="latest" data-chat-form>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <div class="field">
-    <label for="body"><%= t('messages.write', { name: other.firstName() }) %></label>
-    <textarea id="body" name="body" rows="3" maxlength="1000" required></textarea>
+  <%# the send box: write, then one big Send button %>
+  <div class="rounded-[1.75rem] bg-surface p-3">
+    <label for="body" class="mb-2 block px-2 pt-1 font-semibold"><%= t('messages.write', { name: other.firstName() }) %></label>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <textarea id="body" name="body" rows="3" maxlength="1000" required
+                class="block min-h-14 w-full flex-1 rounded-[1.25rem] border-2 border-gray-300 bg-white px-4 py-3 text-[1.05rem] focus:border-indigo focus:outline-none focus:ring-4 focus:ring-indigo/15"></textarea>
+      <button class="btn shrink-0"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><%= t('messages.send') %></button>
+    </div>
   </div>
-  <button class="btn"><%= t('messages.send') %></button>
 </form>
 
-<p class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-base">
-  <a href="/report/<%= other.id %>"><%= t('find.report') %></a>
-  <a href="/block/<%= other.id %>"><%= t('block.link', { name: other.firstName() }) %></a>
+<p class="mt-6 flex flex-wrap gap-3">
+  <a href="/report/<%= other.id %>" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface px-4 font-semibold text-ink no-underline hover:bg-full-bg"><i class="fa-solid fa-flag text-full-tag" aria-hidden="true"></i><%= t('find.report') %></a>
+  <a href="/block/<%= other.id %>" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface px-4 font-semibold text-ink no-underline hover:bg-full-bg"><i class="fa-solid fa-ban text-full-tag" aria-hidden="true"></i><%= t('block.link', { name: other.firstName() }) %></a>
 </p>
 
 <%# optional: live messages. If these fail to load, the form above still works. %>
@@ -59,7 +71,8 @@
   <%# pop-up: the other senior asked for their number %>
   <div class="fixed inset-0 z-40 bg-ink/60" aria-hidden="true"></div>
   <div role="dialog" aria-modal="true" aria-labelledby="ex-title"
-       class="fixed left-1/2 top-1/2 z-50 w-[92%] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 text-center">
+       class="fixed left-1/2 top-1/2 z-50 w-[92%] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[2rem] bg-white p-6 text-center shadow-2xl md:p-8">
+    <span class="icon-dot mx-auto mb-4 h-16 w-16 text-[1.5rem]"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>
     <h2 id="ex-title" class="mb-2 text-[1.5rem]"><%= t('exchange.popup_title', { name: other.firstName() }) %></h2>
     <p class="mb-2"><%= t('exchange.popup_text', { name: other.firstName() }) %></p>
     <p class="mb-5 text-base text-gray-700"><%= t('exchange.safety') %></p>

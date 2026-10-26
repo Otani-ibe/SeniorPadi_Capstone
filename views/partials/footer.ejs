@@ -3,19 +3,20 @@
 <% if (isAdminFooter) { %>
   </div>
 <% } else { %>
-  <footer class="mt-16 bg-indigo text-white">
-    <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-2">
-      <div>
-        <p class="mb-2 flex items-center gap-2 text-[1.25rem] font-semibold">
-          <i class="fa-solid fa-hand-holding-heart text-coral" aria-hidden="true"></i>SeniorPadi
+  <footer class="mt-12 border-t border-gray-100 bg-surface">
+    <div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:items-start md:justify-between">
+      <div class="max-w-md">
+        <p class="logo mb-2 flex items-center gap-2 text-[1.2rem] font-bold tracking-tight">
+          <%- include('logoMark', { size: 'h-8 w-8', uid: 'f' }) %><span>SeniorPadi</span>
         </p>
-        <p class="max-w-md text-white/80"><%= t('footer.about') %></p>
+        <p class="text-gray-700"><%= t('footer.about') %></p>
       </div>
-      <ul class="grid grid-cols-2 gap-3 text-[0.95rem]">
-        <li><a href="/about" class="text-white/90 no-underline hover:text-white"><i class="fa-solid fa-circle-info mr-2" aria-hidden="true"></i><%= t('about.title') %></a></li>
-        <li><a href="/events" class="text-white/90 no-underline hover:text-white"><i class="fa-solid fa-calendar-days mr-2" aria-hidden="true"></i><%= t('nav.find_events') %></a></li>
-        <li><a href="/call" class="text-white/90 no-underline hover:text-white"><i class="fa-solid fa-phone mr-2" aria-hidden="true"></i><%= t('call.title') %></a></li>
-        <li><a href="/find-seniors" class="text-white/90 no-underline hover:text-white"><i class="fa-solid fa-user-group mr-2" aria-hidden="true"></i><%= t('nav.find_seniors') %></a></li>
+      <ul class="grid grid-cols-2 gap-x-8 gap-y-3">
+        <li><a href="/about" class="font-medium text-indigo"><%= t('about.title') %></a></li>
+        <li><a href="/events" class="font-medium text-indigo"><%= t('nav.find_events') %></a></li>
+        <li><a href="/find-seniors" class="font-medium text-indigo"><%= t('nav.find_seniors') %></a></li>
+        <li><a href="<%= supportTel ? 'tel:' + supportTel : '/call' %>" class="font-medium text-indigo"><%= t('call.title') %></a></li>
+        <% if (supportTel) { %><li><a href="<%= whatsappUrl %>" target="_blank" rel="noopener" class="font-medium text-indigo"><%= t('whatsapp.text_us') %></a></li><% } %>
       </ul>
     </div>
   </footer>

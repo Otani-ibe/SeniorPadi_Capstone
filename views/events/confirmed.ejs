@@ -1,25 +1,36 @@
 <%- include('../partials/header') %>
 
-<div class="mb-6 rounded-xl border-l-8 <%= type === 'volunteer' ? 'border-leaf' : 'border-indigo' %> bg-mist p-5">
-  <h1 class="mb-2"><%= type === 'volunteer' ? t('confirmed.volunteer_title') : t('confirmed.title') %></h1>
-  <p class="text-xl font-bold"><%= event.title %></p>
-  <p><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
-  <p><%= event.locationText %></p>
+<div class="mx-auto max-w-2xl">
+  <%# you're in %>
+  <section class="rounded-[2rem] <%= type === 'volunteer' ? 'bg-emerald-50' : 'bg-mist' %> p-6 text-center md:p-8">
+    <span class="done-pop mx-auto flex h-16 w-16 items-center justify-center rounded-full <%= type === 'volunteer' ? 'bg-leaf' : 'bg-indigo' %> text-[1.8rem] text-white">
+      <i class="fa-solid <%= type === 'volunteer' ? 'fa-hand-holding-heart' : 'fa-check' %>" aria-hidden="true"></i>
+    </span>
+    <h1 class="mt-4 text-[2rem] font-bold leading-tight"><%= type === 'volunteer' ? t('confirmed.volunteer_title') : t('confirmed.title') %></h1>
+    <p class="mt-2 text-[1.2rem] font-semibold"><%= event.title %></p>
+    <p class="text-gray-700"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+    <p class="text-gray-700"><i class="fa-solid fa-location-dot mr-1 text-indigo" aria-hidden="true"></i><%= event.locationText %></p>
+    <%- include('../partials/qr', { qr }) %>
+  </section>
+
+  <%# what happens next %>
+  <h2 class="mt-8 text-[1.5rem]"><%= t('confirmed.next_title') %></h2>
+  <ol class="mt-4 space-y-3">
+    <% [t('confirmed.next_sms'),
+        currentUser.reminderDaysBefore === 1 ? t('confirmed.next_reminder_one') : t('confirmed.next_reminder', { days: currentUser.reminderDaysBefore }),
+        t('confirmed.next_arrive')].forEach(function (step, i) { %>
+      <li class="flex items-start gap-3.5 rounded-[1.25rem] bg-surface p-4">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo font-semibold text-white"><%= i + 1 %></span>
+        <span class="pt-1.5"><%= step %></span>
+      </li>
+    <% }) %>
+  </ol>
+
+  <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+    <a href="/registrations" class="btn"><i class="fa-solid fa-ticket" aria-hidden="true"></i><%= t('confirmed.see_mine') %></a>
+    <a href="/events" class="btn-plain"><%= t('confirmed.more_events') %></a>
+  </div>
+  <p class="mt-5 text-gray-700"><%= t('confirmed.cancel_note') %></p>
 </div>
-
-<%- include('../partials/qr', { qr }) %>
-
-<h2 class="mb-3 mt-8"><%= t('confirmed.next_title') %></h2>
-<ol class="mb-8 list-decimal space-y-2 pl-6">
-  <li><%= t('confirmed.next_sms') %></li>
-  <li><%= currentUser.reminderDaysBefore === 1 ? t('confirmed.next_reminder_one') : t('confirmed.next_reminder', { days: currentUser.reminderDaysBefore }) %></li>
-  <li><%= t('confirmed.next_arrive') %></li>
-</ol>
-
-<div class="flex flex-col gap-3 sm:flex-row">
-  <a href="/registrations" class="btn"><%= t('confirmed.see_mine') %></a>
-  <a href="/events" class="btn-plain"><%= t('confirmed.more_events') %></a>
-</div>
-<p class="mt-6 text-base"><%= t('confirmed.cancel_note') %></p>
 
 <%- include('../partials/footer') %>

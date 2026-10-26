@@ -1,43 +1,160 @@
+<%
+  // There is no partner sign-up form yet: staff add events, and the Call SeniorPadi page
+  // is how organisations reach us (it already mentions listing an event). So the partner
+  // and contact buttons go there.
+  const PARTNER_HREF = '/call';
+%>
 <%- include('partials/header') %>
-<% const tel = (supportPhone || '').replace(/[^\d+]/g, ''); %>
 
-<section class="mb-10 grid items-center gap-8 md:grid-cols-2">
-  <div data-reveal="left">
-    <p class="mb-2 font-medium text-coral"><i class="fa-solid fa-circle-info mr-2" aria-hidden="true"></i><%= t('about.title') %></p>
-    <h1 class="mb-4 text-[2rem] md:text-[2.4rem]"><%= t('about.intro') %></h1>
+<%# the two kinds of buttons on this page %>
+<% function primaryButton(href, label, icon) { %>
+  <a href="<%= href %>" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-indigo px-7 font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
+    <%= label %><i class="fa-solid <%= icon || 'fa-arrow-right' %>" aria-hidden="true"></i>
+  </a>
+<% } %>
+<% function secondaryButton(href, label, onDark) { %>
+  <a href="<%= href %>" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full border-2 px-7 font-semibold no-underline transition <%= onDark ? 'border-white/70 text-white hover:bg-white/10' : 'border-indigo/25 bg-white text-indigo hover:border-indigo' %>">
+    <%= label %>
+  </a>
+<% } %>
+
+<%# ================= 1. INTRODUCTION ================= %>
+<section class="grid items-center gap-8 md:grid-cols-[1.1fr_1fr]">
+  <div>
+    <p class="font-semibold text-indigo"><%= t('about.hero_kicker') %></p>
+    <h1 class="mt-1 text-[2.6rem] font-bold leading-[1.05] tracking-tight md:text-[4rem]">
+      <%= t('about.title_lead') %> <span class="text-indigo">SeniorPadi</span>
+    </h1>
+    <p class="mt-5 text-[1.2rem] leading-relaxed text-gray-700 md:text-[1.3rem]"><%= t('about.lead') %></p>
+    <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+      <% primaryButton('/events', t('about.cta_explore')) %>
+      <% secondaryButton(PARTNER_HREF, t('about.cta_partner')) %>
+    </div>
   </div>
-  <img src="/images/hero.png" alt="" class="float mx-auto w-72 drop-shadow-2xl" width="900" height="1000" data-reveal="right" aria-hidden="true">
+  <div class="grid grid-cols-2 gap-2.5" aria-hidden="true">
+    <img src="/images/home/about-woman.jpg" alt="" class="aspect-[3/4] w-full rounded-[1.75rem] object-cover" width="600" height="800">
+    <img src="/images/home/about-man.jpg" alt="" class="mt-8 aspect-[3/4] w-full rounded-[1.75rem] object-cover" width="600" height="800">
+  </div>
 </section>
 
-<div class="grid gap-6 md:grid-cols-2">
-  <section class="card" data-reveal="left">
-    <span class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-coral text-white"><i class="fa-solid fa-heart" aria-hidden="true"></i></span>
-    <h2 class="mb-2"><%= t('about.why_title') %></h2>
-    <p class="text-gray-700"><%= t('about.why_text') %></p>
-  </section>
+<%# ================= 2. THE PROBLEM AND WHY WE EXIST ================= %>
+<section class="mt-14 grid items-center gap-8 md:mt-20 md:grid-cols-[1fr_1.2fr]">
+  <img src="/images/home/welcome-large.jpg" alt="" class="aspect-[4/3] w-full rounded-[2rem] object-cover object-[50%_20%] md:aspect-[4/5]" width="1000" height="1498">
+  <div>
+    <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.problem_title') %></h2>
+    <div class="mt-5 space-y-4 text-[1.1rem] leading-relaxed text-gray-700">
+      <p><%= t('about.problem_p1') %></p>
+      <p class="text-[1.25rem] font-semibold text-indigo"><%= t('about.problem_p2') %></p>
+      <p><%= t('about.problem_p3') %></p>
+    </div>
+  </div>
+</section>
 
-  <section class="card" data-reveal="right">
-    <span class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo text-white"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
-    <h2 class="mb-2"><%= t('about.how_title') %></h2>
-    <ul class="space-y-2 text-gray-700">
-      <li><i class="fa-solid fa-check mr-2 text-mint" aria-hidden="true"></i><%= t('about.how_1') %></li>
-      <li><i class="fa-solid fa-check mr-2 text-mint" aria-hidden="true"></i><%= t('about.how_2') %></li>
-      <li><i class="fa-solid fa-check mr-2 text-mint" aria-hidden="true"></i><%= t('about.how_3') %></li>
+<%# ================= 3. MISSION AND VISION ================= %>
+<section class="mt-14 grid gap-4 md:mt-20 md:grid-cols-2">
+  <% [['fa-bullseye', 'about.mission_title', 'about.mission_text', 'bg-indigo text-white', 'bg-white/15', 'text-white/90'],
+      ['fa-eye', 'about.vision_title', 'about.vision_text', 'bg-mist text-ink', 'bg-white text-indigo', 'text-gray-700']].forEach(function (c) { %>
+    <div class="rounded-[2rem] p-7 md:p-9 <%= c[3] %>">
+      <span class="flex h-12 w-12 items-center justify-center rounded-full text-[1.2rem] <%= c[4] %>"><i class="fa-solid <%= c[0] %>" aria-hidden="true"></i></span>
+      <h2 class="mt-4 text-[1.6rem]"><%= t(c[1]) %></h2>
+      <p class="mt-2 text-[1.15rem] leading-relaxed <%= c[5] %>"><%= t(c[2]) %></p>
+    </div>
+  <% }) %>
+</section>
+
+<%# ================= 4. WHAT WE DO ================= %>
+<section class="mt-14 md:mt-20">
+  <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.do_title') %></h2>
+  <p class="mt-3 max-w-2xl text-[1.1rem] text-gray-700"><%= t('about.do_text') %></p>
+  <ul class="mt-6 grid gap-4 sm:grid-cols-2">
+    <% [['fa-calendar-days', 'about.do1_title', 'about.do1_text'], ['fa-handshake', 'about.do2_title', 'about.do2_text'],
+        ['fa-user-group', 'about.do3_title', 'about.do3_text'], ['fa-hand-holding-heart', 'about.do4_title', 'about.do4_text']].forEach(function (f) { %>
+      <li class="flex gap-4 rounded-[1.75rem] bg-surface p-6">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo text-[1.2rem] text-white"><i class="fa-solid <%= f[0] %>" aria-hidden="true"></i></span>
+        <span>
+          <h3 class="text-[1.25rem]"><%= t(f[1]) %></h3>
+          <p class="mt-1 text-gray-700"><%= t(f[2]) %></p>
+        </span>
+      </li>
+    <% }) %>
+  </ul>
+</section>
+
+<%# ================= 5. HOW SENIORPADI WORKS ================= %>
+<section class="mt-14 rounded-[2rem] bg-mist px-5 py-10 md:mt-20 md:px-10">
+  <h2 class="text-center text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.works_title') %></h2>
+  <p class="mx-auto mt-3 max-w-2xl text-center text-[1.1rem] text-gray-700"><%= t('about.works_text') %></p>
+  <ol class="mt-8 grid gap-4 md:grid-cols-3 md:gap-10">
+    <% [['about.step1_title', 'about.step1_text'], ['about.step2_title', 'about.step2_text'], ['about.step3_title', 'about.step3_text']].forEach(function (s, i, all) { %>
+      <li class="relative rounded-[1.5rem] bg-white p-6">
+        <span class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo text-[1.2rem] font-semibold text-white"><%= i + 1 %></span>
+        <h3 class="mt-4 text-[1.25rem]"><%= t(s[0]) %></h3>
+        <p class="mt-1 text-gray-700"><%= t(s[1]) %></p>
+        <% if (i < all.length - 1) { %>
+          <%# arrow to the next step: across on computers, down on phones %>
+          <span class="absolute -bottom-4 left-1/2 z-10 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full bg-indigo text-white md:-right-9 md:bottom-auto md:left-auto md:top-1/2 md:-translate-y-1/2 md:translate-x-0" aria-hidden="true">
+            <i class="fa-solid fa-arrow-down text-[0.8rem] md:hidden"></i><i class="fa-solid fa-arrow-right hidden text-[0.8rem] md:inline"></i>
+          </span>
+        <% } %>
+      </li>
+    <% }) %>
+  </ol>
+</section>
+
+<%# ================= 6. PARTNERSHIPS ================= %>
+<section class="mt-14 grid gap-8 md:mt-20 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+  <div>
+    <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.partner_title') %></h2>
+    <div class="mt-5 space-y-4 text-[1.1rem] leading-relaxed text-gray-700">
+      <p><%= t('about.partner_p1') %></p>
+      <p><%= t('about.partner_p2') %></p>
+    </div>
+    <div class="mt-6"><% primaryButton(PARTNER_HREF, t('about.cta_become'), 'fa-phone') %></div>
+  </div>
+  <div>
+    <%# kinds of organisations we would like to work with: not logos, not confirmed partners %>
+    <p class="font-semibold text-indigo"><%= t('about.partner_note') %></p>
+    <ul class="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
+      <% [['fa-church', 'about.cat_faith'], ['fa-school', 'about.cat_schools'], ['fa-dumbbell', 'about.cat_fitness'],
+          ['fa-store', 'about.cat_business'], ['fa-people-roof', 'about.cat_ngo'], ['fa-hand-holding-heart', 'about.cat_volunteers']].forEach(function (p) { %>
+        <li class="flex min-w-0 items-center gap-3 rounded-2xl bg-surface p-4 font-medium leading-snug [overflow-wrap:anywhere]">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-indigo"><i class="fa-solid <%= p[0] %>" aria-hidden="true"></i></span>
+          <%= t(p[1]) %>
+        </li>
+      <% }) %>
     </ul>
-  </section>
+  </div>
+</section>
 
-  <section class="card" data-reveal="left">
-    <span class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-mint text-white"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i></span>
-    <h2 class="mb-2"><%= t('about.safety_title') %></h2>
-    <p class="text-gray-700"><%= t('about.safety_text') %></p>
-  </section>
+<%# ================= 7. VALUES ================= %>
+<section class="mt-14 md:mt-20">
+  <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.values_title2') %></h2>
+  <ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <% [['fa-crown', 'about.val_dignity', 'about.val_dignity_text'], ['fa-house-chimney-user', 'about.val_belonging', 'about.val_belonging_text'],
+        ['fa-universal-access', 'about.val_inclusion', 'about.val_inclusion_text'], ['fa-people-carry-box', 'about.val_collab', 'about.val_collab_text']].forEach(function (v) { %>
+      <li class="rounded-[1.5rem] border-2 border-gray-100 p-6">
+        <i class="fa-solid <%= v[0] %> text-[1.4rem] text-indigo" aria-hidden="true"></i>
+        <h3 class="mt-3 text-[1.25rem]"><%= t(v[1]) %></h3>
+        <p class="mt-1 text-gray-700"><%= t(v[2]) %></p>
+      </li>
+    <% }) %>
+  </ul>
+</section>
 
-  <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-coral to-sun p-6 text-white" data-reveal="right">
-    <i class="fa-solid fa-phone-volume absolute -bottom-4 -right-2 text-[7rem] opacity-15" aria-hidden="true"></i>
-    <h2 class="mb-2"><%= t('about.contact_title') %></h2>
-    <p class="mb-5 opacity-90"><%= t('about.contact_text') %></p>
-    <% if (tel) { %><a href="tel:<%= tel %>" class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 font-medium text-coral-dark no-underline shadow"><i class="fa-solid fa-phone" aria-hidden="true"></i><%= t('call.call_now', { phone: supportPhone }) %></a><% } %>
-  </section>
-</div>
+<%# ================= 8. CLOSING ================= %>
+<section class="mt-14 overflow-hidden rounded-[2rem] bg-indigo text-white md:mt-20 md:grid md:grid-cols-[1.4fr_1fr]">
+  <div class="px-6 py-10 md:px-12 md:py-14">
+    <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.final_title') %></h2>
+    <p class="mt-4 text-[1.15rem] leading-relaxed text-white/90"><%= t('about.final_text') %></p>
+    <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+      <a href="/events" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-white px-7 font-semibold text-indigo no-underline transition hover:bg-mist">
+        <%= t('about.cta_explore') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      </a>
+      <% secondaryButton(PARTNER_HREF, t('about.cta_touch'), true) %>
+    </div>
+    <p class="mt-8 text-[1.15rem] font-semibold"><%= t('about.tagline') %></p>
+  </div>
+  <img src="/images/home/senior-centre.jpg" alt="" class="h-64 w-full object-cover md:h-full" width="480" height="480">
+</section>
 
 <%- include('partials/footer') %>

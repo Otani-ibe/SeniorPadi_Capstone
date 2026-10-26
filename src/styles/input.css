@@ -3,16 +3,17 @@
 @source "../../public/js";
 
 /*
-  SeniorPadi look: deep indigo with warm coral and sunny accents,
-  soft rounded cards, gentle motion, and readable (not heavy) type.
+  SeniorPadi look: white pages, one purple accent, soft grey cards,
+  large dark text. "indigo" is the brand purple (name kept so older pages still work).
 */
 @theme {
-  --font-sans: "Plus Jakarta Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-sans: "Nunito Sans", "Segoe UI", Roboto, Arial, sans-serif;
 
-  --color-ink: #16213e;
-  --color-indigo: #22407a;
-  --color-indigo-dark: #172d57;
-  --color-mist: #eef2fa;
+  --color-ink: #1a1523;
+  --color-indigo: #6d28d9;
+  --color-indigo-dark: #5b21b6;
+  --color-mist: #f3eeff;
+  --color-surface: #f5f4f7;
   --color-coral: #f2795b;
   --color-coral-dark: #d9583a;
   --color-sun: #f6b93b;
@@ -29,10 +30,11 @@
 @layer base {
   html {
     font-size: 106.25%; /* 17px body text */
+    overflow-x: clip; /* nothing may make the page scroll sideways on a phone */
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-[#fafbff] text-ink leading-relaxed antialiased;
+    @apply bg-white text-ink leading-relaxed antialiased;
   }
   h1 {
     @apply text-[1.75rem] font-semibold leading-tight tracking-tight md:text-[2rem];
@@ -46,6 +48,10 @@
   a {
     @apply text-indigo underline decoration-1 underline-offset-4;
   }
+  /* nothing may be wider than the screen: pictures, videos and file pickers shrink to fit */
+  img, video, input, select, textarea {
+    max-width: 100%;
+  }
   :focus-visible {
     @apply outline-3 outline-offset-2 outline-coral;
   }
@@ -53,40 +59,79 @@
 
 @layer components {
   .page {
-    @apply mx-auto w-full max-w-4xl px-4 py-8;
+    @apply mx-auto w-full max-w-4xl px-4 py-6 md:py-8;
+  }
+  /* log-in, sign-up and password pages: form on the left, photo on the right */
+  .auth-shell {
+    @apply mx-auto grid max-w-5xl overflow-clip rounded-[2rem] bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2;
+  }
+  .auth-form {
+    @apply p-6 sm:p-8 lg:px-10;
+  }
+  .auth-form h1 {
+    @apply text-[1.75rem] md:text-[2rem];
+  }
+  .auth-form .field {
+    @apply mb-4;
   }
   .page-wide {
-    @apply mx-auto w-full max-w-6xl px-4 py-8 md:py-12;
+    @apply mx-auto w-full max-w-6xl px-4 py-6 md:py-8;
   }
+
+  /* ---------- page heading: small purple line, big title, optional intro ---------- */
+  .page-head { @apply mb-6; }
+  .page-head .kicker { @apply font-semibold text-indigo; }
+  .page-head h1 { @apply mt-1 text-[2.1rem] font-bold leading-tight tracking-tight md:text-[2.6rem]; }
+  .page-head .lead { @apply mt-2 max-w-2xl text-[1.1rem] text-gray-700; }
+  .back-link { @apply mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-indigo no-underline hover:underline; }
 
   /* ---------- buttons ---------- */
   .btn,
   .btn-volunteer,
   .btn-coral {
-    @apply inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-indigo px-6 py-3 text-center
-      font-semibold text-white no-underline shadow-md shadow-indigo/20 transition hover:-translate-y-0.5 hover:bg-indigo-dark sm:w-auto;
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-indigo px-7 py-3 text-center text-[1.05rem]
+      font-semibold text-white no-underline shadow-lg shadow-indigo/20 transition hover:bg-indigo-dark sm:w-auto;
   }
   .btn-volunteer {
     @apply bg-leaf shadow-leaf/20 hover:bg-leaf-dark;
   }
   .btn-coral {
-    @apply bg-coral shadow-coral/30 hover:bg-coral-dark;
+    @apply bg-full-tag shadow-full-tag/20 hover:bg-[#7f1717];
   }
   .btn-plain {
-    @apply inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-indigo/20 bg-white px-6 py-3
-      text-center font-semibold text-indigo no-underline transition hover:border-indigo hover:bg-mist sm:w-auto;
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-indigo/25 bg-white px-7 py-3
+      text-center text-[1.05rem] font-semibold text-indigo no-underline transition hover:border-indigo hover:bg-mist sm:w-auto;
   }
   .btn[disabled],
   .btn-volunteer[disabled] {
-    @apply cursor-not-allowed bg-gray-400 shadow-none hover:translate-y-0 hover:bg-gray-400;
+    @apply cursor-not-allowed bg-gray-400 shadow-none hover:bg-gray-400;
   }
 
   /* ---------- surfaces ---------- */
   .panel {
-    @apply rounded-3xl bg-mist p-6;
+    @apply rounded-[1.5rem] bg-mist p-6;
   }
   .card {
-    @apply rounded-3xl border border-gray-200 bg-white p-5 shadow-sm;
+    @apply rounded-[1.5rem] bg-surface p-6;
+  }
+  /* a white box with a soft outline, for forms and lists */
+  .sheet {
+    @apply rounded-[1.75rem] border-2 border-gray-100 bg-white p-5 md:p-7;
+  }
+  /* a tappable row: icon, text, arrow */
+  .list-row {
+    @apply flex items-center gap-4 rounded-[1.5rem] bg-surface p-4 text-ink no-underline transition hover:ring-2 hover:ring-indigo;
+  }
+  /* a round icon in brand colours */
+  .icon-dot {
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo text-[1.15rem] text-white;
+  }
+  .icon-dot-soft {
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-mist text-[1.15rem] text-indigo;
+  }
+  /* nothing here yet */
+  .empty-state {
+    @apply rounded-[1.75rem] bg-surface px-6 py-10 text-center;
   }
 
   /* ---------- forms ---------- */
@@ -94,8 +139,9 @@
     @apply mb-5 block;
   }
   .field label,
-  .field .label {
-    @apply mb-1.5 block font-medium;
+  .field .label,
+  .field legend {
+    @apply mb-1.5 block font-semibold;
   }
   .field input[type="text"],
   .field input[type="tel"],
@@ -106,14 +152,14 @@
   .field input[type="datetime-local"],
   .field select,
   .field textarea {
-    @apply block min-h-12 w-full rounded-2xl border border-gray-300 bg-white px-4 py-2.5 text-ink shadow-sm
-      transition focus:border-indigo focus:ring-4 focus:ring-indigo/10 focus:outline-none;
+    @apply block min-h-14 w-full rounded-2xl border-2 border-gray-300 bg-white px-4 py-3 text-[1.05rem] text-ink
+      transition focus:border-indigo focus:ring-4 focus:ring-indigo/15 focus:outline-none;
   }
   .field .hint {
-    @apply mt-1.5 block text-[0.9rem] text-gray-600;
+    @apply mt-1.5 block text-[0.95rem] text-gray-700;
   }
   .field .error {
-    @apply mt-1.5 block font-medium text-full-tag;
+    @apply mt-1.5 block font-semibold text-full-tag;
   }
   .field .error[hidden] {
     display: none;
@@ -122,12 +168,18 @@
     @apply border-full-tag bg-full-bg;
   }
 
+  /* ---------- chat bubbles (also built by public/js/chat.js) ---------- */
+  .bubble { @apply max-w-[85%] px-4 py-3 text-[1.05rem] sm:max-w-[70%]; }
+  .bubble-mine { @apply rounded-[1.4rem] rounded-br-md bg-indigo text-white; }
+  .bubble-theirs { @apply rounded-[1.4rem] rounded-bl-md bg-surface text-ink; }
+  .bubble-time { @apply mt-1 text-[0.85rem] opacity-80; }
+
   /* ---------- tags ---------- */
   .tag-amber,
   .tag-full,
   .tag-mine,
   .tag-leaf {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.85rem] font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.9rem] font-semibold;
   }
   .tag-amber { @apply bg-amber-bg text-amber-tag; }
   .tag-full { @apply bg-full-bg text-full-tag; }
@@ -139,7 +191,7 @@
     @apply w-full border-collapse text-[0.95rem];
   }
   .admin-table th {
-    @apply border-b border-gray-200 px-3 py-2.5 text-left text-[0.8rem] font-semibold uppercase tracking-wide text-gray-500;
+    @apply border-b-2 border-gray-100 bg-surface px-3 py-3 text-left text-[0.85rem] font-semibold text-gray-700 first:rounded-l-xl last:rounded-r-xl;
   }
   .admin-table td {
     @apply border-b border-gray-100 px-3 py-3 text-left align-top;
@@ -170,8 +222,8 @@
   transform: translateY(28px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
-.js [data-reveal="left"] { transform: translateX(-36px); }
-.js [data-reveal="right"] { transform: translateX(36px); }
+.js [data-reveal="left"],
+.js [data-reveal="right"] { transform: translateY(28px); } /* up, not sideways: sideways pushed phones wider */
 .js [data-reveal].revealed {
   opacity: 1;
   transform: none;
@@ -208,7 +260,110 @@
   transition: opacity 0.1s;
 }
 
+/* ---------- the logo ----------
+   First visit: the three padis pop up, give a small nod and the name wipes in. Hover: they hop.
+   Without the intro the logo simply shows its finished look. */
+.logo-mark { overflow: visible; transition: transform 0.3s ease; }
+
+.logo-intro .logo-mark { animation: lm-pop 0.5s 0.1s cubic-bezier(0.3, 1.5, 0.6, 1) both, lm-nod 0.5s 0.8s ease-in-out; }
+.logo-intro .logo-word { animation: lm-wipe 0.7s 0.45s ease-out both; }
+
+.logo:hover .logo-mark { transform: translateY(-3px); }
+
+@keyframes lm-pop { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+@keyframes lm-nod { 40% { transform: rotate(-8deg) scale(1.05); } 75% { transform: rotate(3deg); } }
+@keyframes lm-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+/* ---------- home: welcome line and turning circle ---------- */
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(0.6em); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes name-in {
+  0% { opacity: 0; transform: translateY(0.6em) scale(0.8); }
+  60% { opacity: 1; transform: translateY(-0.05em) scale(1.08); }
+  100% { opacity: 1; transform: none; }
+}
+.welcome-word {
+  display: inline-block;
+  opacity: 0;
+  animation: word-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.welcome-name { animation: name-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+@keyframes turn { to { transform: rotate(360deg); } }
+.orbit { animation: turn 90s linear infinite; }
+.orbit-upright { animation: turn 90s linear infinite reverse; }
+
+/* home: quotes take turns in the same spot; the marked words get a highlighter sweep */
+.quote-rotator { position: relative; transition: height 0.5s ease; }
+.quote-item {
+  position: absolute;
+  inset: 0 0 auto 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease, transform 0.6s ease, visibility 0.6s;
+}
+.quote-item.is-active { position: relative; opacity: 1; visibility: visible; transform: none; }
+.quote-mark {
+  color: inherit;
+  padding: 0 0.1em;
+  border-radius: 0.2em;
+  background: linear-gradient(transparent 50%, #fde68a 50%) no-repeat;
+  background-size: 0% 100%;
+}
+.quote-item.is-active .quote-mark { animation: mark-in 0.9s 0.7s ease-out forwards; }
+@keyframes mark-in { to { background-size: 100% 100%; } }
+
+/* about page: highlighted words in the mission (drawn straight away, no animation) */
+.about-mark { color: inherit; padding: 0 0.1em; border-radius: 0.2em; background: linear-gradient(transparent 50%, #fde68a 50%); }
+
+/* ---------- Find events deck ---------- */
+/* all cards share one grid cell, so the deck is as tall as the tallest card */
+.deck {
+  display: grid;
+  padding-bottom: 2.25rem; /* room for the cards peeking out underneath */
+}
+.deck-card {
+  grid-area: 1 / 1;
+  transform-origin: 50% 100%;
+  touch-action: pan-y;
+  user-select: none;
+  /* a little overshoot, so the next card springs into place */
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+.deck-card[data-pos="0"] { z-index: 4; cursor: grab; }
+.deck-card[data-pos="1"] { z-index: 3; transform: translateY(18px) scale(0.96); }
+.deck-card[data-pos="2"] { z-index: 2; transform: translateY(36px) scale(0.92); }
+.deck-card[data-pos="3"] { z-index: 1; transform: translateY(36px) scale(0.92); opacity: 0; visibility: hidden; }
+.deck-card.dragging { transition: none; cursor: grabbing; }
+.deck-card.flying { z-index: 10; transition: none; pointer-events: none; }
+
+/* SKIP / REGISTER stamps */
+.deck-stamp {
+  position: absolute;
+  top: 2.5rem;
+  z-index: 5;
+  padding: 0.25rem 1rem;
+  border: 4px solid;
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 0.92);
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  pointer-events: none;
+}
+.deck-stamp-skip { right: 1.75rem; color: var(--color-ink); border-color: var(--color-ink); transform: rotate(14deg); }
+.deck-stamp-yes { left: 1.75rem; color: var(--color-indigo); border-color: var(--color-indigo); transform: rotate(-14deg); }
+
 @media (prefers-reduced-motion: reduce) {
+  .welcome-word, .welcome-name { animation: none; opacity: 1; transform: none; }
+  .orbit, .orbit-upright { animation: none; }
+  .logo-mark, .logo-mark *, .logo-word { animation: none !important; }
+  .quote-mark, .quote-item.is-active .quote-mark { animation: none; background-size: 100% 100%; }
   .float, .float-slow, .dots-drift { animation: none; }
   .js [data-reveal] { opacity: 1; transform: none; transition: none; }
   * { transition: none !important; }

@@ -16,29 +16,24 @@
 
 <ul class="space-y-4">
   <% seniors.forEach(function (s) { %>
-    <li class="border-b border-gray-300 pb-4">
+    <li class="rounded-[1.5rem] border-2 border-gray-100 bg-white p-5">
       <strong><%= s.fullName %></strong><br>
       <%= s.phone %><%= s.email ? ', ' + s.email : '' %><br>
-      <span class="text-base">Joined <%= formatDate(s.createdAt) %>. Language: <%= s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English' %>.
+      <span class="text-[0.95rem] text-gray-700">Joined <%= formatDate(s.createdAt) %>. Language: <%= s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English' %>.
         ID: <%= { unverified: 'not sent', pending: 'waiting for check', approved: 'verified', rejected: 'sent back', social_removed: 'removed from social' }[s.verificationStatus] %>.</span>
       <% const safeName = s.fullName.replace(/'/g, ''); %>
       <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-        <form action="/admin/seniors/<%= s.id %>/reset-password" method="post"
-              onsubmit="return confirm('Reset the password for <%= safeName %>? They will get a text with a temporary one.');">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button class="font-bold text-indigo underline">Reset password</button>
-        </form>
         <% if (s.verificationStatus === 'approved') { %>
           <form action="/admin/seniors/<%= s.id %>/remove-from-social" method="post"
                 onsubmit="return confirm('Remove <%= safeName %> from Find Seniors and messages? Their events are not affected.');">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="font-bold text-full-tag underline">Remove from social</button>
+            <button class="inline-flex min-h-11 items-center gap-2 rounded-full px-4 font-semibold no-underline bg-full-bg text-full-tag hover:bg-full-tag hover:text-white">Remove from social</button>
           </form>
         <% } %>
         <form action="/admin/seniors/<%= s.id %>/delete" method="post"
               onsubmit="return confirm('Delete the account of <%= safeName %>? Upcoming places are cancelled. Past attendance is kept.');">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button class="font-bold text-full-tag underline">Delete account</button>
+          <button class="inline-flex min-h-11 items-center gap-2 rounded-full px-4 font-semibold no-underline bg-full-bg text-full-tag hover:bg-full-tag hover:text-white">Delete account</button>
         </form>
       </div>
     </li>

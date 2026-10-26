@@ -4,7 +4,7 @@ const { io: connectClient } = require('socket.io-client');
 const app = require('../src/app');
 const setupSockets = require('../src/sockets');
 const { Message, Block, Registration } = require('../src/models');
-const { resetDb, makeUser, makeEvent, csrfFrom, sequelize } = require('./helpers');
+const { resetDb, makeUser, makeEvent, csrfFrom, sequelize, signIn } = require('./helpers');
 
 let server;
 let io;
@@ -27,13 +27,12 @@ afterAll(async () => {
 
 // logs in and returns the session cookie + a csrf token for that session
 async function sessionFor(user) {
-  const loginPage = await request(server).get('/login');
+  const agent = request.agent(server);
+  const loginPage = await agent.get('/login');
   const firstCookie = loginPage.headers['set-cookie'][0].split(';')[0];
-  const res = await request(server).post('/login').set('Cookie', firstCookie).type('form')
-    .send({ _csrf: csrfFrom(loginPage.text), phone: user.phone, password: 'password123' });
-  const cookie = (res.headers['set-cookie'] || [firstCookie])[0].split(';')[0];
-  const page = await request(server).get('/events').set('Cookie', cookie);
-  return { cookie, csrf: csrfFrom(page.text) };
+  await signIn(agent, user.phone);
+  const page = await agent.get('/events');
+  return { cookie: firstCookie, csrf: csrfFrom(page.text) };
 }
 
 function connect(session) {
@@ -152,13 +151,12 @@ test('a senior without the QR code can still be marked from the list', async () 
 
 test('the welcome guide is shown once and can be skipped', async () => {
   const senior = await makeUser();
-  const loginPage = await request(server).get('/login');
-  const cookie = loginPage.headers['set-cookie'][0].split(';')[0];
-  const res = await request(server).post('/login').set('Cookie', cookie).type('form')
-    .send({ _csrf: csrfFrom(loginPage.text), phone: senior.phone, password: 'password123' });
+  const agent = request.agent(server);
+  const loginPage = await agent.get('/login');
+  const session = loginPage.headers['set-cookie'][0].split(';')[0];
+  const res = await signIn(agent, senior.phone);
   expect(res.headers.location).toBe('/onboarding');
 
-  const session = (res.headers['set-cookie'] || [cookie])[0].split(';')[0];
   const page = await request(server).get('/onboarding').set('Cookie', session);
   expect(page.text).toMatch(/Skip for now/);
   await request(server).post('/onboarding/done').set('Cookie', session).type('form').send({ _csrf: csrfFrom(page.text) });

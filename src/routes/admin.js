@@ -195,9 +195,12 @@ function readEventForm(body) {
     registrationDeadline: fromLocalInput(body.registrationDeadline),
     locationText: (body.locationText || '').trim(),
     locationMapsUrl: (body.locationMapsUrl || '').trim() || null,
+    area: Event.AREAS.includes(body.area) ? body.area : null,
     category: body.category,
     organizationId: Number(body.organizationId) || null,
-    capacity: parseInt(body.capacity, 10),
+    capacity: /^\s*$/.test(String(body.capacity || '')) ? null : parseInt(body.capacity, 10), // empty = no limit
+    pricing: body.pricing === 'paid' ? 'paid' : 'free',
+    price: body.pricing === 'paid' ? parseInt(String(body.price || '').replace(/[^\d]/g, ''), 10) || null : null,
     volunteerEnabled: body.volunteerEnabled === 'yes',
     volunteerCapacity: parseInt(body.volunteerCapacity, 10) || null,
     hostedBySenior: body.hostedBySenior === 'yes'
@@ -214,10 +217,12 @@ function readEventForm(body) {
     errors.registrationDeadline = 'The deadline has to be before the event starts.';
   }
   if (!values.locationText) errors.locationText = 'Add where the event is.';
+  if (!values.area) errors.area = 'Pick the local government area, so seniors can find it.';
   if (values.locationMapsUrl && !/^https?:\/\//.test(values.locationMapsUrl)) errors.locationMapsUrl = 'This should be a link starting with https://';
   if (!Event.CATEGORIES.includes(values.category)) errors.category = 'Pick a category.';
   if (!values.organizationId) errors.organizationId = 'Pick an organization.';
-  if (!(values.capacity > 0)) errors.capacity = 'Capacity has to be at least 1.';
+  if (values.capacity !== null && !(values.capacity > 0)) errors.capacity = 'Leave this empty for no limit, or type a number from 1.';
+  if (values.pricing === 'paid' && !(values.price > 0)) errors.price = 'Enter how much it costs, in naira.';
   if (values.volunteerEnabled && !(values.volunteerCapacity > 0)) errors.volunteerCapacity = 'How many volunteers are needed?';
   if (!values.volunteerEnabled) values.volunteerCapacity = null;
 
@@ -230,7 +235,8 @@ function formValues(values) {
     ...values,
     startsAt: toLocalInput(values.startsAt),
     endsAt: toLocalInput(values.endsAt),
-    registrationDeadline: toLocalInput(values.registrationDeadline)
+    registrationDeadline: toLocalInput(values.registrationDeadline),
+    pricing: values.price > 0 ? 'paid' : (values.pricing || 'free')
   };
 }
 
@@ -240,6 +246,7 @@ async function renderEventForm(res, status, options) {
     title: options.event ? 'Edit event' : 'New event',
     organizations,
     categories: Event.CATEGORIES,
+    areas: Event.AREAS,
     event: null,
     errors: {},
     ...options
@@ -326,6 +333,11 @@ router.post('/events/:id/edit', imageUpload('image', 3), async (req, res) => {
   if (!event) return res.redirect('/admin/events');
 
   const { values, errors } = readEventForm(req.body || {});
+  // the capacity can go up or down, but not below the seniors who are already registered
+  if (!errors.capacity && values.capacity !== null) {
+    const taken = await capacity.countTaken(event.id, 'attendee');
+    if (values.capacity < taken) errors.capacity = taken + ' seniors are already registered, so the number cannot be lower than ' + taken + '.';
+  }
   if (Object.keys(errors).length > 0) {
     return renderEventForm(res, 400, { event, values: formValues(values), errors });
   }
@@ -442,21 +454,6 @@ router.get('/seniors', async (req, res) => {
   }
   const seniors = await User.findAll({ where, order: [['fullName', 'ASC']], limit: 50 });
   res.render('admin/seniors', { title: 'Seniors', seniors, q, tempPassword: null });
-});
-
-router.post('/seniors/:id/reset-password', async (req, res) => {
-  const senior = await User.findOne({ where: { id: req.params.id, role: 'senior' } });
-  if (!senior) return res.redirect('/admin/seniors');
-
-  // short and easy to read out over the phone
-  const tempPassword = 'padi' + crypto.randomInt(1000, 9999);
-  await senior.update({ passwordHash: await bcrypt.hash(tempPassword, 12), mustChangePassword: true });
-  await audit(req.user.id, 'senior.reset_password', 'User', senior.id);
-
-  notify(senior, 'auth.temp_password', { name: senior.firstName(), password: tempPassword }, ['sms']);
-
-  req.flash('success', 'Password reset for ' + senior.fullName + '. We texted them: ' + tempPassword + '. They will pick a new one when they log in.');
-  res.redirect('/admin/seniors?q=' + encodeURIComponent(senior.phone));
 });
 
 router.post('/seniors/:id/remove-from-social', async (req, res) => {

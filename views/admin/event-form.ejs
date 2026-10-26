@@ -8,7 +8,7 @@
 <h1 class="mb-6"><%= event ? 'Edit event' : 'New event' %></h1>
 
 <% if (Object.keys(errors).length > 0) { %>
-  <div role="alert" class="mb-6 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold">Some things need fixing. They're marked below.</div>
+  <div role="alert" class="mb-6 rounded-[1.25rem] bg-full-bg p-4 font-semibold">Some things need fixing. They're marked below.</div>
 <% } %>
 
 <%# file upload form, so the CSRF token goes in the URL %>
@@ -71,8 +71,20 @@
   <div class="field">
     <label for="locationText">Where</label>
     <input type="text" id="locationText" name="locationText" value="<%= values.locationText || '' %>">
-    <span class="hint">e.g. Agodi Gardens, main gate, Ibadan</span>
+    <span class="hint">Write the full place with landmarks, e.g. Agodi Gardens, main gate, opposite the post office, Ibadan. Seniors get this exactly as written in their text message.</span>
     <%- err('locationText') %>
+  </div>
+
+  <div class="field">
+    <label for="area">Local government area</label>
+    <select id="area" name="area">
+      <option value="">Choose one</option>
+      <% areas.forEach(function (a) { %>
+        <option value="<%= a %>" <%= values.area === a ? 'selected' : '' %>><%= t('area.' + a) %></option>
+      <% }) %>
+    </select>
+    <span class="hint">Seniors see events in their own area first, so every event needs one.</span>
+    <%- err('area') %>
   </div>
 
   <div class="field">
@@ -84,8 +96,41 @@
   <div class="field">
     <label for="capacity">How many seniors can attend?</label>
     <input type="number" id="capacity" name="capacity" min="1" value="<%= values.capacity || '' %>">
+    <span class="hint">Seniors see how many slots are left, and the number goes down as they register. You can raise or lower it later. Leave it empty for no limit, and no number is shown.</span>
     <%- err('capacity') %>
   </div>
+
+  <%# free or paid. Seniors only ever see a price on paid events. %>
+  <fieldset class="field" data-pricing>
+    <legend>Does it cost anything?</legend>
+    <div class="grid grid-cols-2 gap-3">
+      <% [['free', 'No, it costs nothing'], ['paid', 'Yes, it is paid']].forEach(function (opt) { %>
+        <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border-2 border-gray-300 bg-white px-4 font-semibold has-[:checked]:border-indigo has-[:checked]:bg-mist has-[:checked]:text-indigo">
+          <input type="radio" name="pricing" value="<%= opt[0] %>" class="h-6 w-6 shrink-0 accent-indigo" <%= (values.pricing || 'free') === opt[0] ? 'checked' : '' %>>
+          <%= opt[1] %>
+        </label>
+      <% }) %>
+    </div>
+    <div class="mt-4" data-price-box>
+      <label for="price">Price per senior (naira)</label>
+      <span class="relative block">
+        <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-gray-700">₦</span>
+        <input type="text" id="price" name="price" inputmode="numeric" placeholder="2000" value="<%= values.price || '' %>" class="!pl-9">
+      </span>
+      <span class="hint">Seniors see this on the event card, e.g. ₦2,000. Only needed for paid events.</span>
+      <%- err('price') %>
+    </div>
+  </fieldset>
+  <script>
+    // only show the price box for paid events
+    (function () {
+      var box = document.querySelector('[data-price-box]');
+      var radios = document.querySelectorAll('[data-pricing] input[name="pricing"]');
+      function sync() { box.hidden = !document.querySelector('[data-pricing] input[value="paid"]').checked; }
+      radios.forEach(function (r) { r.addEventListener('change', sync); });
+      sync();
+    })();
+  </script>
 
   <fieldset class="panel mb-5">
     <legend class="sr-only">Volunteers</legend>
@@ -110,19 +155,22 @@
   <div class="field">
     <label for="image">Event picture</label>
     <label for="image" class="flex cursor-pointer flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-indigo/30 bg-mist/50 p-5 text-center transition hover:border-indigo">
-      <img id="image-preview" src="<%= event && event.imageUrl ? event.imageUrl : '/images/events/' + (values.category || 'social') + '.png' %>"
+      <img id="image-preview" src="<%= event && event.imageUrl ? event.imageUrl : '' %>" <%= event && event.imageUrl ? '' : 'hidden' %>
            alt="Picture preview" class="h-48 w-full max-w-md rounded-2xl object-cover shadow">
       <span class="font-medium text-indigo"><i class="fa-solid fa-image mr-2" aria-hidden="true"></i>Choose a photo</span>
-      <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="text-[0.9rem]">
+      <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="w-full max-w-full text-[0.9rem]">
     </label>
-    <span class="hint">JPG, PNG or WebP, up to 3MB. Without one, the event uses a colourful cover for its category.</span>
+    <span class="hint">JPG, PNG or WebP, up to 3MB. Without one, the event shows an empty picture space.</span>
   </div>
 
   <script>
     // show the chosen photo straight away
     document.getElementById('image').addEventListener('change', function (e) {
       var file = e.target.files[0];
-      if (file) document.getElementById('image-preview').src = URL.createObjectURL(file);
+      if (!file) return;
+      var preview = document.getElementById('image-preview');
+      preview.src = URL.createObjectURL(file);
+      preview.hidden = false;
     });
   </script>
 

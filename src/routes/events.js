@@ -33,18 +33,53 @@ async function seatCounts(eventIds) {
   return counts;
 }
 
-// ---------- Find events: one card at a time ----------
-// Shows events people can still join, one by one. Skip moves to the next card.
-// Skipped events are remembered in the session, so this works without an account.
+// ---------- Find events: a deck of cards, one on top ----------
+// Events they haven't skipped are in the deck. Once they've skipped everything,
+// they're told so and can choose to look at the skipped ones (?skipped=1).
+// Skips are remembered in the session, so this works without an account.
+
+// the filters from a query string or form, checked against the allowed values.
+// Everyone sees all of Ibadan unless they pick an area themselves.
+function readFilters(source) {
+  const area = Event.AREAS.includes(source.area) ? source.area : '';
+  return {
+    category: Event.CATEGORIES.includes(source.category) ? source.category : '',
+    area
+  };
+}
+
+// links keep the filters
+function eventsUrl(filters) {
+  const params = new URLSearchParams();
+  if (filters.category) params.set('category', filters.category);
+  params.set('area', filters.area || 'all');
+  return '/events?' + params.toString();
+}
+
+// the slots left for some events, so the numbers on the page can refresh without a reload
+router.get('/events/slots.json', async (req, res) => {
+  const ids = String(req.query.ids || '').split(',').filter((id) => /^\d+$/.test(id)).slice(0, 60).map(Number);
+  const events = ids.length ? await Event.findAll({ where: { id: ids }, attributes: ['id', 'capacity'] }) : [];
+  const counts = await seatCounts(events.map((e) => e.id));
+  const slots = {};
+  for (const e of events) {
+    const taken = counts[e.id] ? counts[e.id].attendee : 0;
+    slots[e.id] = e.capacity == null ? null : Math.max(0, e.capacity - taken);
+  }
+  res.set('Cache-Control', 'no-store');
+  res.json(slots);
+});
+
 router.get('/events', async (req, res) => {
   const now = new Date();
-  const category = Event.CATEGORIES.includes(req.query.category) ? req.query.category : '';
+  const filters = readFilters(req.query);
   const where = {
     status: 'published',
     startsAt: { [Op.gt]: now },
     registrationDeadline: { [Op.gt]: now }
   };
-  if (category) where.category = category;
+  if (filters.category) where.category = filters.category;
+  if (filters.area) where.area = filters.area;
 
   const events = await Event.findAll({ where, include: [Organization], order: [['startsAt', 'ASC']] });
   const counts = await seatCounts(events.map((e) => e.id));
@@ -62,48 +97,56 @@ router.get('/events', async (req, res) => {
   // full events and ones they're already going to aren't shown
   const open = events.filter((e) => {
     const taken = counts[e.id] ? counts[e.id].attendee : 0;
-    return taken < e.capacity && !mine.includes(e.id);
+    return (e.capacity == null || taken < e.capacity) && !mine.includes(e.id);
   });
+  // "slots left" for each card (empty when the event has no limit)
+  for (const e of open) {
+    const taken = counts[e.id] ? counts[e.id].attendee : 0;
+    e.slotsLeft = e.capacity == null ? null : Math.max(0, e.capacity - taken);
+  }
 
+  // not-yet-seen events (soonest first), or, if they asked, the skipped ones in the order they were skipped
   const skipped = req.session.skippedEvents || [];
-  const remaining = open.filter((e) => !skipped.includes(e.id));
-  const event = remaining[0] || null;
-  const nextEvent = remaining[1] || null; // shown peeking behind the card
+  const fresh = open.filter((e) => !skipped.includes(e.id));
+  const later = skipped.map((id) => open.find((e) => e.id === id)).filter(Boolean);
+  const showSkipped = req.query.skipped === '1';
+  if (showSkipped && later.length === 0) return res.redirect(eventsUrl(filters));
+  let deck = showSkipped ? later : fresh;
 
-  // a guest tapped Register: show the log-in pop-up for this event
+  // a guest tapped Register: that event goes on top and the sign-up pop-up opens
   const loginFor = !req.user && /^\d+$/.test(req.query.login || '') ? Number(req.query.login) : null;
+  const loginEvent = deck.find((e) => e.id === loginFor);
+  if (loginEvent) deck = [loginEvent].concat(deck.filter((e) => e !== loginEvent));
 
   // event text in Yorùbá through Google Translate (if it's set up)
-  if (event) await translateEvents([event], req.lang);
+  await translateEvents(deck, req.lang);
 
   res.render('events/index', {
     title: req.t('stack.title'),
     wide: true,
-    event,
-    position: open.length - remaining.length + 1,
-    total: open.length,
-    canStartAgain: open.length > 0 && remaining.length === 0,
-    nextEvent,
-    loginFor,
+    deck,
+    showSkipped,
+    skippedCount: later.length,
+    loginFor: loginEvent ? loginEvent.id : null,
     modalMode: req.query.mode === 'login' ? 'login' : 'signup',
-    category,
-    categories: Event.CATEGORIES
+    ...filters,
+    categories: Event.CATEGORIES,
+    areas: Event.AREAS,
+    eventsUrl
   });
 });
 
-router.post('/events/start-again', (req, res) => {
-  req.session.skippedEvents = [];
-  const category = Event.CATEGORIES.includes(req.body.category) ? req.body.category : '';
-  res.redirect('/events' + (category ? '?category=' + category : ''));
-});
-
+// without JavaScript the Skip button posts here and the page reloads.
+// With JavaScript the card is skipped on the page and this only remembers it.
 router.post('/events/:id/skip', (req, res) => {
-  const skipped = req.session.skippedEvents || [];
   const id = Number(req.params.id);
-  if (!skipped.includes(id)) skipped.push(id);
+  // move it to the back of the skipped list
+  const skipped = (req.session.skippedEvents || []).filter((s) => s !== id);
+  skipped.push(id);
   req.session.skippedEvents = skipped;
-  const category = Event.CATEGORIES.includes(req.body.category) ? req.body.category : '';
-  res.redirect('/events' + (category ? '?category=' + category : ''));
+
+  if (req.get('Accept') === 'application/json') return res.status(204).end();
+  res.redirect(eventsUrl(readFilters(req.body, req.user)) + (req.body.skipped === '1' ? '&skipped=1' : ''));
 });
 
 // ---------- one event ----------
@@ -139,19 +182,27 @@ router.get('/events/:id', async (req, res) => {
 // ---------- register / volunteer ----------
 async function signUp(req, res, type) {
   // phone (and email) must be confirmed before joining an event
-  if (needsContactCheck(req, res, { registerEventId: req.params.id, type })) return;
+  const home = req.body.from === 'home';
+  if (needsContactCheck(req, res, { registerEventId: req.params.id, type, home })) return;
 
   const result = await registerAndNotify(req.user, req.params.id, type);
 
   if (!result.ok) {
     req.flash('error', req.t(result.errorKey));
+    if (home) return res.redirect('/#events');
     return res.redirect(req.body.from === 'popup' ? '/events' : '/events/' + req.params.id);
   }
 
+  // registering from the home page: the pop-up opens over the home page, and they stay there
+  if (type === 'attendee' && home) return res.redirect('/?registered=' + result.event.id + '#events');
   // registering from the card: show the "you're registered" pop-up
   if (type === 'attendee') return res.redirect('/events/' + result.event.id + '/registered');
 
-  // "Yes, I'll volunteer" in that pop-up: back to the next card
+  // "Yes, I'll volunteer" in that pop-up: back where they were
+  if (home) {
+    req.flash('success', req.t('registered.thanks_volunteer', { event: result.event.title }));
+    return res.redirect('/#events');
+  }
   if (req.body.from === 'popup') {
     req.flash('success', req.t('registered.thanks_volunteer', { event: result.event.title }));
     return res.redirect('/events');

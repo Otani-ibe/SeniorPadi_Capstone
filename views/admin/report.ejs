@@ -16,9 +16,9 @@
 <% } else { %>
   <ol class="mb-8 space-y-2">
     <% report.conversationSnapshot.forEach(function (m) { %>
-      <li class="rounded-lg p-3 <%= m.from === 'reported' ? 'bg-amber-bg' : 'bg-mist' %>">
+      <li class="rounded-2xl p-3 <%= m.from === 'reported' ? 'bg-amber-bg' : 'bg-mist' %>">
         <strong><%= m.from === 'reported' ? 'Reported senior' : 'Reporter' %>:</strong> <%= m.body %>
-        <br><span class="text-base"><%= formatDate(m.at) %>, <%= formatTime(m.at) %></span>
+        <br><span class="text-[0.95rem] text-gray-700"><%= formatDate(m.at) %>, <%= formatTime(m.at) %></span>
       </li>
     <% }) %>
   </ol>
@@ -30,7 +30,7 @@
   <form action="/admin/reports/<%= report.id %>/resolve" method="post" class="grid gap-3 sm:grid-cols-3">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <button name="action" value="warn" class="btn">Warn</button>
-    <button name="action" value="remove" class="btn bg-full-tag hover:bg-full-tag">Remove from social</button>
+    <button name="action" value="remove" class="btn-coral">Remove from social</button>
     <button name="action" value="dismiss" class="btn-plain">Dismiss</button>
   </form>
 <% } else { %>

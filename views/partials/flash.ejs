@@ -1,11 +1,13 @@
 <% if (flash) {
      const styles = {
-       success: 'border-leaf bg-green-50',
-       error: 'border-full-tag bg-full-bg',
-       info: 'border-indigo bg-mist'
+       success: ['bg-emerald-50 text-ink', 'fa-circle-check text-leaf'],
+       error: ['bg-full-bg text-ink', 'fa-circle-exclamation text-full-tag'],
+       info: ['bg-mist text-ink', 'fa-circle-info text-indigo']
      };
+     const s = styles[flash.type] || styles.info;
 %>
-  <div role="<%= flash.type === 'error' ? 'alert' : 'status' %>" class="mb-6 rounded-lg border-l-8 p-4 font-bold <%= styles[flash.type] || styles.info %>">
-    <%= flash.message %>
+  <div role="<%= flash.type === 'error' ? 'alert' : 'status' %>" class="mb-6 flex items-start gap-3 rounded-[1.25rem] p-4 font-semibold <%= s[0] %>">
+    <i class="fa-solid <%= s[1] %> mt-0.5 text-[1.3rem]" aria-hidden="true"></i>
+    <span><%= flash.message %></span>
   </div>
 <% } %>

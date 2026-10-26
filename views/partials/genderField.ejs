@@ -1,0 +1,13 @@
+<%# Female / Male, as two big options. Picks the illustration shown until they add a photo.
+    needs: idPrefix, value ('female', 'male' or empty) %>
+<fieldset class="field">
+  <legend class="mb-1.5 block font-medium"><%= t('signup.gender') %></legend>
+  <div class="grid grid-cols-2 gap-3">
+    <% ['female', 'male'].forEach(function (g) { %>
+      <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border-2 border-gray-300 bg-white px-4 font-medium has-[:checked]:border-indigo has-[:checked]:bg-mist has-[:checked]:text-indigo">
+        <input type="radio" id="<%= idPrefix %>-<%= g %>" name="gender" value="<%= g %>" class="h-6 w-6 shrink-0 accent-indigo" <%= value === g ? 'checked' : '' %>>
+        <%= t('gender.' + g) %>
+      </label>
+    <% }) %>
+  </div>
+</fieldset>

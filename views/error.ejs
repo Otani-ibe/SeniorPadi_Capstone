@@ -1,5 +1,11 @@
 <%- include('partials/header') %>
-<h1 class="mb-4"><%= title %></h1>
-<p class="mb-6"><%= message %></p>
-<a href="/" class="btn-plain"><%= t('error.go_home') %></a>
+<div class="mx-auto max-w-xl py-6 text-center">
+  <%- include('partials/logoMark', { size: 'mx-auto h-20 w-20' }) %>
+  <h1 class="mt-6 text-[2.1rem] font-bold leading-tight tracking-tight"><%= title %></h1>
+  <p class="mt-3 text-[1.15rem] text-gray-700"><%= message %></p>
+  <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+    <a href="/" class="btn"><i class="fa-solid fa-house" aria-hidden="true"></i><%= t('error.go_home') %></a>
+    <a href="<%= supportTel ? 'tel:' + supportTel : '/call' %>" class="btn-plain"><i class="fa-solid fa-phone" aria-hidden="true"></i><%= t('call.title') %></a>
+  </div>
+</div>
 <%- include('partials/footer') %>

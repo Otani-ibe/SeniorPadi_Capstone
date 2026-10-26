@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Senior woman">
+  <defs>
+    <clipPath id="round"><circle cx="60" cy="60" r="60"/></clipPath>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="120" height="120" fill="#ede5ff"/>
+    <!-- buba top -->
+    <path d="M12 124 C12 94 33 83 60 83 C87 83 108 94 108 124 Z" fill="#6d28d9"/>
+    <path d="M46 84 Q60 96 74 84" fill="none" stroke="#c4b5fd" stroke-width="3" stroke-linecap="round"/>
+    <!-- neck, ears, earrings, face -->
+    <rect x="52" y="68" width="16" height="17" rx="6" fill="#74462b"/>
+    <circle cx="39.5" cy="57" r="4.5" fill="#8b5a3c"/>
+    <circle cx="80.5" cy="57" r="4.5" fill="#8b5a3c"/>
+    <circle cx="39.5" cy="64" r="2.4" fill="#f5b400"/>
+    <circle cx="80.5" cy="64" r="2.4" fill="#f5b400"/>
+    <ellipse cx="60" cy="55" rx="20" ry="23" fill="#8b5a3c"/>
+    <!-- grey hair at the edge of the gele -->
+    <path d="M41 50 C42 43 50 40 60 40 C70 40 78 43 79 50 C74 46 67 45 60 45 C53 45 46 46 41 50 Z" fill="#dcd8e4"/>
+    <!-- gele (head wrap) -->
+    <path d="M34 44 C30 26 46 13 62 14 C80 15 92 27 86 44 C80 37 70 34 60 34 C50 34 40 37 34 44 Z" fill="#f5b400"/>
+    <path d="M70 16 C82 10 96 16 94 28 C90 22 82 20 76 24 Z" fill="#e09e00"/>
+    <path d="M38 38 C48 31 72 31 82 38" fill="none" stroke="#e09e00" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- eyes, smile -->
+    <path d="M48.5 56 Q51.5 53.5 54.5 56" fill="none" stroke="#1a1523" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M65.5 56 Q68.5 53.5 71.5 56" fill="none" stroke="#1a1523" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M53 66 Q60 71.5 67 66" fill="none" stroke="#3b1f12" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+</svg>

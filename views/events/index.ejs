@@ -1,62 +1,119 @@
 <%- include('../partials/header') %>
-<%
-  const catIcons = { fitness: 'fa-person-walking', faith: 'fa-hands-praying', learning: 'fa-book-open-reader', skills: 'fa-palette', social: 'fa-people-group', health: 'fa-heart-pulse' };
-%>
 
 <div class="mx-auto max-w-5xl">
-  <div class="mb-5 flex flex-wrap items-end justify-between gap-3" data-reveal>
-    <div>
-      <h1><%= t('stack.title') %></h1>
-      <% if (event) { %><p class="text-gray-600"><%= t('stack.counter', { n: position, total: total }) %></p><% } %>
-    </div>
-    <% if (currentUser) { %>
-      <a href="/registrations" class="btn-plain"><i class="fa-solid fa-ticket" aria-hidden="true"></i><%= t('stack.my_tickets') %></a>
-    <% } %>
+  <% if (currentUser) { %>
+    <a href="/registrations" class="mb-5 inline-flex min-h-12 items-center gap-2.5 rounded-full bg-mist px-5 font-semibold text-indigo no-underline transition hover:bg-indigo hover:text-white">
+      <i class="fa-solid fa-ticket" aria-hidden="true"></i><%= t('stack.my_tickets') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+    </a>
+  <% } %>
+  <%# heading, and where in Ibadan %>
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <h1 class="max-w-xl text-[2.1rem] leading-tight md:text-[2.75rem]"><%= t('stack.heading') %></h1>
+
+    <form action="/events" method="get" class="w-full sm:w-auto" data-area-form>
+      <input type="hidden" name="category" value="<%= category %>">
+      <label for="area" class="mb-1 block font-semibold"><%= t('events.area_label') %></label>
+      <span class="relative block">
+        <i class="fa-solid fa-location-dot pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-indigo" aria-hidden="true"></i>
+        <select id="area" name="area"
+                class="min-h-13 w-full appearance-none rounded-full border-2 border-gray-200 bg-surface py-3 pl-11 pr-12 font-medium text-ink focus:border-indigo focus:outline-none sm:w-72">
+          <option value="all"><%= t('events.all_areas') %></option>
+          <% areas.forEach(function (a) { %>
+            <option value="<%= a %>" <%= area === a ? 'selected' : '' %>><%= t('area.' + a) %></option>
+          <% }) %>
+        </select>
+        <i class="fa-solid fa-chevron-down pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-gray-700" aria-hidden="true"></i>
+      </span>
+      <noscript><button class="btn mt-2"><%= t('stack.show') %></button></noscript>
+    </form>
   </div>
 
-  <%# filter by type of event %>
-  <nav aria-label="<%= t('events.filter') %>" class="-mx-4 mb-6 overflow-x-auto px-4" data-reveal>
-    <ul class="flex gap-2 pb-1">
-      <li><a href="/events" class="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] no-underline transition <%= category ? 'bg-white text-indigo shadow-sm ring-1 ring-gray-200 hover:bg-mist' : 'bg-indigo text-white shadow-md' %>"><i class="fa-solid fa-border-all" aria-hidden="true"></i><%= t('events.all_types') %></a></li>
-      <% categories.forEach(function (c) { %>
-        <li><a href="/events?category=<%= c %>" class="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] no-underline transition <%= category === c ? 'bg-indigo text-white shadow-md' : 'bg-white text-indigo shadow-sm ring-1 ring-gray-200 hover:bg-mist' %>"><i class="fa-solid <%= catIcons[c] %>" aria-hidden="true"></i><%= t('category.' + c) %></a></li>
+  <%# type of event %>
+  <nav aria-label="<%= t('events.filter') %>" class="-mx-4 mb-8 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0">
+    <ul class="flex gap-2 pb-1 md:flex-wrap">
+      <% [''].concat(categories).forEach(function (c) { const on = category === c; %>
+        <li>
+          <a href="<%= eventsUrl({ category: c, area }) %>" <%= on ? 'aria-current=page' : '' %>
+             class="inline-flex min-h-12 items-center gap-2 whitespace-nowrap rounded-full px-5 text-[1rem] font-medium no-underline transition
+                    <%= on ? 'bg-indigo text-white' : 'bg-surface text-ink hover:bg-mist' %>">
+            <i class="fa-solid <%= c ? categoryIcons[c] : 'fa-border-all' %> <%= on ? '' : 'text-indigo' %>" aria-hidden="true"></i>
+            <%= c ? t('category.' + c) : t('events.all_types') %>
+          </a>
+        </li>
       <% }) %>
     </ul>
   </nav>
 
-  <% if (event) { %>
-    <div class="swipe-stack" data-reveal>
-      <% if (nextEvent) { %>
-        <%# the next card peeks out from behind %>
-        <div class="swipe-peek overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-lg" aria-hidden="true">
-          <%- include('../partials/eventImage', { event: nextEvent, imgClass: 'h-64 w-full object-cover md:h-full md:w-1/2' }) %>
-        </div>
-      <% } %>
-      <%- include('../partials/eventCard', { event, showButtons: true, category }) %>
+  <% if (deck.length > 0) { %>
+    <%# screen readers hear which event is now on top %>
+    <p class="sr-only" aria-live="polite" data-deck-status></p>
+    <% if (showSkipped) { %>
+      <p class="mb-4 rounded-2xl bg-mist px-5 py-3 font-medium text-indigo">
+        <i class="fa-solid fa-rotate-left mr-2" aria-hidden="true"></i><%= t('stack.skipped_note') %>
+      </p>
+    <% } %>
+
+    <div class="deck" data-deck <%= showSkipped ? 'data-deck-skipped' : '' %>>
+      <% deck.forEach(function (event, i) { %>
+        <%- include('../partials/eventCard', { event, pos: Math.min(i, 3), number: i + 1, total: deck.length }) %>
+      <% }) %>
     </div>
-  <% } else { %>
-    <div class="panel text-center" data-reveal>
-      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo shadow"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>
-      <p class="mb-5 text-xl font-medium"><%= canStartAgain ? t('stack.all_seen') : t('stack.none') %></p>
-      <% if (canStartAgain) { %>
-        <form action="/events/start-again" method="post">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <input type="hidden" name="category" value="<%= category %>">
-          <button class="btn"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('stack.start_again') %></button>
-        </form>
+    <p class="mt-6 hidden text-center text-gray-700 md:block" data-deck-hint><i class="fa-solid fa-hand-pointer mr-1" aria-hidden="true"></i><%= t('stack.swipe_hint') %></p>
+    <%# a way to the skipped events (or back to the new ones). Shown once something is skipped, even before a reload. %>
+    <p class="mt-6 text-center" data-see-skipped <%= showSkipped || skippedCount ? '' : 'hidden' %>>
+      <% if (showSkipped) { %>
+        <a href="<%= eventsUrl({ category, area }) %>" class="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-gray-200 px-5 py-2 font-medium text-ink no-underline transition hover:border-indigo hover:text-indigo">
+          <i class="fa-solid fa-arrow-left text-indigo" aria-hidden="true"></i><%= t('stack.see_new') %>
+        </a>
+      <% } else { %>
+        <a href="<%= eventsUrl({ category, area }) %>&skipped=1" class="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-gray-200 px-5 py-2 font-medium text-ink no-underline transition hover:border-indigo hover:text-indigo">
+          <i class="fa-solid fa-rotate-left text-indigo" aria-hidden="true"></i><%= t('stack.see_skipped') %>
+        </a>
+      <% } %>
+    </p>
+
+  <% } %>
+
+  <%# they've skipped everything: say so, and let them choose to look at the skipped ones.
+      Shown straight away by the page when the last new card is skipped. %>
+  <% if (!showSkipped && (deck.length > 0 || skippedCount > 0)) { %>
+    <div class="rounded-[2rem] bg-surface px-6 py-12 text-center" data-deck-done tabindex="-1" <%= deck.length > 0 ? 'hidden' : '' %>>
+      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+      <p class="mx-auto max-w-md text-[1.25rem] font-medium"><%= t('stack.no_more_new') %></p>
+      <p class="mx-auto mt-2 max-w-md text-gray-700"><%= t('stack.skipped_choice') %></p>
+      <a href="<%= eventsUrl({ category, area }) %>&skipped=1" class="btn mt-6"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('stack.see_skipped') %></a>
+    </div>
+  <% } %>
+
+  <% if (deck.length === 0 && skippedCount === 0) { %>
+    <div class="rounded-[2rem] bg-surface px-6 py-12 text-center">
+      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i></span>
+      <p class="mx-auto max-w-md text-[1.25rem] font-medium"><%= area ? t('stack.no_area', { area: t('area.' + area) }) : t('stack.none') %></p>
+      <% if (area || category) { %>
+        <a href="/events?area=all" class="btn mt-6"><%= t('stack.try_all') %></a>
       <% } %>
     </div>
   <% } %>
+
+  <%# want to run an event? staff list it for them %>
+  <div class="mt-10">
+    <%- include('../partials/contactButtons', { callLabel: t('stack.host_event'), whatsappLabel: t('whatsapp.text_us') }) %>
+  </div>
+
 </div>
 
-<% if (event && loginFor === event.id) { %>
-  <%# signing up is the default here; "Log in" switches the same pop-up %>
-  <%- include('../partials/loginModal', {
-        heading: t('modal.title_register'),
-        mode: modalMode,
-        switchHref: '/events?login=' + event.id + '&mode=' + (modalMode === 'signup' ? 'login' : 'signup') + '#login',
-        registerEventId: event.id,
-        closeHref: '/events' }) %>
+<%# guests: Register opens this sign-up pop-up (open straight away if they came from a Register link) %>
+<% if (!currentUser && deck.length > 0) { const forId = loginFor || deck[0].id; %>
+  <div data-login-popup <%= loginFor ? '' : 'hidden' %>>
+    <%- include('../partials/loginModal', {
+          heading: t('modal.title_register'),
+          mode: modalMode,
+          switchHref: eventsUrl({ category, area }) + '&login=' + forId + '&mode=' + (modalMode === 'signup' ? 'login' : 'signup') + '#login',
+          registerEventId: forId,
+          closeHref: eventsUrl({ category, area }) }) %>
+  </div>
 <% } %>
 
+<script src="/js/event-deck.js" defer></script>
+<script src="/js/slots-live.js" defer></script>
 <%- include('../partials/footer') %>

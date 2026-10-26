@@ -1,10 +1,19 @@
-<%# left side of the log-in and sign-up pages %>
-<div class="relative hidden overflow-hidden bg-gradient-to-br from-indigo to-lilac p-10 text-white md:flex md:flex-col">
-  <p class="relative mb-3 text-[1.6rem] font-semibold leading-tight"><%= t('auth.aside_title') %></p>
-  <ul class="relative space-y-2 text-white/90">
-    <li><i class="fa-solid fa-circle-check mr-2 text-sun" aria-hidden="true"></i><%= t('home.trust_free') %></li>
-    <li><i class="fa-solid fa-circle-check mr-2 text-sun" aria-hidden="true"></i><%= t('home.trust_language') %></li>
-    <li><i class="fa-solid fa-circle-check mr-2 text-sun" aria-hidden="true"></i><%= t('home.trust_safe') %></li>
-  </ul>
-  <img src="/images/hero.png" alt="" class="float relative mx-auto mt-auto w-64 drop-shadow-2xl" width="900" height="1000" aria-hidden="true">
+<%# photo side of the log-in and sign-up pages: on the right on computers, a short banner on top on phones.
+    On computers the photo is as tall as the screen and stays in view while the form scrolls,
+    so the write-up at its foot can always be seen. %>
+<div class="relative md:order-last">
+  <div class="relative h-72 overflow-hidden md:sticky md:top-[6.5rem] md:h-[calc(100vh-8.5rem)] md:max-h-full md:min-h-[38rem]">
+    <img src="/images/home/welcome-large.jpg" alt="" class="absolute inset-0 h-full w-full object-cover object-[50%_15%] md:object-[50%_8%]" width="1000" height="1498">
+
+    <%# frosted card with what SeniorPadi is about %>
+    <div class="absolute inset-x-4 bottom-4 rounded-[1.25rem] bg-ink/60 px-4 py-3 text-white ring-1 ring-white/20 backdrop-blur-md md:inset-x-6 md:bottom-6 md:p-6">
+      <div class="mb-3 hidden md:flex" aria-hidden="true">
+        <% ['2', '3', '5'].forEach(function (n, i) { %>
+          <img src="/images/home/senior-<%= n %>.jpg" alt="" class="h-11 w-11 rounded-full object-cover ring-2 ring-white <%= i > 0 ? '-ml-3' : '' %>" width="44" height="44">
+        <% }) %>
+      </div>
+      <p class="text-[1.05rem] font-semibold leading-snug md:text-[1.4rem]"><%= t('auth.aside_title') %></p>
+      <p class="mt-2 hidden leading-relaxed text-white/90 md:block"><%= t('auth.aside_text') %></p>
+    </div>
+  </div>
 </div>

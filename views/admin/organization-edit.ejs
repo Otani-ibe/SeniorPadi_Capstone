@@ -2,7 +2,7 @@
 
 <p class="mb-4"><a href="/admin/organizations">Back to organizations</a></p>
 <h1 class="mb-6">Edit <%= org.name %></h1>
-<% if (error) { %><div role="alert" class="mb-4 rounded-lg border-l-8 border-full-tag bg-full-bg p-4 font-bold"><%= error %></div><% } %>
+<% if (error) { %><div role="alert" class="mb-4 rounded-[1.25rem] bg-full-bg p-4 font-semibold"><%= error %></div><% } %>
 
 <form action="/admin/organizations/<%= org.id %>/edit" method="post">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">

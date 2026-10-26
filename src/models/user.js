@@ -17,6 +17,8 @@ module.exports = (sequelize) => {
     verificationRejectionReason: DataTypes.TEXT,
     bio: DataTypes.TEXT,
     area: DataTypes.STRING,
+    lga: DataTypes.STRING(40), // local government area, one of Event.AREAS
+    gender: DataTypes.STRING(10), // 'female', 'male' or empty
     profilePictureUrl: DataTypes.STRING,
     profilePicturePublicId: DataTypes.STRING,
     idDocumentPublicId: DataTypes.STRING,
@@ -41,6 +43,14 @@ module.exports = (sequelize) => {
   };
 
   // first name only, for friendly greetings
+  // their photo, or an illustration of an older woman or man until they add one
+  User.prototype.avatarUrl = function () {
+    if (this.profilePictureUrl) return this.profilePictureUrl;
+    if (this.gender === 'female') return '/images/senior-woman.svg';
+    if (this.gender === 'male') return '/images/senior-man.svg';
+    return '/images/senior-avatar.svg';
+  };
+
   User.prototype.firstName = function () {
     return this.fullName.split(' ')[0];
   };
