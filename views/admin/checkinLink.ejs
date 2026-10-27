@@ -1,0 +1,68 @@
+<%# staff: the private check-in link for the host organization, with ways to send it.
+    needs: event (with Organization), link (null, or { url, state, opens, closes, phone }) %>
+<%
+  const org = event.Organization;
+  const until = formatDate(link ? link.closes : event.endsAt);
+  const message = link ? 'Hello' + (org.contactName ? ' ' + org.contactName.split(/\s+/)[0] : '') + ', this is SeniorPadi. ' +
+    'Here is the guest list for "' + event.title + '" on ' + formatDate(event.startsAt) + '. ' +
+    'Open it on your phone at the door and tap Came as each person arrives: ' + link.url +
+    ' (It works until ' + until + '. Please don\'t share it.)' : '';
+  const waDigits = link && link.phone ? link.phone.replace('+', '') : '';
+  const stateText = link && { early: ['Opens ' + formatDate(link.opens), 'chip-grey'], open: ['Working now', 'chip-green'], closed: ['Closed ' + formatDate(link.closes), 'chip-grey'] }[link.state];
+%>
+<section id="share" class="admin-box mt-6 print:hidden">
+  <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 px-5 py-4">
+    <div>
+      <h2 class="text-[1.05rem]">Check-in link for <%= org.name %></h2>
+      <p class="text-[0.9rem] text-gray-600">The organization opens it on a phone at the door and ticks people in. No account needed. They see names, tickets and the last 4 digits of phone numbers.</p>
+    </div>
+    <% if (stateText) { %><span class="chip <%= stateText[1] %>"><%= stateText[0] %></span><% } %>
+  </div>
+
+  <div class="p-5">
+    <% if (!link) { %>
+      <form action="/admin/events/<%= event.id %>/checkin-link" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="admin-add">Make check-in link</button>
+      </form>
+      <p class="mt-2 text-[0.85rem] text-gray-500">It works from the day before the event until 3 days after it.</p>
+    <% } else { %>
+      <label for="checkin-url" class="mb-1.5 block text-[0.9rem] font-semibold">Link</label>
+      <div class="flex gap-2">
+        <input id="checkin-url" type="text" readonly value="<%= link.url %>" class="admin-input font-mono text-[0.85rem]" onfocus="this.select()">
+        <button type="button" class="admin-plain shrink-0" data-copy="<%= link.url %>">Copy</button>
+      </div>
+      <p class="mt-2 text-[0.85rem] text-gray-500">Works <%= formatDate(link.opens) %> to <%= formatDate(link.closes) %>.</p>
+
+      <div class="mt-4 flex flex-wrap gap-2">
+        <a href="https://wa.me/<%= waDigits %>?text=<%= encodeURIComponent(message) %>" target="_blank" rel="noopener" class="admin-add bg-[#1f8f4e] hover:bg-[#18733e]"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>Send on WhatsApp</a>
+        <% if (link.phone) { %><a href="sms:<%= link.phone %>?body=<%= encodeURIComponent(message) %>" class="admin-plain"><i class="fa-solid fa-comment-sms" aria-hidden="true"></i>Send by SMS</a><% } %>
+        <button type="button" class="admin-plain" data-copy="<%= message %>">Copy message</button>
+      </div>
+      <p class="mt-2 text-[0.85rem] text-gray-500">
+        <%= link.phone ? 'Goes to ' + (org.contactName || 'the contact') + ', ' + org.contactPhone + '.' : 'No contact phone saved for this organization: WhatsApp will ask who to send it to.' %>
+        <a href="/admin/organizations/<%= org.id %>/edit">Edit contact</a>
+      </p>
+
+      <div class="mt-5 flex flex-wrap gap-2 border-t border-gray-100 pt-4">
+        <form action="/admin/events/<%= event.id %>/checkin-link" method="post" onsubmit="return confirm('Make a new link? The old one will stop working.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="admin-plain">Make a new link</button>
+        </form>
+        <form action="/admin/events/<%= event.id %>/checkin-link/off" method="post" onsubmit="return confirm('Turn the link off? The organization will no longer be able to open the list.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="inline-flex min-h-11 items-center px-3 font-semibold text-full-tag hover:underline">Turn off</button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+</section>
+<script>
+  document.querySelectorAll('[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var label = b.textContent;
+      var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = label; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy).then(done, function () {});
+    });
+  });
+</script>

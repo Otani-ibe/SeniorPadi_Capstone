@@ -8,21 +8,21 @@
     <h1><%= t('find.title') %></h1>
     <p class="lead"><%= t('find.subtitle') %></p>
     <% if (skippedCount > 0) { %>
-      <a href="/find-seniors/skipped" class="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-surface px-4 font-semibold no-underline"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('find.skipped_link', { count: skippedCount }) %></a>
+      <a href="/find-seniors/skipped" class="mt-3 inline-flex min-h-11 items-center gap-2 rounded-md bg-surface px-4 font-semibold no-underline"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('find.skipped_link', { count: skippedCount }) %></a>
     <% } %>
   </div>
 
   <% if (next) { %>
     <%# one senior at a time: swipe right to message, left to skip (public/js/swipe.js) %>
     <div class="swipe-stack">
-      <div class="swipe-peek rounded-[2rem] bg-surface" aria-hidden="true"></div>
-      <article class="swipe-card overflow-hidden rounded-[2rem] bg-white shadow-xl shadow-ink/10 ring-1 ring-gray-200"
+      <div class="swipe-peek rounded-card bg-surface" aria-hidden="true"></div>
+      <article class="swipe-card overflow-hidden rounded-card bg-white shadow-xl shadow-ink/10 ring-1 ring-gray-200"
                data-swipe-card tabindex="0" aria-label="<%= next.firstName() %>" data-left="skip-senior" data-right="message-senior">
         <div class="relative p-3 pb-0">
           <% if (next.profilePictureUrl) { %>
-            <img src="<%= next.profilePictureUrl %>" alt="<%= next.firstName() %>" draggable="false" class="aspect-[4/3.6] w-full select-none rounded-[1.5rem] object-cover" width="400" height="360">
+            <img src="<%= next.profilePictureUrl %>" alt="<%= next.firstName() %>" draggable="false" class="aspect-[4/3.6] w-full select-none rounded-card object-cover" width="400" height="360">
           <% } else { %>
-            <img src="<%= next.avatarUrl() %>" alt="" draggable="false" class="aspect-[4/3] w-full select-none rounded-[1.5rem] bg-mist object-contain p-12 sm:p-16" width="400" height="360">
+            <img src="<%= next.avatarUrl() %>" alt="" draggable="false" class="aspect-[4/3] w-full select-none rounded-card bg-mist object-contain p-12 sm:p-16" width="400" height="360">
           <% } %>
           <span class="absolute left-6 top-6 tag-leaf shadow"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><%= t('find.verified') %></span>
           <span class="swipe-badge deck-stamp deck-stamp-skip" data-badge="left"><%= t('find.skip') %></span>
@@ -36,11 +36,11 @@
           <div class="mt-6 grid grid-cols-2 gap-3">
             <form id="skip-senior" action="/find-seniors/<%= next.id %>/skip" method="post">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="flex min-h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-gray-300 bg-white px-4 text-[1.1rem] font-semibold text-ink transition hover:border-ink">
+              <button class="flex min-h-14 w-full items-center justify-center gap-2 rounded-md border-2 border-gray-300 bg-white px-4 text-[1.1rem] font-semibold text-ink transition hover:border-ink">
                 <i class="fa-solid fa-xmark" aria-hidden="true"></i><%= t('find.skip') %>
               </button>
             </form>
-            <a id="message-senior" href="/messages/<%= next.id %>" class="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-indigo px-4 text-[1.1rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
+            <a id="message-senior" href="/messages/<%= next.id %>" class="flex min-h-14 w-full items-center justify-center gap-2 rounded-md bg-indigo px-4 text-[1.1rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
               <i class="fa-solid fa-comment-dots" aria-hidden="true"></i><%= t('find.message_short') %>
             </a>
           </div>
@@ -77,7 +77,7 @@
           closeHref: '/' }) %>
 
   <% } else if (status === 'pending') { %>
-    <div class="rounded-[1.75rem] bg-amber-bg/60 p-6 text-center">
+    <div class="rounded-card bg-amber-bg/60 p-6 text-center">
       <p class="text-[1.25rem] font-semibold"><%= t('find.pending') %></p>
       <p class="mt-2 text-gray-700"><%= t('find.pending_more') %></p>
       <a href="/events" class="btn mt-5"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><%= t('nav.find_events') %></a>
@@ -91,7 +91,7 @@
 
   <% } else { %>
     <% if (status === 'rejected') { %>
-      <div role="alert" class="mb-5 rounded-[1.25rem] bg-full-bg p-4">
+      <div role="alert" class="mb-5 rounded-card bg-full-bg p-4">
         <p class="font-semibold"><%= t('find.rejected') %></p>
         <p><%= currentUser.verificationRejectionReason %></p>
       </div>
@@ -109,7 +109,7 @@
     <p class="mb-5 text-center text-gray-700"><%= t('find.why_id') %></p>
 
     <form action="/find-seniors/id?_csrf=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" data-upload>
-      <label for="idDocument" class="mb-4 block cursor-pointer rounded-[1.75rem] border-2 border-dashed border-indigo/40 bg-mist/60 p-7 text-center transition hover:border-indigo hover:bg-mist">
+      <label for="idDocument" class="mb-4 block cursor-pointer rounded-card border-2 border-dashed border-indigo/40 bg-mist/60 p-7 text-center transition hover:border-indigo hover:bg-mist">
         <i class="fa-solid fa-cloud-arrow-up text-[2.4rem] text-indigo" aria-hidden="true"></i>
         <span class="mt-2 block text-[1.15rem] font-semibold text-indigo"><%= t('find.id_label') %></span>
         <span class="mt-1 block text-[0.95rem] text-gray-700"><%= t('find.id_hint') %></span>

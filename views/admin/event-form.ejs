@@ -8,7 +8,7 @@
 <h1 class="mb-6"><%= event ? 'Edit event' : 'New event' %></h1>
 
 <% if (Object.keys(errors).length > 0) { %>
-  <div role="alert" class="mb-6 rounded-[1.25rem] bg-full-bg p-4 font-semibold">Some things need fixing. They're marked below.</div>
+  <div role="alert" class="mb-6 rounded-card bg-full-bg p-4 font-semibold">Some things need fixing. They're marked below.</div>
 <% } %>
 
 <%# file upload form, so the CSRF token goes in the URL %>
@@ -156,11 +156,11 @@
     <label for="image">Event picture</label>
     <label for="image" class="flex cursor-pointer flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-indigo/30 bg-mist/50 p-5 text-center transition hover:border-indigo">
       <img id="image-preview" src="<%= event && event.imageUrl ? event.imageUrl : '' %>" <%= event && event.imageUrl ? '' : 'hidden' %>
-           alt="Picture preview" class="h-48 w-full max-w-md rounded-2xl object-cover shadow">
+           alt="Picture preview" class="h-48 w-full max-w-md rounded-2xl bg-mist object-contain shadow">
       <span class="font-medium text-indigo"><i class="fa-solid fa-image mr-2" aria-hidden="true"></i>Choose a photo</span>
       <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="w-full max-w-full text-[0.9rem]">
     </label>
-    <span class="hint">JPG, PNG or WebP, up to 3MB. Without one, the event shows an empty picture space.</span>
+    <span class="hint">Best size: a square flyer, 1080 x 1080 pixels. It is shown whole and never cropped. Keep the words away from the edges. JPG, PNG or WebP, up to 3MB. Without one, the event shows an empty picture space.</span>
   </div>
 
   <script>

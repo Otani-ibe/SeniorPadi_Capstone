@@ -132,7 +132,8 @@ test('QR check-in and the manual list update the same attendance record', async 
 
   // the manual list shows the same record as attended
   const list = await request(server).get('/admin/events/' + event.id + '/attendance').set('Cookie', cookie);
-  expect(list.text).toMatch(new RegExp('name="status_' + reg.id + '" value="attended" class="h-6 w-6" checked'));
+  expect(list.text).toMatch(new RegExp('data-row="' + reg.id + '" data-status="attended"'));
+  expect(list.text).toContain('by QR code');
 });
 
 test('a senior without the QR code can still be marked from the list', async () => {
@@ -149,18 +150,9 @@ test('a senior without the QR code can still be marked from the list', async () 
   expect((await reg.reload()).status).toBe('attended');
 });
 
-test('the welcome guide is shown once and can be skipped', async () => {
+test('there is no welcome video any more: signing in goes straight in, and old links go to Find events', async () => {
   const senior = await makeUser();
-  const agent = request.agent(server);
-  const loginPage = await agent.get('/login');
-  const session = loginPage.headers['set-cookie'][0].split(';')[0];
-  const res = await signIn(agent, senior.phone);
-  expect(res.headers.location).toBe('/onboarding');
-
-  const page = await request(server).get('/onboarding').set('Cookie', session);
-  expect(page.text).toMatch(/Skip for now/);
-  await request(server).post('/onboarding/done').set('Cookie', session).type('form').send({ _csrf: csrfFrom(page.text) });
-
-  await senior.reload();
-  expect(senior.onboardingSeenAt).not.toBeNull();
+  const res = await signIn(request.agent(server), senior.phone);
+  expect(res.headers.location).toBe('/');
+  expect((await request(server).get('/onboarding')).headers.location).toBe('/events');
 });

@@ -1,0 +1,10 @@
+<%# While a child is booking for a parent: one button that registers the parent.
+    data-deck-register lets the Find events deck send it (with the card flying away).
+    needs: event; cls (optional, for the button) %>
+<% if (!currentUser && bookingFor) { %>
+  <form action="/book-for-parent/<%= event.id %>/register" method="post" data-deck-register>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="back" value="<%= currentPath === '/' ? '/#events' : currentPath %>">
+    <button class="btn w-full sm:w-full <%= typeof cls !== 'undefined' ? cls : '' %>"><i class="fa-solid fa-check" aria-hidden="true"></i><%= t('book.register', { name: bookingFor.name }) %></button>
+  </form>
+<% } %>

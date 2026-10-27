@@ -224,9 +224,9 @@ test('a paid event shows its price to seniors, a free one says Free', async () =
   await makeEvent({ title: 'Morning walk', startsAt: new Date(Date.now() + 4 * DAY), endsAt: new Date(Date.now() + 4 * DAY + 3600000) });
   const page = await request(app).get('/events?area=all');
   expect(page.text).toMatch(/₦2,500/);
-  expect(page.text.match(/₦/g)).toHaveLength(2); // the sticker on the photo, and the price row shown on phones
-  expect(page.text.match(/data-price="free"/g)).toHaveLength(1);
-  expect(page.text.match(/data-price="paid"/g)).toHaveLength(1);
+  expect(page.text.match(/₦/g)).toHaveLength(1); // one price row on the paid card; nothing is drawn over the flyer
+  expect(page.text).not.toMatch(/data-price=/);
+  expect(page.text).toMatch(/>Free</); // the free event says Free in its details
 });
 
 test('staff must give an amount when an event is paid', async () => {
@@ -239,4 +239,22 @@ test('staff must give an amount when an event is paid', async () => {
   expect(res.status).toBe(400);
   expect(res.text).toMatch(/Enter how much it costs/);
   expect(res.text).toMatch(/value="paid" class="[^"]*" checked/);
+});
+
+test('Find events has a search box that finds events by name, place or host, and keeps the filters', async () => {
+  await makeEvent({ title: 'Morning walk in Bodija', category: 'fitness', area: 'ibadan-north' });
+  await makeEvent({ title: 'Bible study', category: 'faith', area: 'ibadan-north' });
+
+  const page = await request(app).get('/events?area=all');
+  expect(page.text).toContain('name="q"');
+
+  let res = await request(app).get('/events?area=all&q=bodija');
+  expect(res.text).toContain('Morning walk in Bodija');
+  expect(res.text).not.toContain('Bible study');
+  expect(res.text).not.toContain('Clear search');
+  // the type chips keep the search
+  expect(res.text).toContain('/events?category=faith&amp;area=all&amp;q=bodija');
+
+  res = await request(app).get('/events?area=all&q=nothing-like-this');
+  expect(res.text).toContain('No events match');
 });

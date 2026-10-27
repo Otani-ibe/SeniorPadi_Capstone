@@ -8,7 +8,7 @@
 <p class="mb-6"><%= t('login.code_intro') %></p>
 
 <% if (error) { %>
-  <div role="alert" class="mb-6 flex items-start gap-3 rounded-[1.25rem] bg-full-bg p-4 font-semibold"><i class="fa-solid fa-circle-exclamation mt-0.5 text-[1.2rem] text-full-tag" aria-hidden="true"></i><%= error %></div>
+  <div role="alert" class="mb-6 flex items-start gap-3 rounded-card bg-full-bg p-4 font-semibold"><i class="fa-solid fa-circle-exclamation mt-0.5 text-[1.2rem] text-full-tag" aria-hidden="true"></i><%= error %></div>
 <% } %>
 
 <form action="/login" method="post">

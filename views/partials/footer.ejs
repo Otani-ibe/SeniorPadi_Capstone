@@ -16,11 +16,13 @@
         <li><a href="/events" class="font-medium text-indigo"><%= t('nav.find_events') %></a></li>
         <li><a href="/find-seniors" class="font-medium text-indigo"><%= t('nav.find_seniors') %></a></li>
         <li><a href="<%= supportTel ? 'tel:' + supportTel : '/call' %>" class="font-medium text-indigo"><%= t('call.title') %></a></li>
-        <% if (supportTel) { %><li><a href="<%= whatsappUrl %>" target="_blank" rel="noopener" class="font-medium text-indigo"><%= t('whatsapp.text_us') %></a></li><% } %>
+        <% if (supportTel) { %><li class="col-span-2"><a href="<%= whatsappUrl %>" target="_blank" rel="noopener" class="font-medium text-indigo"><%= t('whatsapp.text_us') %></a></li><% } %>
       </ul>
     </div>
   </footer>
 <% } %>
+  <%- include('helpNudge') %>
   <script src="/js/swipe.js" defer></script>
+  <% if (!currentUser && !bookingFor) { %><script src="/js/help.js" defer></script><% } %>
 </body>
 </html>

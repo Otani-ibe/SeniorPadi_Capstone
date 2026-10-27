@@ -121,3 +121,10 @@ test('a visitor who started on the home page comes back to it, with the ticket, 
   const done = await agent.post('/login/code').type('form').send({ _csrf: csrfFrom(codePage.text), code: lastCodeForTests(user.id) });
   expect(done.headers.location).toBe('/?registered=' + event.id + '#events');
 });
+
+test('on an event page, a visitor\'s Create account and Log in links remember the event', async () => {
+  const event = await makeEvent({ title: 'Painting class', ...later(3) });
+  const page = await request(app).get('/events/' + event.id);
+  expect(page.text).toContain('/signup?register=' + event.id);
+  expect(page.text).toContain('/login?register=' + event.id);
+});

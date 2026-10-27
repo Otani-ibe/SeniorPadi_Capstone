@@ -29,9 +29,11 @@ app.use(requirePasswordChanged);
 app.use('/', require('./routes/public'));
 app.use('/', require('./routes/verify'));
 app.use('/', require('./routes/events'));
+app.use('/', require('./routes/bookForParent'));
 app.use('/', require('./routes/account'));
 app.use('/', require('./routes/social'));
 app.use('/', require('./routes/onboarding'));
+app.use('/', require('./routes/host')); // before /admin: a host organization may scan a QR code
 app.use('/admin', require('./routes/admin'));
 
 // 404

@@ -6,13 +6,12 @@
     ['/settings', 'fa-sliders', t('account.settings_link'), t('account.settings_hint')],
     ['/notifications', 'fa-bell', unreadCount > 0 ? t('nav.notifications_count', { count: unreadCount }) : t('nav.notifications'), t('account.notifications_hint')],
     ['/history', 'fa-clock-rotate-left', t('nav.history'), t('account.history_hint')],
-    ['/verify', 'fa-shield-halved', t('account.verify_link'), u.contactVerified() ? t('account.verified_hint') : t('account.not_verified_hint')],
-    ['/onboarding', 'fa-circle-play', t('onboarding.watch_again'), t('account.guide_hint')]
+    ['/verify', 'fa-shield-halved', t('account.verify_link'), u.contactVerified() ? t('account.verified_hint') : t('account.not_verified_hint')]
   ];
 %>
 
 <%# who you are %>
-<section class="flex flex-col items-center gap-5 rounded-[2rem] bg-mist p-6 text-center sm:flex-row sm:text-left md:p-8">
+<section class="flex flex-col items-center gap-5 rounded-card bg-mist p-6 text-center sm:flex-row sm:text-left md:p-8">
   <%- include('../partials/avatar', { person: u, cls: 'h-28 w-28 shrink-0 ring-4 ring-white' }) %>
   <div class="min-w-0 flex-1">
     <p class="font-semibold text-indigo"><%= t('account.title') %></p>

@@ -1,0 +1,17 @@
+<%- include('top') %>
+<%# the check-in link can't be used: wrong or turned off ('missing'), not open yet ('early'), or over ('closed') %>
+
+<div class="mx-auto max-w-md rounded-card border border-gray-200 bg-white p-6 text-center">
+  <% if (reason === 'early') { %>
+    <h1 class="text-[1.5rem]">The guest list isn't open yet</h1>
+    <p class="mt-2 text-gray-700"><%= event.title %> is on <%= formatDate(event.startsAt) %>. This link opens on <%= formatDate(opens) %>. Please come back then.</p>
+  <% } else if (reason === 'closed') { %>
+    <h1 class="text-[1.5rem]">This guest list has closed</h1>
+    <p class="mt-2 text-gray-700">Check-in for <%= event.title %> ended on <%= formatDate(closes) %>. If you still need to record who came, contact the SeniorPadi team.</p>
+  <% } else { %>
+    <h1 class="text-[1.5rem]">This link isn't working</h1>
+    <p class="mt-2 text-gray-700">It may have been typed wrongly, replaced with a new one, or turned off. Ask the SeniorPadi team for the latest link.</p>
+  <% } %>
+</div>
+
+<%- include('bottom') %>

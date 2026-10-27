@@ -27,7 +27,9 @@ module.exports = (sequelize) => {
     remindersEnabled: { type: DataTypes.BOOLEAN, defaultValue: true },
     phoneVerifiedAt: DataTypes.DATE,
     emailVerifiedAt: DataTypes.DATE,
-    onboardingSeenAt: DataTypes.DATE
+    onboardingSeenAt: DataTypes.DATE,
+    createdByName: DataTypes.STRING, // set when a son or daughter signed this senior up
+    createdByPhone: DataTypes.STRING
   }, {
     paranoid: true // never hard delete users
   });
@@ -51,8 +53,14 @@ module.exports = (sequelize) => {
     return '/images/senior-avatar.svg';
   };
 
+  // the name we greet someone by. A title on its own ("Mr", "Mama") is not enough,
+  // so it keeps the next word too: "Mr Kunle", "Mama Tolu", "Chief Samuel".
+  const TITLES = ['mr', 'mrs', 'ms', 'miss', 'dr', 'prof', 'chief', 'mama', 'baba', 'papa', 'pa', 'ma', 'iya', 'alhaji', 'alhaja',
+    'pastor', 'rev', 'reverend', 'deacon', 'deaconess', 'elder', 'evangelist', 'engr', 'sir', 'lady', 'madam', 'oba', 'olori', 'otunba', 'chief.'];
   User.prototype.firstName = function () {
-    return this.fullName.split(' ')[0];
+    const words = this.fullName.trim().split(/\s+/);
+    const isTitle = TITLES.includes(words[0].toLowerCase().replace(/\.$/, ''));
+    return isTitle && words.length > 1 ? words[0] + ' ' + words[1] : words[0];
   };
 
   return User;

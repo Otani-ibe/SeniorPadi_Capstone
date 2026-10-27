@@ -2,7 +2,7 @@ const request = require('supertest');
 const app = require('../src/app');
 const { User } = require('../src/models');
 const { lastCodeForTests } = require('../src/services/verification');
-const { resetDb, makeUser, csrfFrom, sequelize } = require('./helpers');
+const { resetDb, makeUser, csrfFrom, signIn, sequelize } = require('./helpers');
 
 beforeEach(resetDb);
 afterAll(() => sequelize.close());
@@ -95,6 +95,14 @@ test('a number that never typed its code can sign up again, and is not signed in
   expect((await User.findOne()).fullName).toBe('Second Try');
 });
 
+test('a new account\'s texts tell the phone\'s owner what is happening (a child may be signing them up)', () => {
+  const { t } = require('../src/services/i18n');
+  const code = t('signup.code.sms', 'en', { name: 'Mama Tolu', code: '123456', minutes: 10 });
+  expect(code).toContain('a new account is being created for Mama Tolu');
+  expect(code).toContain('Only share it if you agree');
+  expect(t('signup.welcome_text.sms', 'en', { name: 'Mama Tolu' })).toContain('Your account is ready');
+});
+
 test('staff still sign in with a password, and a wrong one is refused', async () => {
   const admin = await makeUser({ role: 'admin' });
   const agent = request.agent(app);
@@ -108,4 +116,12 @@ test('staff still sign in with a password, and a wrong one is refused', async ()
   form = await agent.get('/login/password');
   const good = await agent.post('/login/password').type('form').send({ _csrf: csrfFrom(form.text), password: 'password123' });
   expect(good.headers.location).toBe('/admin');
+});
+
+test('a title on its own is not a name: "Mr Kunle", "Mama Tolu", plain "Tolu"', async () => {
+  expect((await makeUser({ fullName: 'Mr Kunle Ade' })).firstName()).toBe('Mr Kunle');
+  expect((await makeUser({ fullName: 'Mama Tolu Adeyemi' })).firstName()).toBe('Mama Tolu');
+  expect((await makeUser({ fullName: 'Chief. Samuel Eze' })).firstName()).toBe('Chief. Samuel');
+  expect((await makeUser({ fullName: 'Tolu Adeyemi' })).firstName()).toBe('Tolu');
+  expect((await makeUser({ fullName: 'Mr' })).firstName()).toBe('Mr');
 });

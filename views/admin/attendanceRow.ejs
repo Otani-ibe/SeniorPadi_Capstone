@@ -1,0 +1,46 @@
+<%# one person on the attendance list. Also sent back on its own after a tap, to replace the old row.
+    needs: reg (with senior and Attendance), event, hasStarted, door ({ base, host }).
+    The host organization sees only the last 4 digits of a phone number and no profile links. %>
+<%
+  const s = reg.senior;
+  const name = s ? s.fullName : '(deleted account)';
+  const fullPhone = s ? s.localPhone() : '';
+  const phone = door.host && fullPhone ? '••• ' + fullPhone.slice(-4) : fullPhone;
+  const searchable = door.host ? fullPhone.slice(-4) : fullPhone + ' ' + fullPhone.replace(/^0/, '');
+  const how = { manual: 'staff list', qr: 'QR code', ticket: 'ticket number', host: door.host ? 'you' : 'the organization' };
+  const action = door.base + '/registrations/' + reg.id + '/status';
+  const button = (status, label, cls) => '<form action="' + action + '" method="post" data-door-form>' +
+    '<input type="hidden" name="_csrf" value="' + csrfToken + '"><input type="hidden" name="status" value="' + status + '">' +
+    '<button class="' + cls + '">' + label + '</button></form>';
+  const plain = 'inline-flex min-h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-[0.95rem] font-semibold text-ink transition hover:border-ink';
+%>
+<li data-row="<%= reg.id %>" data-status="<%= reg.status %>" data-name="<%= name %>"
+    data-search="<%= (name + ' ' + reg.ticketNumber + ' ' + searchable).toLowerCase() %>"
+    class="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3.5 transition-colors sm:flex-nowrap sm:px-5 <%= reg.status === 'attended' ? 'bg-emerald-50/60' : '' %>">
+  <% if (s) { %><%- include('../partials/avatar', { person: s, cls: 'h-11 w-11 shrink-0' }) %><% } else { %><span class="h-11 w-11 shrink-0 rounded-full bg-gray-100"></span><% } %>
+
+  <div class="min-w-0 flex-1 basis-40">
+    <p class="flex flex-wrap items-center gap-x-2 font-semibold leading-snug">
+      <% if (s && !door.host) { %><a href="/admin/seniors/<%= s.id %>" class="text-ink no-underline hover:underline"><%= name %></a><% } else { %><%= name %><% } %>
+      <% if (reg.type === 'volunteer') { %><span class="chip chip-indigo">Volunteer</span><% } %>
+    </p>
+    <p class="text-[0.9rem] text-gray-600 tabular-nums"><%= reg.ticketNumber %><%= phone ? ' · ' + phone : '' %></p>
+  </div>
+
+  <div class="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
+    <% if (reg.status === 'attended') { %>
+      <span class="mr-1 inline-flex items-center gap-1.5 text-[0.95rem] font-semibold text-leaf-dark">
+        <%- include('../partials/icon', { name: 'check', cls: 'h-5 w-5' }) %>Came<% if (reg.Attendance) { %><span class="font-normal text-gray-600">&nbsp;<%= formatTime(reg.Attendance.checkedInAt) %>, by <%= how[reg.Attendance.method] || 'list' %></span><% } %>
+      </span>
+      <%- button('registered', 'Undo', plain) %>
+    <% } else { %>
+      <% if (reg.status === 'no_show') { %>
+        <span class="chip chip-amber mr-1">Didn't come</span>
+        <%- button('registered', 'Undo', plain) %>
+      <% } else if (hasStarted) { %>
+        <%- button('no_show', "Didn't come", plain) %>
+      <% } %>
+      <%- button('attended', 'Came', 'inline-flex min-h-12 min-w-28 items-center justify-center gap-2 rounded-md bg-leaf px-5 text-[1rem] font-semibold text-white transition hover:bg-leaf-dark') %>
+    <% } %>
+  </div>
+</li>

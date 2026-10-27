@@ -43,7 +43,9 @@ module.exports = (sequelize) => {
       type: DataTypes.ENUM('published', 'cancelled', 'completed'),
       defaultValue: 'published'
     },
-    createdByAdminId: DataTypes.INTEGER
+    createdByAdminId: DataTypes.INTEGER,
+    checkinToken: { type: DataTypes.STRING(64), unique: true }, // the host organization's check-in link; empty = none
+    checkinTokenAt: DataTypes.DATE
   }, {
     indexes: [{ fields: ['startsAt', 'status'] }]
   });

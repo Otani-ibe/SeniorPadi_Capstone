@@ -8,7 +8,7 @@
 <% } else { %>
   <ul class="mb-10 space-y-3">
     <% pending.forEach(function (r) { %>
-      <li class="rounded-[1.5rem] border-2 border-gray-100 bg-white p-5">
+      <li class="rounded-card border-2 border-gray-100 bg-white p-5">
         <a href="/admin/reports/<%= r.id %>"><strong><%= r.reporter ? r.reporter.fullName : '(deleted)' %></strong> reported <strong><%= r.reported ? r.reported.fullName : '(deleted)' %></strong></a><br>
         <span class="text-[0.95rem] text-gray-700"><%= formatDate(r.createdAt) %></span>
       </li>

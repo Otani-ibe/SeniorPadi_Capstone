@@ -1,0 +1,111 @@
+<%- include('../partials/header') %>
+<%
+  const s = senior;
+  const idLabel = { unverified: ['Not sent', 'chip-grey'], pending: ['Waiting for check', 'chip-amber'], approved: ['Verified', 'chip-green'], rejected: ['Sent back', 'chip-red'], social_removed: ['Removed from social', 'chip-red'] }[s.verificationStatus];
+  const regLabel = { registered: ['Registered', 'chip-indigo'], attended: ['Came', 'chip-green'], no_show: ['Missed', 'chip-amber'], cancelled: ['Cancelled', 'chip-grey'] };
+  const safeName = s.fullName.replace(/'/g, '');
+  const info = [
+    ['fa-phone', 'Phone', s.localPhone(), s.phoneVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']],
+    ['fa-envelope', 'Email', s.email || 'Not given', s.email ? (s.emailVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']) : null],
+    ['fa-location-dot', 'Lives in', placeOf(s) || 'Not given', null],
+    ['fa-id-card', 'ID check', null, idLabel],
+    ['fa-language', 'Language', s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English', null],
+    ['fa-bell', 'Reminders', s.remindersEnabled ? s.reminderDaysBefore + ' day(s) before each event' : 'Turned off', null],
+    ['fa-calendar-plus', 'Joined', formatDate(s.createdAt), null]
+  ];
+  if (s.createdByName) info.push(['fa-people-roof', 'Signed up by a family member', s.createdByName + (s.createdByPhone ? ', 0' + s.createdByPhone.replace('+234', '') : ''), null]);
+%>
+
+<a href="/admin/seniors" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Seniors</a>
+
+<div class="grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
+  <%# ---------- left: who they are ---------- %>
+  <div class="space-y-5">
+    <section class="admin-box p-5">
+      <div class="flex items-center justify-between gap-2">
+        <h1 class="text-[1.3rem] leading-tight"><%= s.fullName %></h1>
+        <span class="chip <%= idLabel[1] %>"><%= idLabel[0] %></span>
+      </div>
+      <img src="<%= s.avatarUrl() %>" alt="" class="mt-4 aspect-square w-full rounded-md bg-mist object-cover">
+      <p class="mt-4 flex flex-wrap gap-1.5">
+        <% if (s.lga) { %><span class="chip chip-grey"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><%= t('area.' + s.lga) %></span><% } %>
+        <% if (s.gender) { %><span class="chip chip-grey"><%= s.gender === 'female' ? 'Woman' : 'Man' %></span><% } %>
+        <span class="chip chip-grey"><%= s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English' %></span>
+      </p>
+      <% if (s.bio) { %>
+        <h2 class="mt-4 text-[0.85rem] font-semibold uppercase tracking-[0.08em] text-gray-500">About</h2>
+        <p class="mt-1 whitespace-pre-line text-[0.95rem]"><%= s.bio %></p>
+      <% } %>
+    </section>
+
+    <section class="admin-box p-5">
+      <h2 class="text-[1.05rem]">Account</h2>
+      <p class="mt-1 text-[0.9rem] text-gray-600">Their past attendance is always kept.</p>
+      <div class="mt-4 space-y-2">
+        <% if (s.verificationStatus === 'approved') { %>
+          <form action="/admin/seniors/<%= s.id %>/remove-from-social" method="post"
+                onsubmit="return confirm('Remove <%= safeName %> from Find Seniors and messages? Their events are not affected.');">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="admin-plain w-full">Remove from social</button>
+          </form>
+        <% } %>
+        <form action="/admin/seniors/<%= s.id %>/delete" method="post"
+              onsubmit="return confirm('Delete the account of <%= safeName %>? Upcoming places are cancelled. Past attendance is kept.');">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-full-bg px-4 text-[0.95rem] font-semibold text-full-tag transition hover:bg-full-tag hover:text-white">Delete account</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <%# ---------- right: details and events ---------- %>
+  <div class="min-w-0 space-y-5">
+    <section class="admin-box">
+      <h2 class="border-b border-gray-200 px-5 py-4 text-[1.05rem]">Main information</h2>
+      <ul class="divide-y divide-gray-100">
+        <% info.forEach(function (row) { %>
+          <li class="flex items-center gap-4 px-5 py-3.5">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-gray-200 text-gray-600"><i class="fa-solid <%= row[0] %>" aria-hidden="true"></i></span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[0.85rem] text-gray-600"><%= row[1] %></span>
+              <% if (row[2]) { %><span class="block font-semibold"><%= row[2] %></span><% } %>
+            </span>
+            <% if (row[3]) { %><span class="chip <%= row[3][1] %>"><%= row[3][0] %></span><% } %>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+
+    <section class="admin-box">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-5 py-4">
+        <h2 class="text-[1.05rem]">Events</h2>
+        <p class="text-[0.9rem] text-gray-600"><%= counts.total %> signed up · <%= counts.attended %> came · <%= counts.missed %> missed · <%= counts.cancelled %> cancelled</p>
+      </div>
+      <% if (registrations.length === 0) { %>
+        <p class="px-5 py-8 text-center text-gray-600">Hasn't signed up for an event yet.</p>
+      <% } else { %>
+        <div class="overflow-x-auto">
+          <table class="admin-table min-w-[36rem]">
+            <thead><tr><th>Event</th><th>Date</th><th>Ticket</th><th>Status</th></tr></thead>
+            <tbody>
+              <% registrations.forEach(function (r) { const e = r.Event; %>
+                <tr>
+                  <td>
+                    <% if (e) { %><a href="/admin/events/<%= e.id %>/attendance" class="font-semibold text-ink no-underline hover:underline"><%= e.title %></a>
+                      <br><span class="text-[0.85rem] text-gray-600"><%= e.Organization ? e.Organization.name : '' %><%= r.type === 'volunteer' ? ' · Volunteer' : '' %></span>
+                    <% } else { %><span class="text-gray-500">(event removed)</span><% } %>
+                  </td>
+                  <td class="whitespace-nowrap"><%= e ? formatDate(e.startsAt) : '' %></td>
+                  <td class="whitespace-nowrap"><%= r.ticketNumber || '–' %></td>
+                  <td><span class="chip <%= (regLabel[r.status] || ['', 'chip-grey'])[1] %>"><%= (regLabel[r.status] || [r.status])[0] %></span></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

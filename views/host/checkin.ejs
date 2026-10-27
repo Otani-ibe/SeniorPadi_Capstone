@@ -1,0 +1,20 @@
+<%- include('top') %>
+<%# the host organization's guest list, opened from the private link staff sent them %>
+
+<div class="admin-head">
+  <div class="min-w-0">
+    <p class="text-[0.9rem] font-semibold text-indigo"><%= event.Organization.name %></p>
+    <h1><%= event.title %></h1>
+    <p class="count"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %> · <%= event.locationText %></p>
+  </div>
+  <button type="button" onclick="window.print()" class="admin-plain print:hidden"><i class="fa-solid fa-print" aria-hidden="true"></i>Print list</button>
+</div>
+
+<p class="mb-4 rounded-card border border-gray-200 bg-white px-4 py-3 text-[0.95rem] text-gray-700 print:hidden">
+  As each guest arrives, find them by name, ticket number or the last 4 digits of their phone, and tap <strong>Came</strong>.
+  If a guest shows you a QR code, you can also scan it with this phone's camera. This page works until <%= formatDate(closes) %>; please don't share the link.
+</p>
+
+<%- include('../admin/doorList') %>
+
+<%- include('bottom') %>

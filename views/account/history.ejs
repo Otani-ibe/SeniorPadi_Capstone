@@ -12,7 +12,7 @@
 
 <ul class="space-y-3">
   <% registrations.forEach(function (reg) { const came = reg.status === 'attended'; %>
-    <li class="flex items-center gap-4 rounded-[1.5rem] bg-surface p-4">
+    <li class="flex items-center gap-4 rounded-card bg-surface p-4">
       <span class="<%= came ? 'icon-dot bg-leaf' : 'icon-dot-soft' %>"><i class="fa-solid <%= came ? 'fa-circle-check' : 'fa-calendar' %>" aria-hidden="true"></i></span>
       <span class="min-w-0 flex-1">
         <span class="block text-[1.1rem] font-semibold"><%= reg.Event.title %></span>

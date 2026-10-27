@@ -4,8 +4,6 @@ const multer = require('multer');
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const ID_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
-const VIDEO_TYPES = ['video/mp4', 'video/webm'];
-
 function fileUpload(fieldName, maxMb, allowedTypes, wrongTypeKey) {
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -42,9 +40,4 @@ function idUpload(fieldName) {
   return fileUpload(fieldName, 5, ID_TYPES, 'upload.wrong_type_id');
 }
 
-// admin only: the onboarding video
-function videoUpload(fieldName) {
-  return fileUpload(fieldName, 50, VIDEO_TYPES, 'upload.wrong_type_video');
-}
-
-module.exports = { imageUpload, idUpload, videoUpload };
+module.exports = { imageUpload, idUpload };

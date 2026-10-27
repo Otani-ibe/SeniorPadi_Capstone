@@ -7,15 +7,15 @@
       var el = document.querySelector('[data-stat="' + key + '"]');
       if (el && el.textContent !== String(data.totals[key])) {
         el.textContent = data.totals[key];
-        el.classList.add('text-coral');
-        setTimeout(function () { el.classList.remove('text-coral'); }, 1200);
+        el.classList.add('text-indigo');
+        setTimeout(function () { el.classList.remove('text-indigo'); }, 1200);
       }
     });
 
     var rate = data.totals.attendanceRate;
     var ring = document.getElementById('rate-ring');
     var rateLabel = document.querySelector('[data-stat="attendanceRate-label"]');
-    if (ring) ring.style.background = 'conic-gradient(var(--color-mint) ' + rate + '%, #eef2fa 0)';
+    if (ring) ring.style.background = 'conic-gradient(var(--color-indigo) ' + rate + '%, var(--color-gray-100) 0)';
     if (rateLabel) rateLabel.textContent = rate + '%';
 
     var max = Math.max.apply(null, [1].concat(data.days.map(function (d) { return d.total; })));

@@ -1,60 +1,18 @@
 <%- include('../partials/header') %>
+<%# staff view of an event's guest list: door check-in, plus the link to send the host organization %>
 
-<p class="mb-4"><a href="/admin/events">Back to events</a></p>
-<h1 class="mb-1">Attendance</h1>
-<p class="mb-1 text-xl font-bold"><%= event.title %></p>
-<p class="mb-6"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %>, <%= event.Organization.name %></p>
+<a href="/admin/events" class="back-link print:hidden"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Events</a>
 
-<% if (!hasStarted) { %>
-  <div class="panel mb-6">
-    <p class="mb-2">This event hasn't happened yet. Print this page and take it to the event to tick people off, then come back and enter it here.</p>
-    <button type="button" onclick="window.print()" class="btn-plain">Print list</button>
+<div class="admin-head">
+  <div class="min-w-0">
+    <h1><%= event.title %></h1>
+    <p class="count"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %> · <%= event.Organization.name %></p>
   </div>
-<% } %>
+  <button type="button" onclick="window.print()" class="admin-plain print:hidden"><i class="fa-solid fa-print" aria-hidden="true"></i>Print list</button>
+</div>
 
-<form action="/admin/events/<%= event.id %>/checkin" method="post" class="panel mb-6">
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <div class="field mb-3">
-    <label for="ticket">Check in by ticket number</label>
-    <input type="text" id="ticket" name="ticket" placeholder="SP-7K3QX9" autocapitalize="characters" required>
-    <span class="hint">The number is in the senior's SMS or email.</span>
-  </div>
-  <button class="btn">Check in</button>
-</form>
+<%- include('doorList') %>
 
-<p class="mb-4 font-bold"><%= registrations.filter(function (r) { return r.Attendance; }).length %> of <%= registrations.length %> checked in.</p>
-
-<% if (registrations.length === 0) { %>
-  <p class="panel">Nobody is registered for this event.</p>
-<% } else { %>
-  <form action="/admin/events/<%= event.id %>/attendance" method="post">
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-    <div class="relative overflow-x-auto">
-      <table class="admin-table mb-6">
-        <thead>
-          <tr><th>Name</th><th>Ticket</th><th>As</th><th>Came</th><th>Didn't come</th><th>Not marked</th></tr>
-        </thead>
-        <tbody>
-          <% registrations.forEach(function (reg) { %>
-            <tr>
-              <td><strong><%= reg.senior ? reg.senior.fullName : '(deleted)' %></strong></td>
-              <td><%= reg.ticketNumber %><% if (reg.Attendance) { %><br><span class="text-base text-gray-700"><%= { manual: 'list', qr: 'QR', ticket: 'ticket' }[reg.Attendance.method] %>, <%= formatTime(reg.Attendance.checkedInAt) %></span><% } %></td>
-              <td><%= reg.type === 'volunteer' ? 'Volunteer' : 'Attendee' %></td>
-              <% [['attended', 'Came'], ['no_show', "Didn't come"], ['registered', 'Not marked']].forEach(function (opt) { %>
-                <td>
-                  <label class="flex items-center gap-2">
-                    <input type="radio" name="status_<%= reg.id %>" value="<%= opt[0] %>" class="h-6 w-6" <%= reg.status === opt[0] ? 'checked' : '' %>>
-                    <span class="sr-only"><%= opt[1] %></span>
-                  </label>
-                </td>
-              <% }) %>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-    <button class="btn">Save attendance</button>
-  </form>
-<% } %>
+<%- include('checkinLink') %>
 
 <%- include('../partials/footer') %>

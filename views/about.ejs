@@ -8,12 +8,12 @@
 
 <%# the two kinds of buttons on this page %>
 <% function primaryButton(href, label, icon) { %>
-  <a href="<%= href %>" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-indigo px-7 font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
+  <a href="<%= href %>" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-md bg-indigo px-7 font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
     <%= label %><i class="fa-solid <%= icon || 'fa-arrow-right' %>" aria-hidden="true"></i>
   </a>
 <% } %>
 <% function secondaryButton(href, label, onDark) { %>
-  <a href="<%= href %>" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full border-2 px-7 font-semibold no-underline transition <%= onDark ? 'border-white/70 text-white hover:bg-white/10' : 'border-indigo/25 bg-white text-indigo hover:border-indigo' %>">
+  <a href="<%= href %>" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-md border-2 px-7 font-semibold no-underline transition <%= onDark ? 'border-white/70 text-white hover:bg-white/10' : 'border-indigo/25 bg-white text-indigo hover:border-indigo' %>">
     <%= label %>
   </a>
 <% } %>
@@ -32,14 +32,14 @@
     </div>
   </div>
   <div class="grid grid-cols-2 gap-2.5" aria-hidden="true">
-    <img src="/images/home/about-woman.jpg" alt="" class="aspect-[3/4] w-full rounded-[1.75rem] object-cover" width="600" height="800">
-    <img src="/images/home/about-man.jpg" alt="" class="mt-8 aspect-[3/4] w-full rounded-[1.75rem] object-cover" width="600" height="800">
+    <img src="/images/home/about-woman.jpg" alt="" class="aspect-[3/4] w-full rounded-card object-cover" width="600" height="800">
+    <img src="/images/home/about-man.jpg" alt="" class="mt-8 aspect-[3/4] w-full rounded-card object-cover" width="600" height="800">
   </div>
 </section>
 
 <%# ================= 2. THE PROBLEM AND WHY WE EXIST ================= %>
 <section class="mt-14 grid items-center gap-8 md:mt-20 md:grid-cols-[1fr_1.2fr]">
-  <img src="/images/home/welcome-large.jpg" alt="" class="aspect-[4/3] w-full rounded-[2rem] object-cover object-[50%_20%] md:aspect-[4/5]" width="1000" height="1498">
+  <img src="/images/home/welcome-large.jpg" alt="" class="aspect-[4/3] w-full rounded-card object-cover object-[50%_20%] md:aspect-[4/5]" width="1000" height="1498">
   <div>
     <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.problem_title') %></h2>
     <div class="mt-5 space-y-4 text-[1.1rem] leading-relaxed text-gray-700">
@@ -54,7 +54,7 @@
 <section class="mt-14 grid gap-4 md:mt-20 md:grid-cols-2">
   <% [['fa-bullseye', 'about.mission_title', 'about.mission_text', 'bg-indigo text-white', 'bg-white/15', 'text-white/90'],
       ['fa-eye', 'about.vision_title', 'about.vision_text', 'bg-mist text-ink', 'bg-white text-indigo', 'text-gray-700']].forEach(function (c) { %>
-    <div class="rounded-[2rem] p-7 md:p-9 <%= c[3] %>">
+    <div class="rounded-card p-7 md:p-9 <%= c[3] %>">
       <span class="flex h-12 w-12 items-center justify-center rounded-full text-[1.2rem] <%= c[4] %>"><i class="fa-solid <%= c[0] %>" aria-hidden="true"></i></span>
       <h2 class="mt-4 text-[1.6rem]"><%= t(c[1]) %></h2>
       <p class="mt-2 text-[1.15rem] leading-relaxed <%= c[5] %>"><%= t(c[2]) %></p>
@@ -69,7 +69,7 @@
   <ul class="mt-6 grid gap-4 sm:grid-cols-2">
     <% [['fa-calendar-days', 'about.do1_title', 'about.do1_text'], ['fa-handshake', 'about.do2_title', 'about.do2_text'],
         ['fa-user-group', 'about.do3_title', 'about.do3_text'], ['fa-hand-holding-heart', 'about.do4_title', 'about.do4_text']].forEach(function (f) { %>
-      <li class="flex gap-4 rounded-[1.75rem] bg-surface p-6">
+      <li class="flex gap-4 rounded-card bg-surface p-6">
         <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo text-[1.2rem] text-white"><i class="fa-solid <%= f[0] %>" aria-hidden="true"></i></span>
         <span>
           <h3 class="text-[1.25rem]"><%= t(f[1]) %></h3>
@@ -81,12 +81,12 @@
 </section>
 
 <%# ================= 5. HOW SENIORPADI WORKS ================= %>
-<section class="mt-14 rounded-[2rem] bg-mist px-5 py-10 md:mt-20 md:px-10">
+<section class="mt-14 rounded-card bg-mist px-5 py-10 md:mt-20 md:px-10">
   <h2 class="text-center text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.works_title') %></h2>
   <p class="mx-auto mt-3 max-w-2xl text-center text-[1.1rem] text-gray-700"><%= t('about.works_text') %></p>
   <ol class="mt-8 grid gap-4 md:grid-cols-3 md:gap-10">
     <% [['about.step1_title', 'about.step1_text'], ['about.step2_title', 'about.step2_text'], ['about.step3_title', 'about.step3_text']].forEach(function (s, i, all) { %>
-      <li class="relative rounded-[1.5rem] bg-white p-6">
+      <li class="relative rounded-card bg-white p-6">
         <span class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo text-[1.2rem] font-semibold text-white"><%= i + 1 %></span>
         <h3 class="mt-4 text-[1.25rem]"><%= t(s[0]) %></h3>
         <p class="mt-1 text-gray-700"><%= t(s[1]) %></p>
@@ -132,7 +132,7 @@
   <ul class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <% [['fa-crown', 'about.val_dignity', 'about.val_dignity_text'], ['fa-house-chimney-user', 'about.val_belonging', 'about.val_belonging_text'],
         ['fa-universal-access', 'about.val_inclusion', 'about.val_inclusion_text'], ['fa-people-carry-box', 'about.val_collab', 'about.val_collab_text']].forEach(function (v) { %>
-      <li class="rounded-[1.5rem] border-2 border-gray-100 p-6">
+      <li class="rounded-card border-2 border-gray-100 p-6">
         <i class="fa-solid <%= v[0] %> text-[1.4rem] text-indigo" aria-hidden="true"></i>
         <h3 class="mt-3 text-[1.25rem]"><%= t(v[1]) %></h3>
         <p class="mt-1 text-gray-700"><%= t(v[2]) %></p>
@@ -142,12 +142,12 @@
 </section>
 
 <%# ================= 8. CLOSING ================= %>
-<section class="mt-14 overflow-hidden rounded-[2rem] bg-indigo text-white md:mt-20 md:grid md:grid-cols-[1.4fr_1fr]">
+<section class="mt-14 overflow-hidden rounded-card bg-indigo text-white md:mt-20 md:grid md:grid-cols-[1.4fr_1fr]">
   <div class="px-6 py-10 md:px-12 md:py-14">
     <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.final_title') %></h2>
     <p class="mt-4 text-[1.15rem] leading-relaxed text-white/90"><%= t('about.final_text') %></p>
     <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-      <a href="/events" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-white px-7 font-semibold text-indigo no-underline transition hover:bg-mist">
+      <a href="/events" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-md bg-white px-7 font-semibold text-indigo no-underline transition hover:bg-mist">
         <%= t('about.cta_explore') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
       </a>
       <% secondaryButton(PARTNER_HREF, t('about.cta_touch'), true) %>
