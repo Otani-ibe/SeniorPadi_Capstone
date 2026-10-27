@@ -20,12 +20,6 @@
         <button class="btn-plain w-full sm:w-full" data-uploading-text="<%= t('upload.uploading') %>"><i class="fa-solid fa-upload" aria-hidden="true"></i><%= t('settings.picture_upload') %></button>
       </form>
     </section>
-
-    <a href="/onboarding" class="list-row">
-      <span class="icon-dot-soft"><i class="fa-solid fa-circle-play" aria-hidden="true"></i></span>
-      <span class="flex-1 font-semibold"><%= t('onboarding.watch_again') %></span>
-      <i class="fa-solid fa-chevron-right text-indigo" aria-hidden="true"></i>
-    </a>
   </div>
 
   <%# ===== right: one form, in clear groups ===== %>
@@ -100,7 +94,7 @@
       <button class="btn w-full sm:w-full"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><%= t('settings.save') %></button>
     </div>
 
-    <section class="rounded-[1.75rem] bg-full-bg/60 p-5">
+    <section class="rounded-card bg-full-bg/60 p-5">
       <h2 class="text-[1.2rem]"><%= t('delete.title') %></h2>
       <p class="mt-1 text-gray-700"><%= t('delete.settings_intro') %></p>
       <a href="/account/delete" class="mt-2 inline-flex min-h-11 items-center gap-2 font-semibold text-full-tag"><i class="fa-solid fa-user-xmark" aria-hidden="true"></i><%= t('delete.title') %></a>

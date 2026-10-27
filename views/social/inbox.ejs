@@ -19,6 +19,7 @@
           <span class="flex items-center gap-2">
             <span class="text-[1.15rem] font-semibold"><%= c.person.firstName() %></span>
             <% if (unread) { %><span class="tag-mine"><%= t('messages.new') %></span><% } %>
+            <span class="ml-auto text-[0.85rem] text-gray-700"><%= shortDate(c.last.createdAt) %></span>
           </span>
           <span class="block truncate text-gray-700"><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %></span>
         </span>

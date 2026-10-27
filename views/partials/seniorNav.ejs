@@ -7,7 +7,7 @@
     { href: '/find-seniors', label: t('nav.find_seniors'), short: t('nav.seniors'), icon: 'fa-user-group', active: path.startsWith('/find-seniors') || path.startsWith('/report') || path.startsWith('/block') },
     { href: '/messages', label: t('nav.messages'), icon: 'fa-comments', active: path.startsWith('/messages') },
     { href: '/about', label: t('about.title'), icon: 'fa-circle-info', topOnly: true, active: path === '/about' },
-    { href: '/account', label: t('nav.account'), icon: 'fa-circle-user', badge: unreadCount, active: ['/account', '/history', '/settings', '/notifications', '/change-password', '/onboarding', '/verify'].some((p) => path.startsWith(p)) }
+    { href: '/account', label: t('nav.account'), icon: 'fa-circle-user', badge: unreadCount, active: ['/account', '/history', '/settings', '/notifications', '/change-password', '/verify'].some((p) => path.startsWith(p)) }
   ];
   const bottom = placement === 'bottom';
 %>
@@ -21,7 +21,7 @@
         <a href="<%= item.href %>" <%= item.active ? 'aria-current=page' : '' %>
            class="relative flex min-h-16 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[0.66rem] leading-tight no-underline min-[360px]:text-[0.72rem] min-[400px]:text-[0.8rem]
                   <%= item.active ? 'font-semibold text-indigo' : 'font-medium text-gray-700' %>">
-          <span class="flex h-8 w-12 max-w-full items-center justify-center rounded-full text-[1.15rem] <%= item.active ? 'bg-mist' : '' %>">
+          <span class="flex h-8 w-12 max-w-full items-center justify-center rounded-md text-[1.15rem] <%= item.active ? 'bg-mist' : '' %>">
             <i class="fa-solid <%= item.icon %>" aria-hidden="true"></i>
           </span>
           <span class="max-w-full text-center [overflow-wrap:anywhere]"><%= item.short || item.label %></span>
@@ -39,7 +39,7 @@
     <% shown.forEach(function (item) { %>
       <li>
         <a href="<%= item.href %>" <%= item.active ? 'aria-current=page' : '' %>
-           class="relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-[0.95rem] no-underline transition
+           class="relative inline-flex items-center gap-2 rounded-md px-4 py-2 text-[0.95rem] no-underline transition
                   <%= item.active ? 'bg-mist font-semibold text-indigo' : 'font-medium text-gray-700 hover:bg-surface hover:text-ink' %>">
           <%= item.label %>
           <% if (item.badge > 0) { %>

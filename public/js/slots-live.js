@@ -12,13 +12,16 @@
   });
 
   function paint(el, n) {
-    if (n === null || n === undefined) { el.hidden = true; el.textContent = ''; return; }
+    var text = el.querySelector('[data-slots-text]');
+    if (n === null || n === undefined) { el.hidden = true; if (text) text.textContent = ''; return; }
     el.hidden = false;
-    el.textContent = n === 0 ? el.getAttribute('data-full')
-      : n === 1 ? el.getAttribute('data-one')
-      : el.getAttribute('data-many').replace('__N__', n);
-    el.classList.toggle('text-full-tag', n <= 5);
-    el.classList.toggle('text-leaf-dark', n > 5);
+    if (text) {
+      text.textContent = n === 0 ? el.getAttribute('data-full')
+        : n === 1 ? el.getAttribute('data-one')
+        : el.getAttribute('data-many').replace('__N__', n);
+    }
+    el.classList.toggle('slots-low', n <= 5);
+    el.classList.toggle('slots-ok', n > 5);
   }
 
   function refresh() {

@@ -1,43 +1,65 @@
 <%- include('../partials/header') %>
+<% const filtered = filters.q || filters.lga || filters.id;
+   const idLabel = { unverified: ['Not sent', 'chip-grey'], pending: ['Waiting for check', 'chip-amber'], approved: ['Verified', 'chip-green'], rejected: ['Sent back', 'chip-red'], social_removed: ['Removed from social', 'chip-red'] }; %>
 
-<h1 class="mb-6">Seniors</h1>
-
-<form action="/admin/seniors" method="get" class="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end">
-  <div class="field mb-0 flex-1">
-    <label for="q">Search by name or phone</label>
-    <input type="text" id="q" name="q" value="<%= q %>">
+<div class="admin-head">
+  <div>
+    <h1>Seniors</h1>
+    <p class="count"><%= filtered ? seniors.length + ' of ' + total : total %> senior<%= total === 1 ? '' : 's' %><%= seniors.length === 100 ? ' (first 100 shown; search to narrow down)' : '' %></p>
   </div>
-  <button class="btn-plain">Search</button>
+</div>
+
+<form action="/admin/seniors" method="get" role="search" class="admin-filters" data-filters>
+  <div class="admin-search">
+    <label for="q" class="sr-only">Search seniors</label>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="search" id="q" name="q" value="<%= filters.q %>" placeholder="Search by name or phone" class="admin-input">
+  </div>
+  <label for="lga" class="sr-only">Local government area</label>
+  <select id="lga" name="lga" class="admin-input">
+    <option value="">All LGAs</option>
+    <% areas.forEach(function (a) { %><option value="<%= a %>" <%= filters.lga === a ? 'selected' : '' %>><%= t('area.' + a) %></option><% }) %>
+  </select>
+  <label for="id" class="sr-only">ID check</label>
+  <select id="id" name="id" class="admin-input">
+    <option value="">Any ID status</option>
+    <% idStatuses.forEach(function (s) { %><option value="<%= s %>" <%= filters.id === s ? 'selected' : '' %>><%= idLabel[s][0] %></option><% }) %>
+  </select>
+  <button class="admin-plain">Search</button>
 </form>
 
 <% if (seniors.length === 0) { %>
-  <p class="panel">No seniors found.</p>
+  <div class="admin-box px-6 py-12 text-center">
+    <p class="font-semibold"><%= filtered ? 'No seniors match.' : 'No seniors have signed up yet.' %></p>
+    <% if (filtered) { %><p class="mt-1"><a href="/admin/seniors">Clear the search</a></p><% } %>
+  </div>
+<% } else { %>
+  <div class="admin-box overflow-x-auto">
+    <table class="admin-table min-w-[48rem] [&_td]:align-middle">
+      <thead><tr><th>Senior</th><th>Phone</th><th>LGA</th><th>Joined</th><th>ID check</th><th><span class="sr-only">Open</span></th></tr></thead>
+      <tbody>
+        <% seniors.forEach(function (s) { %>
+          <tr class="hover:bg-surface">
+            <td>
+              <span class="flex items-center gap-3">
+                <%- include('../partials/avatar', { person: s, cls: 'h-10 w-10 shrink-0' }) %>
+                <span class="min-w-0">
+                  <a href="/admin/seniors/<%= s.id %>" class="font-semibold text-ink no-underline hover:underline"><%= s.fullName %></a>
+                  <% if (s.createdByName) { %><br><span class="text-[0.85rem] text-gray-600">Signed up by <%= s.createdByName %></span><% } %>
+                </span>
+              </span>
+            </td>
+            <td class="whitespace-nowrap"><%= s.localPhone() %></td>
+            <td><%= s.lga ? t('area.' + s.lga) : '–' %></td>
+            <td class="whitespace-nowrap"><%= formatDate(s.createdAt) %></td>
+            <td><span class="chip <%= idLabel[s.verificationStatus][1] %>"><%= idLabel[s.verificationStatus][0] %></span></td>
+            <td class="text-right"><a href="/admin/seniors/<%= s.id %>" class="admin-plain min-h-9 px-3 text-[0.9rem]">View</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 <% } %>
 
-<ul class="space-y-4">
-  <% seniors.forEach(function (s) { %>
-    <li class="rounded-[1.5rem] border-2 border-gray-100 bg-white p-5">
-      <strong><%= s.fullName %></strong><br>
-      <%= s.phone %><%= s.email ? ', ' + s.email : '' %><br>
-      <span class="text-[0.95rem] text-gray-700">Joined <%= formatDate(s.createdAt) %>. Language: <%= s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English' %>.
-        ID: <%= { unverified: 'not sent', pending: 'waiting for check', approved: 'verified', rejected: 'sent back', social_removed: 'removed from social' }[s.verificationStatus] %>.</span>
-      <% const safeName = s.fullName.replace(/'/g, ''); %>
-      <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-        <% if (s.verificationStatus === 'approved') { %>
-          <form action="/admin/seniors/<%= s.id %>/remove-from-social" method="post"
-                onsubmit="return confirm('Remove <%= safeName %> from Find Seniors and messages? Their events are not affected.');">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="inline-flex min-h-11 items-center gap-2 rounded-full px-4 font-semibold no-underline bg-full-bg text-full-tag hover:bg-full-tag hover:text-white">Remove from social</button>
-          </form>
-        <% } %>
-        <form action="/admin/seniors/<%= s.id %>/delete" method="post"
-              onsubmit="return confirm('Delete the account of <%= safeName %>? Upcoming places are cancelled. Past attendance is kept.');">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button class="inline-flex min-h-11 items-center gap-2 rounded-full px-4 font-semibold no-underline bg-full-bg text-full-tag hover:bg-full-tag hover:text-white">Delete account</button>
-        </form>
-      </div>
-    </li>
-  <% }) %>
-</ul>
-
+<script src="/js/admin-filters.js" defer></script>
 <%- include('../partials/footer') %>

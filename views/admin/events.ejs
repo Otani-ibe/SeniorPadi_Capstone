@@ -1,42 +1,95 @@
 <%- include('../partials/header') %>
+<% const filtered = filters.q || filters.category || filters.area; %>
 
-<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <h1>Events</h1>
-  <a href="/admin/events/new" class="btn">Add event</a>
+<div class="admin-head">
+  <div>
+    <h1>Events</h1>
+    <p class="count"><%= filtered ? events.length + ' of ' + total : total %> event<%= total === 1 ? '' : 's' %></p>
+  </div>
+  <a href="/admin/events/new" class="admin-add"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add event</a>
 </div>
 
+<form action="/admin/events" method="get" role="search" class="admin-filters" data-filters>
+  <div class="admin-search">
+    <label for="q" class="sr-only">Search events</label>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="search" id="q" name="q" value="<%= filters.q %>" placeholder="Search by name, place or organization" class="admin-input">
+  </div>
+  <label for="category" class="sr-only">Category</label>
+  <select id="category" name="category" class="admin-input">
+    <option value="">All categories</option>
+    <% categories.forEach(function (c) { %><option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= t('category.' + c) %></option><% }) %>
+  </select>
+  <label for="area" class="sr-only">Local government area</label>
+  <select id="area" name="area" class="admin-input">
+    <option value="">All LGAs</option>
+    <% areas.forEach(function (a) { %><option value="<%= a %>" <%= filters.area === a ? 'selected' : '' %>><%= t('area.' + a) %></option><% }) %>
+  </select>
+  <button class="admin-plain">Search</button>
+</form>
+
 <% if (events.length === 0) { %>
-  <p class="panel">No events yet.</p>
+  <div class="admin-box px-6 py-12 text-center">
+    <p class="font-semibold"><%= filtered ? 'No events match.' : 'No events yet.' %></p>
+    <p class="mt-1 text-gray-600"><% if (filtered) { %><a href="/admin/events">Clear the search</a><% } else { %><a href="/admin/events/new">Add the first one</a><% } %></p>
+  </div>
 <% } %>
 
-<ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+<%# each event looks like it does for seniors: the whole flyer, then the details %>
+<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
   <% events.forEach(function (event) { %>
-    <li class="flex gap-4 rounded-[1.5rem] border-2 border-gray-100 bg-white p-4">
-      <%- include('../partials/eventImage', { event, imgClass: 'h-24 w-24 shrink-0 rounded-2xl object-cover object-top sm:h-28 sm:w-36' }) %>
-      <div class="min-w-0 flex-1">
-      <p class="mb-1">
-        <% if (event.status === 'cancelled') { %><span class="tag-full">Cancelled</span>
-        <% } else if (event.status === 'completed') { %><span class="tag-mine">Finished</span>
-        <% } else { %><span class="tag-leaf">Published</span><% } %>
-        <% if (event.hostedBySenior) { %><span class="tag-leaf">Hosted by a senior</span><% } %>
-      </p>
-      <h2 class="mb-1"><%= event.title %></h2>
-      <p><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %> at <%= event.locationText %></p>
-      <p class="mb-3"><%= event.Organization.name %></p>
-      <div class="flex flex-wrap gap-x-5 gap-y-2">
-        <a href="/events/<%= event.id %>">View as senior</a>
-        <a href="/admin/events/<%= event.id %>/edit">Edit</a>
-        <a href="/admin/events/<%= event.id %>/attendance">Attendance</a>
-        <% if (event.status === 'published') { %>
-          <form action="/admin/events/<%= event.id %>/cancel" method="post" onsubmit="return confirm('Cancel this event? Everyone registered will get a message.');">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="inline-flex min-h-11 items-center gap-2 rounded-full px-4 font-semibold no-underline bg-full-bg text-full-tag hover:bg-full-tag hover:text-white">Cancel event</button>
-          </form>
-        <% } %>
-      </div>
+    <li class="flex flex-col overflow-hidden rounded-card border border-gray-200 bg-white">
+      <%# the picture opens the edit page %>
+      <a href="/admin/events/<%= event.id %>/edit" class="group relative block aspect-[4/3] overflow-hidden bg-mist" aria-label="Edit <%= event.title %>">
+        <% if (event.imageUrl) { %><img src="<%= event.imageUrl %>" alt="" aria-hidden="true" class="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover opacity-60 blur-2xl"><% } %>
+        <%- include('../partials/eventImage', { event, imgClass: 'relative h-full w-full object-contain transition group-hover:scale-[1.02]' }) %>
+        <span class="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-md bg-white/95 px-2.5 py-1 text-[0.85rem] font-semibold text-ink shadow-sm transition group-hover:bg-ink group-hover:text-white">
+          <i class="fa-solid fa-pen" aria-hidden="true"></i>Edit
+        </span>
+      </a>
+
+      <div class="flex flex-1 flex-col p-5">
+        <p class="flex flex-wrap gap-1.5">
+          <% if (event.status === 'cancelled') { %><span class="chip chip-red">Cancelled</span>
+          <% } else if (event.status === 'completed' || event.endsAt < new Date()) { %><span class="chip chip-grey">Finished</span>
+          <% } else { %><span class="chip chip-green">Published</span><% } %>
+          <span class="chip chip-indigo"><i class="fa-solid <%= categoryIcons[event.category] || 'fa-tag' %>" aria-hidden="true"></i><%= t('category.' + event.category) %></span>
+          <% if (event.hostedBySenior) { %><span class="chip chip-amber">Hosted by a senior</span><% } %>
+        </p>
+        <h2 class="mt-3 text-[1.2rem] leading-snug"><%= event.title %></h2>
+        <p class="mt-0.5 text-[0.9rem] text-gray-600"><%= event.Organization.name %></p>
+
+        <ul class="mt-4 space-y-2 text-[0.95rem]">
+          <li class="flex items-start gap-2.5">
+            <i class="fa-solid fa-calendar-day mt-1 w-4 text-center text-indigo" aria-hidden="true"></i>
+            <span><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %></span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <i class="fa-solid fa-location-dot mt-1 w-4 text-center text-indigo" aria-hidden="true"></i>
+            <span class="min-w-0"><span class="font-semibold"><%= event.area ? t('area.' + event.area) : 'LGA not set' %></span> · <span class="text-gray-700"><%= event.locationText %></span></span>
+          </li>
+        </ul>
+
+        <p class="mt-3 flex flex-wrap gap-1.5">
+          <span class="chip chip-grey"><i class="fa-solid <%= event.priceLabel() ? 'fa-tag' : 'fa-gift' %>" aria-hidden="true"></i><%= event.priceLabel() || 'Free' %></span>
+          <span class="chip chip-grey"><i class="fa-solid fa-user-check" aria-hidden="true"></i><%= event.taken %><%= event.capacity ? ' / ' + event.capacity : '' %> registered</span>
+        </p>
+
+        <div class="mt-auto pt-4"><div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-100 pt-2 text-[0.95rem]">
+          <a href="/admin/events/<%= event.id %>/edit" class="inline-flex min-h-11 items-center font-semibold">Edit</a>
+          <a href="/admin/events/<%= event.id %>/attendance" class="inline-flex min-h-11 items-center">Attendance</a>
+          <a href="/events/<%= event.id %>" class="inline-flex min-h-11 items-center">View as senior</a>
+          <% if (event.status === 'published') { %>
+            <form action="/admin/events/<%= event.id %>/cancel" method="post" class="ml-auto" onsubmit="return confirm('Cancel this event? Everyone registered will get a message.');">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="inline-flex min-h-11 items-center font-semibold text-full-tag hover:underline">Cancel event</button>
+            </form>
+          <% } %>
+        </div></div>
       </div>
     </li>
   <% }) %>
 </ul>
 
+<script src="/js/admin-filters.js" defer></script>
 <%- include('../partials/footer') %>

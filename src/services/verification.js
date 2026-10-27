@@ -15,7 +15,8 @@ function hash(code) {
 }
 
 // sends a new 6-digit code. Returns { ok } or { ok: false, reason: 'wait' | 'no_email' }
-async function sendCode(user, channel) {
+// options.smsKey / options.vars let a different wording be used (the parent's text names the child)
+async function sendCode(user, channel, options = {}) {
   if (channel === 'email' && !user.email) return { ok: false, reason: 'no_email' };
 
   const recent = await VerificationCode.findOne({
@@ -31,8 +32,8 @@ async function sendCode(user, channel) {
     expiresAt: new Date(Date.now() + CODE_MINUTES * 60 * 1000)
   });
 
-  const vars = { name: user.firstName(), code, minutes: CODE_MINUTES };
-  if (channel === 'phone') await sendSms(user, 'verify.code', vars);
+  const vars = { name: user.firstName(), code, minutes: CODE_MINUTES, ...(options.vars || {}) };
+  if (channel === 'phone') await sendSms(user, options.smsKey || 'verify.code', vars);
   else await sendEmail(user, 'verify.code', vars);
   // the automated tests need the code; it's never returned anywhere else
   if (process.env.NODE_ENV === 'test') lastCodes[user.id] = code;

@@ -35,7 +35,8 @@ const UPLOAD_TYPES = {
   event: {
     folder: 'seniorpadi/public/events',
     type: 'upload',
-    transformation: [{ width: 800, height: 450, crop: 'fill', quality: 'auto:low', fetch_format: 'auto' }]
+    // flyers are never cropped: only made smaller if they are bigger than 1200px. The best flyer is a square, 1080 x 1080.
+    transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }]
   },
   video: {
     folder: 'seniorpadi/public/onboarding',

@@ -1,0 +1,28 @@
+<%# "Tata is registered!": shown once after a child registers a parent. The ticket went to the parent's phone. %>
+<% if (typeof bookedPopup !== 'undefined' && bookedPopup) { const b = bookedPopup; %>
+  <div data-booked-popup>
+    <div class="fixed inset-0 z-40 bg-ink/60" aria-hidden="true"></div>
+    <div role="dialog" aria-modal="true" aria-labelledby="booked-title"
+         class="fixed left-1/2 top-1/2 z-50 max-h-[92vh] w-[92%] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-card bg-white p-6 text-center shadow-2xl md:p-8">
+      <a href="<%= currentPath %>" data-booked-close class="absolute right-3 top-3 inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 font-semibold text-ink no-underline transition hover:bg-gray-100">
+        <i class="fa-solid fa-xmark text-[1.2rem]" aria-hidden="true"></i><%= t('modal.close') %>
+      </a>
+      <span class="done-pop mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-leaf text-[2.2rem] text-white"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+      <h2 id="booked-title" class="mt-4 text-[1.9rem]"><%= t('book.popup_title', { name: b.name }) %></h2>
+      <p class="mt-1 text-[1.1rem] font-semibold"><%= b.event.title %></p>
+      <p class="text-gray-700"><%= formatDate(b.event.startsAt) %>, <%= formatTime(b.event.startsAt) %></p>
+      <div class="mx-auto mt-5 rounded-card border-2 border-dashed border-indigo/40 bg-mist px-4 py-4">
+        <p class="text-gray-700"><%= t('book.ticket', { name: b.name }) %></p>
+        <p class="text-[1.9rem] font-bold tracking-widest text-indigo"><%= b.ticket %></p>
+      </div>
+      <p class="mt-4 text-gray-700"><%= t('book.done_text', { name: b.name }) %></p>
+      <a href="<%= currentPath %>" data-booked-close class="btn mt-6 w-full sm:w-full"><%= t('registered.done') %></a>
+    </div>
+  </div>
+  <script>
+    // Close and Done just hide the pop-up, so the page stays where it was
+    document.querySelectorAll('[data-booked-close]').forEach(function (a) {
+      a.addEventListener('click', function (e) { e.preventDefault(); a.closest('[data-booked-popup]').remove(); });
+    });
+  </script>
+<% } %>

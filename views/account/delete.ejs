@@ -13,7 +13,7 @@
       <% }) %>
     </ul>
 
-    <% if (error) { %><div role="alert" class="mt-5 rounded-[1.25rem] bg-full-bg p-4 font-semibold"><%= error %></div><% } %>
+    <% if (error) { %><div role="alert" class="mt-5 rounded-card bg-full-bg p-4 font-semibold"><%= error %></div><% } %>
 
     <form action="/account/delete" method="post" class="mt-6">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">

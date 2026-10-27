@@ -2,11 +2,11 @@
     On computers the photo is as tall as the screen and stays in view while the form scrolls,
     so the write-up at its foot can always be seen. %>
 <div class="relative md:order-last">
-  <div class="relative h-72 overflow-hidden md:sticky md:top-[6.5rem] md:h-[calc(100vh-8.5rem)] md:max-h-full md:min-h-[38rem]">
-    <img src="/images/home/welcome-large.jpg" alt="" class="absolute inset-0 h-full w-full object-cover object-[50%_15%] md:object-[50%_8%]" width="1000" height="1498">
+  <div class="relative h-44 overflow-hidden sm:h-60 md:sticky md:top-[6.5rem] md:h-[calc(100vh-8.5rem)] md:max-h-full md:min-h-[38rem]">
+    <img src="/images/home/welcome-large.jpg" alt="" class="absolute inset-0 h-full w-full object-cover object-[50%_7%] sm:object-[50%_15%] md:object-[50%_8%]" width="1000" height="1498">
 
     <%# frosted card with what SeniorPadi is about %>
-    <div class="absolute inset-x-4 bottom-4 rounded-[1.25rem] bg-ink/60 px-4 py-3 text-white ring-1 ring-white/20 backdrop-blur-md md:inset-x-6 md:bottom-6 md:p-6">
+    <div class="absolute inset-x-4 bottom-4 hidden rounded-card bg-ink/60 px-4 py-3 text-white ring-1 ring-white/20 backdrop-blur-md sm:block md:inset-x-6 md:bottom-6 md:p-6">
       <div class="mb-3 hidden md:flex" aria-hidden="true">
         <% ['2', '3', '5'].forEach(function (n, i) { %>
           <img src="/images/home/senior-<%= n %>.jpg" alt="" class="h-11 w-11 rounded-full object-cover ring-2 ring-white <%= i > 0 ? '-ml-3' : '' %>" width="44" height="44">

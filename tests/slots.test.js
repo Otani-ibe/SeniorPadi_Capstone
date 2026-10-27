@@ -15,8 +15,8 @@ async function loggedInAgent(phone) {
 
 // the text of the slots line for one event on a page, or '' when it is hidden
 function slotsText(html, id) {
-  const m = html.match(new RegExp('<p data-slots-for="' + id + '"[^>]*?(hidden)?>([^<]*)</p>'));
-  return m ? m[2].trim() : null;
+  const m = html.match(new RegExp('<p data-slots-for="' + id + '"[^>]*>(?:<i[^>]*></i>)?<span data-slots-text>([^<]*)</span></p>'));
+  return m ? m[1].trim() : null;
 }
 
 test('an event with 30 slots shows 30 slots left, and 29 after one senior registers', async () => {

@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+
+<div class="auth-shell">
+  <%- include('../partials/authAside') %>
+  <div class="auth-form">
+<h1 class="mb-2"><%= t('book.title') %></h1>
+<% if (event) { %>
+  <p class="mb-4 rounded-2xl bg-surface p-4"><i class="fa-solid fa-calendar-day mr-2 text-indigo" aria-hidden="true"></i><span class="font-semibold"><%= event.title %></span><br><span class="text-gray-700"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></span></p>
+<% } %>
+<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="fa-solid fa-mobile-screen mt-1 text-indigo" aria-hidden="true"></i><span><%= t('book.intro') %></span></p>
+
+<form action="/book-for-parent" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="event" value="<%= event ? event.id : '' %>">
+  <div class="field">
+    <label for="childName"><%= t('parent.child_name') %></label>
+    <input type="text" id="childName" name="childName" value="<%= values.childName || '' %>" autocomplete="name" required>
+    <% if (errors.childName) { %><span class="error"><%= errors.childName %></span><% } %>
+  </div>
+  <div class="field">
+    <label for="parentPhone"><%= t('parent.phone') %></label>
+    <%- include('../partials/phoneInput', { id: 'parentPhone', name: 'parentPhone', value: values.parentPhone }) %>
+    <% if (errors.parentPhone) { %><span class="error"><%= errors.parentPhone %><% if (typeof noAccount !== 'undefined' && noAccount) { %> <a href="/signup/parent"><%= t('book.error_none_link') %></a><% } %></span><% } %>
+  </div>
+  <button class="btn w-full sm:w-full"><%= t('parent.submit') %></button>
+</form>
+<p class="mt-6 text-[0.95rem] text-gray-700"><%= t('book.no_account') %> <a href="/signup/parent" class="font-semibold"><%= t('book.error_none_link') %></a></p>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

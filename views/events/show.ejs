@@ -10,10 +10,9 @@
     <div class="mt-3 [&>div]:justify-center md:[&>div]:justify-start"><%- include('../partials/eventTags', { event, state, isMine: mine.attendee }) %></div>
   </div>
 
-  <%# picture, with the price sticker in the corner %>
+  <%# the picture: nothing is drawn over it, so the whole flyer can be read %>
   <div class="relative self-start md:col-start-1 md:row-span-2 md:row-start-1">
-    <%- include('../partials/eventImage', { event, natural: true, imgClass: 'block w-full rounded-[2rem]' }) %>
-    <%- include('../partials/priceBadge', { event }) %>
+    <%- include('../partials/eventImage', { event, natural: true, imgClass: 'block w-full rounded-card' }) %>
   </div>
 
   <div class="md:col-start-2 md:row-start-2">
@@ -58,17 +57,22 @@
   <% } else if (!state.isOpen) { %>
     <p class="mt-2"><%= state.isPast ? t('event.past_note') : t('event.closed_note') %></p>
 
+  <% } else if (!currentUser && bookingFor) { %>
+    <div class="mt-4 max-w-md"><%- include('../partials/bookButton', { event }) %></div>
+
   <% } else if (!currentUser) { %>
     <p class="mt-2"><%= t('event.login_to_join') %></p>
     <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-      <a href="/signup" class="btn"><%= t('home.create_account') %></a>
-      <a href="/login" class="btn-plain"><%= t('home.login') %></a>
+      <%# both links remember this event, so once the code is typed they are registered for it %>
+      <a href="/signup?register=<%= event.id %>" class="btn"><%= t('home.create_account') %></a>
+      <a href="/login?register=<%= event.id %>" class="btn-outline"><%= t('home.login') %></a>
     </div>
+    <div class="text-left"><%- include('../partials/bookLink', { event }) %></div>
 
   <% } else { %>
     <div class="mt-4 grid gap-4 <%= state.volunteerEnabled ? 'sm:grid-cols-2' : 'max-w-md' %>">
       <%# attend %>
-      <div class="rounded-[1.25rem] bg-white p-5">
+      <div class="rounded-card bg-white p-5">
         <% if (mine.attendee) { %>
           <p class="mb-3 flex items-center gap-2 font-semibold text-leaf"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><%= t('event.you_are_going') %></p>
           <a href="/registrations" class="btn-plain w-full sm:w-full"><%= t('event.manage') %></a>
@@ -84,7 +88,7 @@
 
       <%# volunteer: same size and weight as attending %>
       <% if (state.volunteerEnabled) { %>
-        <div class="rounded-[1.25rem] bg-white p-5">
+        <div class="rounded-card bg-white p-5">
           <% if (mine.volunteer) { %>
             <p class="mb-3 flex items-center gap-2 font-semibold text-leaf"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><%= t('event.you_are_volunteering') %></p>
             <a href="/registrations" class="btn-plain w-full sm:w-full"><%= t('event.manage') %></a>
@@ -103,7 +107,7 @@
 
     <%# calm alternative when it's full %>
     <% if (state.attendeeFull && !mine.attendee) { %>
-      <div class="mt-5 rounded-[1.25rem] bg-white p-5">
+      <div class="mt-5 rounded-card bg-white p-5">
         <% if (interested) { %>
           <p class="font-semibold"><%= t('notify_me.already') %></p>
         <% } else { %>

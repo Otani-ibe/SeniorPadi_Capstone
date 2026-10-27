@@ -25,6 +25,19 @@
   --color-amber-bg: #fdf0d2;
   --color-full-tag: #9f1d1d;
   --color-full-bg: #fde8e8;
+
+  --color-indigo-deep: #2a1157; /* the brand purple, very dark: the help strip under the hero */
+
+  /* corners: straight edges with a small, even rounding everywhere. Only photos of people,
+     dots and icon discs are circles. Buttons and chips use rounded-md (6px). */
+  --radius-card: 0.5rem;
+  --radius-panel: 0.5rem;
+  --radius-inner: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.5rem;
+  /* the one soft shadow for cards that sit on the page */
+  --shadow-soft: 0 2px 10px rgb(26 21 35 / 0.06);
 }
 
 @layer base {
@@ -52,8 +65,12 @@
   img, video, input, select, textarea {
     max-width: 100%;
   }
+  /* the "Choose file" button: round and purple, like the other buttons */
+  input[type="file"]::file-selector-button {
+    @apply mr-3 cursor-pointer rounded-md border-0 bg-indigo px-5 py-2.5 font-semibold text-white transition hover:bg-indigo-dark;
+  }
   :focus-visible {
-    @apply outline-3 outline-offset-2 outline-coral;
+    @apply outline-3 outline-offset-2 outline-indigo;
   }
 }
 
@@ -63,7 +80,7 @@
   }
   /* log-in, sign-up and password pages: form on the left, photo on the right */
   .auth-shell {
-    @apply mx-auto grid max-w-5xl overflow-clip rounded-[2rem] bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2;
+    @apply mx-auto grid max-w-5xl overflow-clip rounded-card bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2;
   }
   .auth-form {
     @apply p-6 sm:p-8 lg:px-10;
@@ -89,7 +106,7 @@
   .btn,
   .btn-volunteer,
   .btn-coral {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-indigo px-7 py-3 text-center text-[1.05rem]
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-md bg-indigo px-7 py-3 text-center text-[1.05rem]
       font-semibold text-white no-underline shadow-lg shadow-indigo/20 transition hover:bg-indigo-dark sm:w-auto;
   }
   .btn-volunteer {
@@ -99,8 +116,24 @@
     @apply bg-full-tag shadow-full-tag/20 hover:bg-[#7f1717];
   }
   .btn-plain {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full border-2 border-indigo/25 bg-white px-7 py-3
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-md border-2 border-indigo/25 bg-white px-7 py-3
       text-center text-[1.05rem] font-semibold text-indigo no-underline transition hover:border-indigo hover:bg-mist sm:w-auto;
+  }
+  .btn:active,
+  .btn-volunteer:active,
+  .btn-coral:active,
+  .btn-plain:active,
+  .btn-outline:active {
+    @apply translate-y-px;
+  }
+  /* the second button next to a main one: dark outline */
+  .btn-outline {
+    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-md border-2 border-ink bg-white/70 px-7 py-3
+      text-center text-[1.05rem] font-semibold text-ink no-underline transition hover:bg-ink hover:text-white sm:w-auto;
+  }
+  /* a text-only action, such as "See all events" */
+  .btn-quiet {
+    @apply inline-flex min-h-12 items-center gap-2 font-semibold text-indigo no-underline hover:underline;
   }
   .btn[disabled],
   .btn-volunteer[disabled] {
@@ -109,18 +142,22 @@
 
   /* ---------- surfaces ---------- */
   .panel {
-    @apply rounded-[1.5rem] bg-mist p-6;
+    @apply rounded-card bg-mist p-6;
   }
   .card {
-    @apply rounded-[1.5rem] bg-surface p-6;
+    @apply rounded-card bg-surface p-6;
+  }
+  /* a white card with a thin border and the soft shadow: event cards */
+  .card-outline {
+    @apply rounded-card border border-gray-200 bg-white p-4;
   }
   /* a white box with a soft outline, for forms and lists */
   .sheet {
-    @apply rounded-[1.75rem] border-2 border-gray-100 bg-white p-5 md:p-7;
+    @apply rounded-card border-2 border-gray-100 bg-white p-5 md:p-7;
   }
   /* a tappable row: icon, text, arrow */
   .list-row {
-    @apply flex items-center gap-4 rounded-[1.5rem] bg-surface p-4 text-ink no-underline transition hover:ring-2 hover:ring-indigo;
+    @apply flex items-center gap-4 rounded-card bg-surface p-4 text-ink no-underline transition hover:ring-2 hover:ring-indigo;
   }
   /* a round icon in brand colours */
   .icon-dot {
@@ -131,7 +168,7 @@
   }
   /* nothing here yet */
   .empty-state {
-    @apply rounded-[1.75rem] bg-surface px-6 py-10 text-center;
+    @apply rounded-card bg-surface px-6 py-10 text-center;
   }
 
   /* ---------- forms ---------- */
@@ -170,16 +207,31 @@
 
   /* ---------- chat bubbles (also built by public/js/chat.js) ---------- */
   .bubble { @apply max-w-[85%] px-4 py-3 text-[1.05rem] sm:max-w-[70%]; }
-  .bubble-mine { @apply rounded-[1.4rem] rounded-br-md bg-indigo text-white; }
-  .bubble-theirs { @apply rounded-[1.4rem] rounded-bl-md bg-surface text-ink; }
+  .bubble-mine { @apply rounded-card rounded-br-md bg-indigo text-white; }
+  .bubble-theirs { @apply rounded-card rounded-bl-md bg-surface text-ink; }
   .bubble-time { @apply mt-1 text-[0.85rem] opacity-80; }
+
+  /* ---------- filter chips (Find events) ---------- */
+  .filter-chip {
+    @apply inline-flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-4 text-[0.95rem] font-semibold no-underline transition;
+  }
+  .filter-chip-off { @apply bg-surface text-ink hover:bg-mist; }
+  .filter-chip-on { @apply bg-indigo text-white; }
+
+  /* ---------- "23 slots left" ---------- */
+  .slots {
+    @apply inline-flex w-fit items-center gap-2 rounded-md px-3.5 py-1.5 text-[0.95rem] font-semibold;
+  }
+  .slots[hidden] { display: none; }
+  .slots-ok { @apply bg-emerald-50 text-leaf-dark; }
+  .slots-low { @apply bg-full-bg text-full-tag; }
 
   /* ---------- tags ---------- */
   .tag-amber,
   .tag-full,
   .tag-mine,
   .tag-leaf {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.9rem] font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[0.9rem] font-semibold;
   }
   .tag-amber { @apply bg-amber-bg text-amber-tag; }
   .tag-full { @apply bg-full-bg text-full-tag; }
@@ -196,6 +248,44 @@
   .admin-table td {
     @apply border-b border-gray-100 px-3 py-3 text-left align-top;
   }
+
+  /* ---------- admin lists: page title, search and filter bar, white list box ---------- */
+  .admin-head {
+    @apply mb-6 flex flex-wrap items-center justify-between gap-3;
+  }
+  .admin-head h1 { @apply text-[1.9rem] leading-tight; }
+  .admin-head .count { @apply mt-1 text-[0.95rem] text-gray-600; }
+  /* the main action at the top right, e.g. "+ Add event" */
+  .admin-add {
+    @apply inline-flex min-h-11 items-center gap-2 rounded-md bg-indigo px-4 text-[0.95rem] font-semibold text-white no-underline
+      transition hover:bg-indigo-dark;
+  }
+  .admin-filters {
+    @apply mb-5 grid gap-2 rounded-card border border-gray-200 bg-white p-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto];
+  }
+  .admin-input {
+    @apply block min-h-11 w-full rounded-md border border-gray-300 bg-white px-3 text-[0.95rem] text-ink transition
+      focus:border-indigo focus:ring-2 focus:ring-indigo/15 focus:outline-none;
+  }
+  .admin-search { @apply relative; }
+  .admin-search i { @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500; }
+  .admin-search .admin-input { @apply pl-9; }
+  .admin-plain {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 text-[0.95rem]
+      font-semibold text-ink no-underline transition hover:border-ink;
+  }
+  .admin-box {
+    @apply overflow-hidden rounded-card border border-gray-200 bg-white;
+  }
+  /* small coloured status label */
+  .chip {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-0.5 text-[0.8rem] font-semibold;
+  }
+  .chip-green { @apply bg-emerald-50 text-leaf-dark; }
+  .chip-amber { @apply bg-amber-bg text-amber-tag; }
+  .chip-red { @apply bg-full-bg text-full-tag; }
+  .chip-grey { @apply bg-gray-100 text-gray-700; }
+  .chip-indigo { @apply bg-mist text-indigo; }
 
   
 }
@@ -347,7 +437,7 @@
   z-index: 5;
   padding: 0.25rem 1rem;
   border: 4px solid;
-  border-radius: 1rem;
+  border-radius: 0.5rem;
   background: rgb(255 255 255 / 0.92);
   font-size: 1.75rem;
   font-weight: 700;
@@ -359,12 +449,34 @@
 .deck-stamp-skip { right: 1.75rem; color: var(--color-ink); border-color: var(--color-ink); transform: rotate(14deg); }
 .deck-stamp-yes { left: 1.75rem; color: var(--color-indigo); border-color: var(--color-indigo); transform: rotate(-14deg); }
 
+/* "Help on SeniorPadi" strip: two copies of the list slide left forever, slowly. It runs off the
+   right edge of the screen (no end) and fades in softly beside the label. A finger, the mouse or
+   the keyboard stops it. */
+.ticker-viewport {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 2.5rem);
+}
+.ticker-track { display: flex; width: max-content; animation: ticker 55s linear infinite; }
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track,
+.ticker:active .ticker-track { animation-play-state: paused; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+/* the help pop-up rises from the bottom on phones */
+[data-help-nudge]:not([hidden]) .help-sheet { animation: sheet-up 0.35s ease-out; }
+@keyframes sheet-up { from { opacity: 0; translate: 0 2rem; } }
+
 @media (prefers-reduced-motion: reduce) {
   .welcome-word, .welcome-name { animation: none; opacity: 1; transform: none; }
   .orbit, .orbit-upright { animation: none; }
   .logo-mark, .logo-mark *, .logo-word { animation: none !important; }
   .quote-mark, .quote-item.is-active .quote-mark { animation: none; background-size: 100% 100%; }
   .float, .float-slow, .dots-drift { animation: none; }
+  /* the help strip stands still and can be scrolled sideways by hand instead */
+  .ticker-track { animation: none; }
+  .ticker-viewport { overflow-x: auto; mask-image: none; }
+  .ticker-track > [aria-hidden="true"] { display: none !important; }
+  [data-help-nudge]:not([hidden]) .help-sheet { animation: none; }
   .js [data-reveal] { opacity: 1; transform: none; transition: none; }
   * { transition: none !important; }
 

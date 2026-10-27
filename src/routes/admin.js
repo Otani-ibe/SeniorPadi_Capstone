@@ -2,15 +2,20 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
-const { sequelize, User, Organization, Event, Registration, EventInterest, Report, Notification, OnboardingVideo, Attendance } = require('../models');
-const { markAttended, markNotAttended } = require('../services/attendance');
+const { sequelize, User, Organization, Event, Registration, EventInterest, Report, Notification, Attendance } = require('../models');
+const {
+  markAttended, attendanceList, attendanceCounts, setStatus, checkInByTicket, markRestMissed,
+  newCheckinToken, checkinWindow, checkinLinkState
+} = require('../services/attendance');
+const { normalizePhone } = require('../services/phone');
+const { doorReply } = require('./doorReply');
 const capacity = require('../services/capacity');
 const cloud = require('../services/cloudinary');
 const { notify } = require('../services/notify');
 const { audit } = require('../services/audit');
 const { shortDate, fromLocalInput, toLocalInput, DAY_MS } = require('../services/dates');
 const { requireAdmin } = require('../middleware/auth');
-const { imageUpload, videoUpload } = require('../middleware/upload');
+const { imageUpload } = require('../middleware/upload');
 const { removeFromSocial, deleteAccount } = require('../services/removal');
 const { addNotification } = require('../services/social');
 
@@ -19,6 +24,7 @@ const numericId = require('../middleware/numericId');
 const router = express.Router();
 router.param('id', numericId);
 router.param('userId', numericId);
+router.param('regId', numericId);
 router.use(requireAdmin);
 
 // ---------- dashboard ----------
@@ -142,21 +148,50 @@ function orgValues(body) {
     name: (body.name || '').trim(),
     contactName: (body.contactName || '').trim() || null,
     contactPhone: (body.contactPhone || '').trim() || null,
-    contactEmail: (body.contactEmail || '').trim() || null
+    contactEmail: (body.contactEmail || '').trim() || null,
+    address: (body.address || '').trim() || null,
+    lga: Event.AREAS.includes(body.lga) ? body.lga : null
   };
 }
 
+// "%text%" for a search box, with the wildcards people might type taken literally
+const contains = (text) => ({ [Op.iLike]: '%' + text.replace(/[\\%_]/g, '\\$&') + '%' });
+
+function renderOrgForm(res, status, org, error) {
+  res.status(status).render('admin/organization-edit', {
+    title: org.id ? 'Edit organization' : 'Add organization', org, areas: Event.AREAS, error
+  });
+}
+
 router.get('/organizations', async (req, res) => {
-  const organizations = await Organization.findAll({ order: [['name', 'ASC']] });
-  res.render('admin/organizations', { title: 'Organizations', organizations, error: null });
+  const filters = { q: (req.query.q || '').trim(), lga: Event.AREAS.includes(req.query.lga) ? req.query.lga : '' };
+  const where = {};
+  if (filters.lga) where.lga = filters.lga;
+  if (filters.q) {
+    where[Op.or] = ['name', 'contactName', 'contactPhone', 'contactEmail', 'address'].map((f) => ({ [f]: contains(filters.q) }));
+  }
+  const organizations = await Organization.findAll({ where, order: [['name', 'ASC']] });
+
+  // how many events each one has run or has coming up
+  const counts = await Event.findAll({
+    attributes: ['organizationId', [sequelize.fn('COUNT', '*'), 'total']],
+    group: ['organizationId'],
+    raw: true
+  });
+  const eventCounts = {};
+  counts.forEach((c) => { eventCounts[c.organizationId] = Number(c.total); });
+
+  res.render('admin/organizations', {
+    title: 'Organizations', organizations, eventCounts, filters, areas: Event.AREAS,
+    total: await Organization.count()
+  });
 });
+
+router.get('/organizations/new', (req, res) => renderOrgForm(res, 200, {}, null));
 
 router.post('/organizations', async (req, res) => {
   const values = orgValues(req.body);
-  if (!values.name) {
-    const organizations = await Organization.findAll({ order: [['name', 'ASC']] });
-    return res.status(400).render('admin/organizations', { title: 'Organizations', organizations, error: 'Please give the organization a name.' });
-  }
+  if (!values.name) return renderOrgForm(res, 400, values, 'Please give the organization a name.');
   const org = await Organization.create({ ...values, createdByAdminId: req.user.id });
   await audit(req.user.id, 'organization.create', 'Organization', org.id);
   req.flash('success', org.name + ' was added.');
@@ -166,7 +201,7 @@ router.post('/organizations', async (req, res) => {
 router.get('/organizations/:id/edit', async (req, res) => {
   const org = await Organization.findByPk(req.params.id);
   if (!org) return res.redirect('/admin/organizations');
-  res.render('admin/organization-edit', { title: 'Edit organization', org, error: null });
+  renderOrgForm(res, 200, org, null);
 });
 
 router.post('/organizations/:id/edit', async (req, res) => {
@@ -174,9 +209,7 @@ router.post('/organizations/:id/edit', async (req, res) => {
   if (!org) return res.redirect('/admin/organizations');
 
   const values = orgValues(req.body);
-  if (!values.name) {
-    return res.status(400).render('admin/organization-edit', { title: 'Edit organization', org, error: 'Please give the organization a name.' });
-  }
+  if (!values.name) return renderOrgForm(res, 400, { ...values, id: org.id }, 'Please give the organization a name.');
   await org.update(values);
   await audit(req.user.id, 'organization.edit', 'Organization', org.id);
   req.flash('success', 'Changes saved.');
@@ -292,15 +325,31 @@ async function notifyInterestedSeniors(event) {
 }
 
 router.get('/events', async (req, res) => {
-  const events = await Event.findAll({ include: [Organization], order: [['startsAt', 'DESC']] });
-  res.render('admin/events', { title: 'Events', events });
+  const filters = {
+    q: (req.query.q || '').trim(),
+    category: Event.CATEGORIES.includes(req.query.category) ? req.query.category : '',
+    area: Event.AREAS.includes(req.query.area) ? req.query.area : ''
+  };
+  const where = {};
+  if (filters.category) where.category = filters.category;
+  if (filters.area) where.area = filters.area;
+  if (filters.q) {
+    where[Op.or] = [{ title: contains(filters.q) }, { locationText: contains(filters.q) }, { '$Organization.name$': contains(filters.q) }];
+  }
+  const events = await Event.findAll({ where, include: [Organization], order: [['startsAt', 'DESC']] });
+  for (const event of events) event.taken = await capacity.countTaken(event.id, 'attendee');
+
+  res.render('admin/events', {
+    title: 'Events', events, filters, categories: Event.CATEGORIES, areas: Event.AREAS,
+    total: await Event.count()
+  });
 });
 
 router.get('/events/new', async (req, res) => {
   const count = await Organization.count();
   if (count === 0) {
     req.flash('info', 'Add an organization first. Every event belongs to one.');
-    return res.redirect('/admin/organizations');
+    return res.redirect('/admin/organizations/new');
   }
   await renderEventForm(res, 200, { values: { capacity: 20 } });
 });
@@ -376,44 +425,60 @@ router.post('/events/:id/cancel', async (req, res) => {
 });
 
 // ---------- attendance ----------
+const adminDoor = (event) => ({ base: '/admin/events/' + event.id, host: false });
+
 router.get('/events/:id/attendance', async (req, res) => {
   const event = await Event.findByPk(req.params.id, { include: [Organization] });
   if (!event) return res.redirect('/admin/events');
 
-  const registrations = await Registration.findAll({
-    where: { eventId: event.id, status: { [Op.in]: ['registered', 'attended', 'no_show'] } },
-    include: [{ model: User, as: 'senior', paranoid: false }, Attendance],
-    order: [['type', 'ASC'], [{ model: User, as: 'senior' }, 'fullName', 'ASC']]
-  });
-
   res.render('admin/attendance', {
     title: 'Attendance',
     event,
-    registrations,
-    hasStarted: new Date(event.startsAt) <= new Date()
+    door: adminDoor(event),
+    registrations: await attendanceList(event.id),
+    counts: await attendanceCounts(event.id),
+    hasStarted: new Date(event.startsAt) <= new Date(),
+    link: event.checkinToken ? {
+      url: (process.env.APP_URL || '') + '/checkin/' + event.checkinToken,
+      state: checkinLinkState(event),
+      ...checkinWindow(event),
+      phone: normalizePhone(event.Organization.contactPhone)
+    } : null
   });
 });
 
+// one person at the door: Came, Didn't come, or back to Not marked
+router.post('/events/:id/registrations/:regId/status', async (req, res) => {
+  const event = await Event.findByPk(req.params.id);
+  if (!event) return res.redirect('/admin/events');
+  const reg = await setStatus(event.id, req.params.regId, req.body.status, 'manual', req.user.id);
+  if (reg) await audit(req.user.id, 'attendance.' + reg.status, 'Registration', reg.id);
+  doorReply(req, res, { event, reg, back: '/admin/events/' + event.id + '/attendance', door: adminDoor(event) });
+});
+
+// after the event: everyone still not marked didn't come
+router.post('/events/:id/rest-missed', async (req, res) => {
+  const event = await Event.findByPk(req.params.id);
+  if (!event) return res.redirect('/admin/events');
+  if (new Date(event.startsAt) > new Date()) {
+    req.flash('error', "The event hasn't started yet.");
+  } else {
+    const changed = await markRestMissed(event.id);
+    await audit(req.user.id, 'attendance.rest_missed', 'Event', event.id, { changed });
+    req.flash('success', changed + " marked as didn't come.");
+  }
+  res.redirect('/admin/events/' + event.id + '/attendance');
+});
+
+// the older all-at-once form: fields look like status_12 = attended | no_show | registered
 router.post('/events/:id/attendance', async (req, res) => {
   const event = await Event.findByPk(req.params.id);
   if (!event) return res.redirect('/admin/events');
-
-  // form fields look like status_12 = attended | no_show | registered
-  const allowed = ['registered', 'attended', 'no_show'];
   let changed = 0;
-
-  const registrations = await Registration.findAll({
-    where: { eventId: event.id, status: { [Op.in]: allowed } }
-  });
-  for (const reg of registrations) {
+  for (const reg of await attendanceList(event.id)) {
     const newStatus = req.body['status_' + reg.id];
-    if (allowed.includes(newStatus) && newStatus !== reg.status) {
-      if (newStatus === 'attended') await markAttended(reg, 'manual', req.user.id);
-      else await markNotAttended(reg, newStatus);
-      changed++;
-    }
+    if (newStatus && newStatus !== reg.status && await setStatus(event.id, reg.id, newStatus, 'manual', req.user.id)) changed++;
   }
-
   await audit(req.user.id, 'attendance.record', 'Event', event.id, { changed });
   req.flash('success', 'Attendance saved.');
   res.redirect('/admin/events/' + event.id + '/attendance');
@@ -423,37 +488,76 @@ router.post('/events/:id/attendance', async (req, res) => {
 router.post('/events/:id/checkin', async (req, res) => {
   const event = await Event.findByPk(req.params.id);
   if (!event) return res.redirect('/admin/events');
-
-  const ticket = (req.body.ticket || '').trim().toUpperCase().replace(/\s/g, '');
-  const reg = await Registration.findOne({
-    where: { eventId: event.id, ticketNumber: ticket.startsWith('SP-') ? ticket : 'SP-' + ticket },
-    include: [{ model: User, as: 'senior', paranoid: false }]
-  });
-
-  if (!reg) {
-    req.flash('error', 'No ticket ' + (ticket || '(empty)') + ' for this event. Check the number, or use the list below.');
-  } else if (reg.status === 'cancelled') {
-    req.flash('error', reg.ticketNumber + ' was cancelled. If they are here, welcome them and tick them on the list.');
+  const { reg, error } = await checkInByTicket(event.id, req.body.ticket, 'ticket', req.user.id);
+  if (error) {
+    req.flash('error', error);
   } else {
-    await markAttended(reg, 'ticket', req.user.id);
     await audit(req.user.id, 'attendance.ticket', 'Registration', reg.id);
     req.flash('success', (reg.senior ? reg.senior.fullName : 'Senior') + ' (' + reg.ticketNumber + ') is checked in.');
   }
   res.redirect('/admin/events/' + event.id + '/attendance');
 });
 
+// ---------- the host organization's check-in link ----------
+// a new link (or a replacement: the old one stops working)
+router.post('/events/:id/checkin-link', async (req, res) => {
+  const event = await Event.findByPk(req.params.id);
+  if (!event) return res.redirect('/admin/events');
+  const replacing = Boolean(event.checkinToken);
+  await event.update({ checkinToken: newCheckinToken(), checkinTokenAt: new Date() });
+  await audit(req.user.id, replacing ? 'checkin_link.replace' : 'checkin_link.create', 'Event', event.id);
+  req.flash('success', replacing ? 'New link made. The old one no longer works.' : 'Check-in link made. Send it to the organization.');
+  res.redirect('/admin/events/' + event.id + '/attendance#share');
+});
+
+router.post('/events/:id/checkin-link/off', async (req, res) => {
+  const event = await Event.findByPk(req.params.id);
+  if (!event) return res.redirect('/admin/events');
+  await event.update({ checkinToken: null, checkinTokenAt: null });
+  await audit(req.user.id, 'checkin_link.off', 'Event', event.id);
+  req.flash('success', 'The check-in link is turned off.');
+  res.redirect('/admin/events/' + event.id + '/attendance#share');
+});
+
 // ---------- seniors ----------
+const ID_STATUSES = ['unverified', 'pending', 'approved', 'rejected', 'social_removed'];
+
 router.get('/seniors', async (req, res) => {
-  const q = (req.query.q || '').trim();
+  const filters = {
+    q: (req.query.q || '').trim(),
+    lga: Event.AREAS.includes(req.query.lga) ? req.query.lga : '',
+    id: ID_STATUSES.includes(req.query.id) ? req.query.id : ''
+  };
   const where = { role: 'senior' };
-  if (q) {
+  if (filters.lga) where.lga = filters.lga;
+  if (filters.id) where.verificationStatus = filters.id;
+  if (filters.q) {
     where[Op.or] = [
-      { fullName: { [Op.iLike]: '%' + q + '%' } },
-      { phone: { [Op.iLike]: '%' + q.replace(/^0/, '') + '%' } }
+      { fullName: contains(filters.q) },
+      { phone: contains(filters.q.replace(/^0/, '')) }
     ];
   }
-  const seniors = await User.findAll({ where, order: [['fullName', 'ASC']], limit: 50 });
-  res.render('admin/seniors', { title: 'Seniors', seniors, q, tempPassword: null });
+  const seniors = await User.findAll({ where, order: [['fullName', 'ASC']], limit: 100 });
+  res.render('admin/seniors', {
+    title: 'Seniors', seniors, filters, areas: Event.AREAS, idStatuses: ID_STATUSES,
+    total: await User.count({ where: { role: 'senior' } })
+  });
+});
+
+// one senior: who they are, and every event they signed up for
+router.get('/seniors/:id', async (req, res) => {
+  const senior = await User.findOne({ where: { id: req.params.id, role: 'senior' } });
+  if (!senior) return res.redirect('/admin/seniors');
+  const registrations = await Registration.findAll({
+    where: { seniorId: senior.id },
+    include: [{ model: Event, include: [Organization] }],
+    order: [[Event, 'startsAt', 'DESC']]
+  });
+  const count = (status) => registrations.filter((r) => r.status === status).length;
+  res.render('admin/senior', {
+    title: senior.fullName, senior, registrations,
+    counts: { total: registrations.length, attended: count('attended'), missed: count('no_show'), cancelled: count('cancelled') }
+  });
 });
 
 router.post('/seniors/:id/remove-from-social', async (req, res) => {
@@ -461,7 +565,7 @@ router.post('/seniors/:id/remove-from-social', async (req, res) => {
   if (!senior) return res.redirect('/admin/seniors');
   await removeFromSocial(senior, req.user.id);
   req.flash('success', senior.fullName + ' was removed from Find Seniors and messages. Their event places are unchanged.');
-  res.redirect('/admin/seniors?q=' + encodeURIComponent(senior.phone));
+  res.redirect('/admin/seniors/' + senior.id);
 });
 
 router.post('/seniors/:id/delete', async (req, res) => {
@@ -612,53 +716,6 @@ router.post('/scan/:qrToken', async (req, res) => {
   res.redirect('/admin/scan/' + req.params.qrToken);
 });
 
-// ---------- onboarding video ----------
-router.get('/onboarding-video', async (req, res) => {
-  const videos = {
-    en: await OnboardingVideo.findOne({ where: { language: 'en' } }),
-    yo: await OnboardingVideo.findOne({ where: { language: 'yo' } })
-  };
-  res.render('admin/onboarding-video', { title: 'Welcome video', videos });
-});
-
-router.post('/onboarding-video/:lang', videoUpload('video'), async (req, res) => {
-  const lang = req.params.lang === 'yo' ? 'yo' : 'en';
-  const transcript = ((req.body && req.body.transcript) || '').trim();
-
-  if (req.uploadError) {
-    req.flash('error', req.uploadError);
-    return res.redirect('/admin/onboarding-video');
-  }
-  if (!transcript) {
-    req.flash('error', 'Please add the transcript. Seniors who can\'t play the video read it instead.');
-    return res.redirect('/admin/onboarding-video');
-  }
-
-  let video = await OnboardingVideo.findOne({ where: { language: lang } });
-  if (!video) video = OnboardingVideo.build({ language: lang });
-  video.transcript = transcript;
-  video.uploadedByAdminId = req.user.id;
-
-  if (req.file) {
-    try {
-      const uploaded = await cloud.uploadBuffer(req.file.buffer, 'video', req.file.mimetype);
-      await cloud.deleteFile(video.videoPublicId, 'upload', 'video');
-      video.videoUrl = uploaded.url;
-      video.videoPublicId = uploaded.publicId;
-    } catch (err) {
-      console.error('Video upload failed:', err.message);
-      await video.save();
-      req.flash('error', 'The video did not upload (the transcript was saved). Try again.');
-      return res.redirect('/admin/onboarding-video');
-    }
-  }
-
-  await video.save();
-  await audit(req.user.id, 'onboarding_video.update', 'OnboardingVideo', video.id, { lang, newVideo: Boolean(req.file) });
-  req.flash('success', (lang === 'yo' ? 'Yorùbá' : 'English') + ' welcome video saved.');
-  res.redirect('/admin/onboarding-video');
-});
-
 // ---------- staff accounts ----------
 router.get('/staff', async (req, res) => {
   const staff = await User.findAll({ where: { role: 'admin' }, order: [['fullName', 'ASC']] });
@@ -666,7 +723,6 @@ router.get('/staff', async (req, res) => {
 });
 
 router.post('/staff', async (req, res) => {
-  const { normalizePhone } = require('../services/phone');
   const values = {
     fullName: (req.body.fullName || '').trim(),
     phone: (req.body.phone || '').trim(),

@@ -6,7 +6,7 @@
 <span class="icon-dot mb-4 h-14 w-14 text-[1.4rem]"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
 <h1 class="mb-2"><%= t('change.title') %></h1>
 <% if (currentUser.mustChangePassword) { %><p class="mb-6"><%= t('change.intro') %></p><% } %>
-<% if (error) { %><div role="alert" class="mb-6 flex items-start gap-3 rounded-[1.25rem] bg-full-bg p-4 font-semibold"><i class="fa-solid fa-circle-exclamation mt-0.5 text-[1.2rem] text-full-tag" aria-hidden="true"></i><%= error %></div><% } %>
+<% if (error) { %><div role="alert" class="mb-6 flex items-start gap-3 rounded-card bg-full-bg p-4 font-semibold"><i class="fa-solid fa-circle-exclamation mt-0.5 text-[1.2rem] text-full-tag" aria-hidden="true"></i><%= error %></div><% } %>
 
 <form action="/change-password" method="post">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">

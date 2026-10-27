@@ -6,6 +6,8 @@ module.exports = (sequelize) => {
     contactName: DataTypes.STRING,
     contactPhone: DataTypes.STRING,
     contactEmail: DataTypes.STRING,
+    address: DataTypes.STRING,
+    lga: DataTypes.STRING(40), // local government area, one of Event.AREAS
     createdByAdminId: DataTypes.INTEGER
   });
 };

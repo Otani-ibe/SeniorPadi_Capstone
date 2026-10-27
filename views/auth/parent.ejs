@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+
+<div class="auth-shell">
+  <%- include('../partials/authAside') %>
+  <div class="auth-form">
+<a href="/signup" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('parent.back') %></a>
+<h1 class="mb-2"><%= t('parent.page_title') %></h1>
+<p class="mb-4 rounded-2xl bg-amber-bg p-4 font-semibold text-amber-tag"><%= t('parent.check') %> <a href="/signup" class="font-semibold text-amber-tag"><%= t('parent.check_link') %></a></p>
+<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="fa-solid fa-mobile-screen mt-1 text-indigo" aria-hidden="true"></i><span><%= t('parent.intro') %></span></p>
+
+<form action="/signup/parent" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <h2 class="mb-3 mt-2"><%= t('parent.you_title') %></h2>
+  <div class="field">
+    <label for="childName"><%= t('parent.child_name') %></label>
+    <input type="text" id="childName" name="childName" value="<%= values.childName || '' %>" autocomplete="name" required>
+    <% if (errors.childName) { %><span class="error"><%= errors.childName %></span><% } %>
+  </div>
+  <div class="field">
+    <label for="childPhone"><%= t('parent.child_phone') %></label>
+    <%- include('../partials/phoneInput', { id: 'childPhone', name: 'childPhone', value: values.childPhone }) %>
+    <% if (errors.childPhone) { %><span class="error"><%= errors.childPhone %></span><% } %>
+  </div>
+
+  <h2 class="mb-3 mt-6"><%= t('parent.them_title') %></h2>
+  <div class="field">
+    <label for="parentName"><%= t('parent.name') %></label>
+    <input type="text" id="parentName" name="parentName" value="<%= values.parentName || '' %>" required>
+    <% if (errors.parentName) { %><span class="error"><%= errors.parentName %></span><% } %>
+  </div>
+  <div class="field">
+    <label for="parentPhone"><%= t('parent.phone') %></label>
+    <%- include('../partials/phoneInput', { id: 'parentPhone', name: 'parentPhone', value: values.parentPhone }) %>
+    <span class="hint"><%= t('parent.phone_hint') %></span>
+    <% if (errors.parentPhone) { %><span class="error"><%= errors.parentPhone %></span><% } %>
+  </div>
+
+  <div class="field">
+    <label class="flex items-start gap-3 font-normal">
+      <input type="checkbox" name="ageDeclared" value="yes" class="mt-1 h-7 w-7 shrink-0" <%= values.ageDeclared ? 'checked' : '' %>>
+      <span><strong><%= t('parent.age') %></strong></span>
+    </label>
+    <% if (errors.ageDeclared) { %><span class="error"><%= errors.ageDeclared %></span><% } %>
+  </div>
+
+  <button class="btn w-full sm:w-full"><%= t('parent.submit') %></button>
+</form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

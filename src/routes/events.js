@@ -44,7 +44,8 @@ function readFilters(source) {
   const area = Event.AREAS.includes(source.area) ? source.area : '';
   return {
     category: Event.CATEGORIES.includes(source.category) ? source.category : '',
-    area
+    area,
+    q: String(source.q || '').trim().slice(0, 80) // what they typed in the search box
   };
 }
 
@@ -53,6 +54,7 @@ function eventsUrl(filters) {
   const params = new URLSearchParams();
   if (filters.category) params.set('category', filters.category);
   params.set('area', filters.area || 'all');
+  if (filters.q) params.set('q', filters.q);
   return '/events?' + params.toString();
 }
 
@@ -80,6 +82,10 @@ router.get('/events', async (req, res) => {
   };
   if (filters.category) where.category = filters.category;
   if (filters.area) where.area = filters.area;
+  if (filters.q) {
+    const like = { [Op.iLike]: '%' + filters.q.replace(/[\\%_]/g, '\\$&') + '%' };
+    where[Op.or] = [{ title: like }, { description: like }, { locationText: like }, { '$Organization.name$': like }];
+  }
 
   const events = await Event.findAll({ where, include: [Organization], order: [['startsAt', 'ASC']] });
   const counts = await seatCounts(events.map((e) => e.id));

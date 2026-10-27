@@ -1,0 +1,27 @@
+<%# the plain page frame for the host organization's check-in pages: no menus, not indexed %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title><%= title %> | SeniorPadi</title>
+  <link rel="icon" href="/images/logo-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="min-h-screen bg-surface">
+  <header class="border-b border-gray-200 bg-white">
+    <div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
+      <span class="logo flex items-center gap-2 text-[1.15rem] font-bold tracking-tight text-ink">
+        <%- include('../partials/logoMark', { size: 'h-8 w-8', uid: 'k' }) %><span>SeniorPadi</span>
+      </span>
+      <span class="rounded-md bg-mist px-2 py-0.5 text-[0.8rem] font-semibold text-indigo">Event check-in</span>
+    </div>
+  </header>
+  <main id="main" class="mx-auto w-full max-w-4xl px-4 py-6 md:py-8">
+    <%- include('../partials/flash') %>

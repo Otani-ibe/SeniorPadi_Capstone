@@ -1,0 +1,25 @@
+<%- include('top') %>
+<%# a guest's QR code scanned by the host organization, on a phone that has the event's check-in link open %>
+<% const r = registration; %>
+
+<div class="mx-auto max-w-md rounded-card border border-gray-200 bg-white p-6 text-center">
+  <% if (r.senior) { %><%- include('../partials/avatar', { person: r.senior, cls: 'mx-auto h-24 w-24' }) %><% } %>
+  <p class="mt-4 text-[1.5rem] font-semibold leading-tight"><%= r.senior ? r.senior.fullName : 'Guest' %></p>
+  <p class="mt-1 text-gray-600"><%= r.type === 'volunteer' ? 'Volunteer' : 'Guest' %> · <%= r.ticketNumber %></p>
+  <p class="mt-4 border-t border-gray-100 pt-4 font-semibold"><%= r.Event.title %></p>
+
+  <% if (r.status === 'attended') { %>
+    <p class="mt-5 flex items-center justify-center gap-2 rounded-md bg-emerald-50 p-4 text-[1.2rem] font-semibold text-leaf-dark"><%- include('../partials/icon', { name: 'check', cls: 'h-6 w-6' }) %>Checked in</p>
+  <% } else if (r.status === 'cancelled') { %>
+    <p class="mt-5 rounded-md bg-full-bg p-4 font-semibold text-full-tag">This place was cancelled. If they're here, please welcome them anyway.</p>
+  <% } else { %>
+    <form method="post" class="mt-5">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="inline-flex min-h-14 w-full items-center justify-center rounded-md bg-leaf text-[1.2rem] font-semibold text-white transition hover:bg-leaf-dark">Came</button>
+    </form>
+  <% } %>
+</div>
+
+<p class="mt-4 text-center"><a href="<%= listUrl %>" class="back-link">Back to the guest list</a></p>
+
+<%- include('bottom') %>

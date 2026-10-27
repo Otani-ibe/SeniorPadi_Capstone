@@ -1,27 +1,67 @@
 <%- include('../partials/header') %>
+<% const filtered = filters.q || filters.lga;
+   const initials = (name) => name.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).slice(0, 2).map((w) => w[0].toUpperCase()).join(''); %>
 
-<h1 class="mb-6">Organizations</h1>
+<div class="admin-head">
+  <div>
+    <h1>Organizations</h1>
+    <p class="count"><%= filtered ? organizations.length + ' of ' + total : total %> organization<%= total === 1 ? '' : 's' %></p>
+  </div>
+  <a href="/admin/organizations/new" class="admin-add"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add organization</a>
+</div>
 
-<% if (organizations.length === 0) { %>
-  <p class="panel mb-8">No organizations yet. Add the first one below.</p>
-<% } else { %>
-  <ul class="mb-10 space-y-3">
-    <% organizations.forEach(function (org) { %>
-      <li class="rounded-[1.5rem] border-2 border-gray-100 bg-white p-5">
-        <strong><%= org.name %></strong>
-        <% if (org.contactName || org.contactPhone) { %><br><%= [org.contactName, org.contactPhone, org.contactEmail].filter(Boolean).join(', ') %><% } %>
-        <br><a href="/admin/organizations/<%= org.id %>/edit">Edit</a>
-      </li>
-    <% }) %>
-  </ul>
-<% } %>
-
-<h2 class="mb-4">Add an organization</h2>
-<% if (error) { %><div role="alert" class="mb-4 rounded-[1.25rem] bg-full-bg p-4 font-semibold"><%= error %></div><% } %>
-<form action="/admin/organizations" method="post">
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <%- include('orgFields', { org: {} }) %>
-  <button class="btn">Add organization</button>
+<form action="/admin/organizations" method="get" role="search" class="admin-filters sm:grid-cols-[minmax(0,1fr)_auto_auto]" data-filters>
+  <div class="admin-search">
+    <label for="q" class="sr-only">Search organizations</label>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="search" id="q" name="q" value="<%= filters.q %>" placeholder="Search by name, contact, phone or address" class="admin-input">
+  </div>
+  <label for="lga" class="sr-only">Local government area</label>
+  <select id="lga" name="lga" class="admin-input">
+    <option value="">All LGAs</option>
+    <% areas.forEach(function (a) { %><option value="<%= a %>" <%= filters.lga === a ? 'selected' : '' %>><%= t('area.' + a) %></option><% }) %>
+  </select>
+  <button class="admin-plain">Search</button>
 </form>
 
+<% if (organizations.length === 0) { %>
+  <div class="admin-box px-6 py-12 text-center">
+    <p class="font-semibold"><%= filtered ? 'No organizations match.' : 'No organizations yet.' %></p>
+    <p class="mt-1 text-gray-600"><% if (filtered) { %><a href="/admin/organizations">Clear the search</a><% } else { %><a href="/admin/organizations/new">Add the first one</a><% } %></p>
+  </div>
+<% } else { %>
+  <div class="admin-box overflow-x-auto">
+    <table class="admin-table min-w-[44rem] [&_td]:align-middle">
+      <thead><tr><th>Organization</th><th>Contact</th><th>Location</th><th>Events</th><th><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        <% organizations.forEach(function (org) { %>
+          <tr class="hover:bg-surface">
+            <td>
+              <span class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-mist text-[0.85rem] font-semibold text-indigo" aria-hidden="true"><%= initials(org.name) || '?' %></span>
+                <a href="/admin/organizations/<%= org.id %>/edit" class="font-semibold text-ink no-underline hover:underline"><%= org.name %></a>
+              </span>
+            </td>
+            <td>
+              <% if (org.contactName || org.contactPhone || org.contactEmail) { %>
+                <%= org.contactName || '' %>
+                <% if (org.contactPhone) { %><br><span class="text-[0.85rem] text-gray-600"><%= org.contactPhone %></span><% } %>
+                <% if (org.contactEmail) { %><br><span class="text-[0.85rem] text-gray-600"><%= org.contactEmail %></span><% } %>
+              <% } else { %><span class="text-gray-500">–</span><% } %>
+            </td>
+            <td>
+              <% if (org.lga) { %><span class="chip chip-indigo"><%= t('area.' + org.lga) %></span><% } %>
+              <% if (org.address) { %><br><span class="text-[0.85rem] text-gray-600"><%= org.address %></span><% } %>
+              <% if (!org.lga && !org.address) { %><span class="text-gray-500">Not set</span><% } %>
+            </td>
+            <td><a href="/admin/events?q=<%= encodeURIComponent(org.name) %>"><%= eventCounts[org.id] || 0 %></a></td>
+            <td class="text-right"><a href="/admin/organizations/<%= org.id %>/edit" class="admin-plain min-h-9 px-3 text-[0.9rem]"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<script src="/js/admin-filters.js" defer></script>
 <%- include('../partials/footer') %>

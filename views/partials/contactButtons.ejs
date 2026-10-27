@@ -1,11 +1,11 @@
 <%# Call and WhatsApp buttons. They open the phone app or WhatsApp; they never go to another page.
     needs: callLabel, whatsappLabel. Nothing is shown until a support number is set (SUPPORT_PHONE). %>
 <% if (supportTel) { %>
-  <div class="flex flex-wrap justify-center gap-3">
-    <a href="tel:<%= supportTel %>" class="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-gray-200 px-5 py-2 font-medium text-ink no-underline transition hover:border-indigo hover:text-indigo">
+  <div class="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+    <a href="tel:<%= supportTel %>" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border-2 border-gray-200 bg-white px-5 py-2 text-center font-semibold text-ink no-underline transition hover:border-indigo hover:text-indigo">
       <i class="fa-solid fa-phone text-indigo" aria-hidden="true"></i><%= callLabel %>
     </a>
-    <a href="<%= whatsappUrl %>" target="_blank" rel="noopener" class="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-gray-200 px-5 py-2 font-medium text-ink no-underline transition hover:border-leaf hover:text-leaf-dark">
+    <a href="<%= whatsappUrl %>" target="_blank" rel="noopener" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border-2 border-gray-200 bg-white px-5 py-2 text-center font-semibold text-ink no-underline transition hover:border-leaf hover:text-leaf-dark">
       <i class="fa-brands fa-whatsapp text-[1.2rem] text-leaf" aria-hidden="true"></i><%= whatsappLabel %>
     </a>
   </div>
