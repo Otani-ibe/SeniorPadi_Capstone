@@ -4,9 +4,9 @@
 
 <% if (conversations.length === 0) { %>
   <div class="empty-state">
-    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
+    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-messages-square" aria-hidden="true"></i></span>
     <p class="mt-4 text-[1.15rem]"><%= t('messages.none') %></p>
-    <a href="/find-seniors" class="btn mt-5"><%= t('nav.find') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    <a href="/find-seniors" class="btn mt-5"><%= t('nav.find') %><i class="icon-arrow-right" aria-hidden="true"></i></a>
   </div>
 <% } %>
 
@@ -19,11 +19,11 @@
           <span class="flex items-center gap-2">
             <span class="text-[1.15rem] font-semibold"><%= c.person.firstName() %></span>
             <% if (unread) { %><span class="tag-mine"><%= t('messages.new') %></span><% } %>
-            <span class="ml-auto text-[0.85rem] text-gray-700"><%= shortDate(c.last.createdAt) %></span>
+            <span class="ml-auto text-[0.9rem] text-gray-700"><%= shortDate(c.last.createdAt) %></span>
           </span>
           <span class="block truncate text-gray-700"><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %></span>
         </span>
-        <i class="fa-solid fa-chevron-right text-indigo" aria-hidden="true"></i>
+        <i class="icon-chevron-right text-indigo" aria-hidden="true"></i>
       </a>
     </li>
   <% }) %>

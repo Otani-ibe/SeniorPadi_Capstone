@@ -1,15 +1,15 @@
 <%- include('../partials/header') %>
 
 <div class="mx-auto max-w-xl">
-  <a href="/settings" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('settings.title') %></a>
+  <a href="/settings" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('settings.title') %></a>
 
   <section class="sheet">
-    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-full-bg text-[1.4rem] text-full-tag"><i class="fa-solid fa-user-xmark" aria-hidden="true"></i></span>
+    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-full-bg text-[1.4rem] text-full-tag"><i class="icon-user-x" aria-hidden="true"></i></span>
     <h1 class="mt-4 text-[1.9rem] font-bold leading-tight"><%= t('delete.title') %></h1>
     <p class="mt-3 font-semibold"><%= t('delete.what_happens') %></p>
     <ul class="mt-3 space-y-2">
       <% ['delete.point_places', 'delete.point_login', 'delete.point_find'].forEach(function (k) { %>
-        <li class="flex items-start gap-3 rounded-2xl bg-surface p-3.5"><i class="fa-solid fa-circle-minus mt-1 text-full-tag" aria-hidden="true"></i><span><%= t(k) %></span></li>
+        <li class="flex items-start gap-3 rounded-2xl bg-surface p-3.5"><i class="icon-circle-minus mt-1 text-full-tag" aria-hidden="true"></i><span><%= t(k) %></span></li>
       <% }) %>
     </ul>
 

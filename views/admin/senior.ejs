@@ -5,18 +5,18 @@
   const regLabel = { registered: ['Registered', 'chip-indigo'], attended: ['Came', 'chip-green'], no_show: ['Missed', 'chip-amber'], cancelled: ['Cancelled', 'chip-grey'] };
   const safeName = s.fullName.replace(/'/g, '');
   const info = [
-    ['fa-phone', 'Phone', s.localPhone(), s.phoneVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']],
-    ['fa-envelope', 'Email', s.email || 'Not given', s.email ? (s.emailVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']) : null],
-    ['fa-location-dot', 'Lives in', placeOf(s) || 'Not given', null],
-    ['fa-id-card', 'ID check', null, idLabel],
-    ['fa-language', 'Language', s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English', null],
-    ['fa-bell', 'Reminders', s.remindersEnabled ? s.reminderDaysBefore + ' day(s) before each event' : 'Turned off', null],
-    ['fa-calendar-plus', 'Joined', formatDate(s.createdAt), null]
+    ['icon-phone', 'Phone', s.localPhone(), s.phoneVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']],
+    ['icon-mail', 'Email', s.email || 'Not given', s.email ? (s.emailVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']) : null],
+    ['icon-map-pin', 'Lives in', placeOf(s) || 'Not given', null],
+    ['icon-id-card', 'ID check', null, idLabel],
+    ['icon-languages', 'Language', s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English', null],
+    ['icon-bell', 'Reminders', s.remindersEnabled ? s.reminderDaysBefore + ' day(s) before each event' : 'Turned off', null],
+    ['icon-calendar-plus', 'Joined', formatDate(s.createdAt), null]
   ];
-  if (s.createdByName) info.push(['fa-people-roof', 'Signed up by a family member', s.createdByName + (s.createdByPhone ? ', 0' + s.createdByPhone.replace('+234', '') : ''), null]);
+  if (s.createdByName) info.push(['icon-house-plus', 'Signed up by a family member', s.createdByName + (s.createdByPhone ? ', 0' + s.createdByPhone.replace('+234', '') : ''), null]);
 %>
 
-<a href="/admin/seniors" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Seniors</a>
+<a href="/admin/seniors" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i>Seniors</a>
 
 <div class="grid gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
   <%# ---------- left: who they are ---------- %>
@@ -28,7 +28,7 @@
       </div>
       <img src="<%= s.avatarUrl() %>" alt="" class="mt-4 aspect-square w-full rounded-md bg-mist object-cover">
       <p class="mt-4 flex flex-wrap gap-1.5">
-        <% if (s.lga) { %><span class="chip chip-grey"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><%= t('area.' + s.lga) %></span><% } %>
+        <% if (s.lga) { %><span class="chip chip-grey"><i class="icon-map-pin" aria-hidden="true"></i><%= t('area.' + s.lga) %></span><% } %>
         <% if (s.gender) { %><span class="chip chip-grey"><%= s.gender === 'female' ? 'Woman' : 'Man' %></span><% } %>
         <span class="chip chip-grey"><%= s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English' %></span>
       </p>
@@ -65,7 +65,7 @@
       <ul class="divide-y divide-gray-100">
         <% info.forEach(function (row) { %>
           <li class="flex items-center gap-4 px-5 py-3.5">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-gray-200 text-gray-600"><i class="fa-solid <%= row[0] %>" aria-hidden="true"></i></span>
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-gray-200 text-gray-600"><i class="<%= row[0] %>" aria-hidden="true"></i></span>
             <span class="min-w-0 flex-1">
               <span class="block text-[0.85rem] text-gray-600"><%= row[1] %></span>
               <% if (row[2]) { %><span class="block font-semibold"><%= row[2] %></span><% } %>

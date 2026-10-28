@@ -8,7 +8,7 @@
     <h1><%= t('find.title') %></h1>
     <p class="lead"><%= t('find.subtitle') %></p>
     <% if (skippedCount > 0) { %>
-      <a href="/find-seniors/skipped" class="mt-3 inline-flex min-h-11 items-center gap-2 rounded-md bg-surface px-4 font-semibold no-underline"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('find.skipped_link', { count: skippedCount }) %></a>
+      <a href="/find-seniors/skipped" class="mt-3 inline-flex min-h-12 items-center gap-2 rounded-md bg-surface px-4 font-semibold no-underline"><i class="icon-rotate-ccw" aria-hidden="true"></i><%= t('find.skipped_link', { count: skippedCount }) %></a>
     <% } %>
   </div>
 
@@ -24,35 +24,35 @@
           <% } else { %>
             <img src="<%= next.avatarUrl() %>" alt="" draggable="false" class="aspect-[4/3] w-full select-none rounded-card bg-mist object-contain p-12 sm:p-16" width="400" height="360">
           <% } %>
-          <span class="absolute left-6 top-6 tag-leaf shadow"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><%= t('find.verified') %></span>
+          <span class="absolute left-6 top-6 tag-leaf shadow"><i class="icon-circle-check" aria-hidden="true"></i><%= t('find.verified') %></span>
           <span class="swipe-badge deck-stamp deck-stamp-skip" data-badge="left"><%= t('find.skip') %></span>
           <span class="swipe-badge deck-stamp deck-stamp-yes" data-badge="right"><%= t('find.message_short') %></span>
         </div>
         <div class="p-6">
           <h2 class="text-[1.9rem] leading-tight"><%= next.firstName() %></h2>
-          <% if (placeOf(next)) { %><p class="mt-1 text-gray-700"><i class="fa-solid fa-location-dot mr-1.5 text-indigo" aria-hidden="true"></i><%= placeOf(next) %></p><% } %>
+          <% if (placeOf(next)) { %><p class="mt-1 text-gray-700"><i class="icon-map-pin mr-1.5 text-indigo" aria-hidden="true"></i><%= placeOf(next) %></p><% } %>
           <p class="mt-3 whitespace-pre-line text-[1.05rem] text-gray-700"><%= next.tBio || next.bio || t('find.no_bio') %></p>
 
           <div class="mt-6 grid grid-cols-2 gap-3">
             <form id="skip-senior" action="/find-seniors/<%= next.id %>/skip" method="post">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="flex min-h-14 w-full items-center justify-center gap-2 rounded-md border-2 border-gray-300 bg-white px-4 text-[1.1rem] font-semibold text-ink transition hover:border-ink">
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i><%= t('find.skip') %>
+              <button class="btn-plain w-full sm:w-full">
+                <i class="icon-x" aria-hidden="true"></i><%= t('find.skip') %>
               </button>
             </form>
-            <a id="message-senior" href="/messages/<%= next.id %>" class="flex min-h-14 w-full items-center justify-center gap-2 rounded-md bg-indigo px-4 text-[1.1rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark">
-              <i class="fa-solid fa-comment-dots" aria-hidden="true"></i><%= t('find.message_short') %>
+            <a id="message-senior" href="/messages/<%= next.id %>" class="btn w-full sm:w-full">
+              <i class="icon-message-circle-more" aria-hidden="true"></i><%= t('find.message_short') %>
             </a>
           </div>
         </div>
       </article>
     </div>
-    <p class="mt-6 text-center"><a href="/report/<%= next.id %>" class="inline-flex min-h-11 items-center gap-2 font-semibold"><i class="fa-solid fa-flag" aria-hidden="true"></i><%= t('find.report') %></a></p>
+    <p class="mt-6 text-center"><a href="/report/<%= next.id %>" class="inline-flex min-h-12 items-center gap-2 font-semibold"><i class="icon-flag" aria-hidden="true"></i><%= t('find.report') %></a></p>
   <% } else { %>
     <div class="empty-state">
-      <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="fa-solid fa-user-group" aria-hidden="true"></i></span>
+      <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-users" aria-hidden="true"></i></span>
       <p class="mt-4 text-[1.15rem] font-medium"><%= t('find.seen_everyone') %></p>
-      <a href="/messages" class="btn mt-5"><i class="fa-solid fa-comments" aria-hidden="true"></i><%= t('find.go_messages') %></a>
+      <a href="/messages" class="btn mt-5"><i class="icon-messages-square" aria-hidden="true"></i><%= t('find.go_messages') %></a>
     </div>
   <% } %>
 
@@ -61,7 +61,7 @@
   <div class="mb-6 text-center">
     <span class="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-[2rem] <%= status === 'pending' ? 'bg-amber-bg text-amber-tag' : 'bg-mist text-indigo' %>">
       <%# the SeniorPadi mark, or an hourglass while their ID is being checked %>
-      <% if (status === 'pending') { %><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i><% } else { %><%- include('../partials/logoMark', { size: 'h-11 w-11' }) %><% } %>
+      <% if (status === 'pending') { %><i class="icon-hourglass" aria-hidden="true"></i><% } else { %><%- include('../partials/logoMark', { size: 'h-11 w-11' }) %><% } %>
     </span>
     <h1 class="mt-4 text-[2.1rem] font-bold leading-tight tracking-tight"><%= t('find.title') %></h1>
     <p class="mx-auto mt-2 max-w-md text-[1.1rem] text-gray-700"><%= t('find.intro') %></p>
@@ -80,7 +80,7 @@
     <div class="rounded-card bg-amber-bg/60 p-6 text-center">
       <p class="text-[1.25rem] font-semibold"><%= t('find.pending') %></p>
       <p class="mt-2 text-gray-700"><%= t('find.pending_more') %></p>
-      <a href="/events" class="btn mt-5"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><%= t('nav.find_events') %></a>
+      <a href="/events" class="btn mt-5"><i class="icon-calendar-days" aria-hidden="true"></i><%= t('nav.find_events') %></a>
     </div>
 
   <% } else if (status === 'social_removed') { %>
@@ -99,9 +99,9 @@
 
     <%# three short steps, then the upload %>
     <ol class="mb-5 grid gap-2">
-      <% [['fa-id-card', 'find.step_upload'], ['fa-user-shield', 'find.step_check'], ['fa-comments', 'find.step_meet']].forEach(function (s, i) { %>
+      <% [['icon-id-card', 'find.step_upload'], ['icon-shield-check', 'find.step_check'], ['icon-messages-square', 'find.step_meet']].forEach(function (s, i) { %>
         <li class="flex items-center gap-3 rounded-2xl bg-surface p-3.5">
-          <span class="icon-dot h-10 w-10 text-[1rem]"><i class="fa-solid <%= s[0] %>" aria-hidden="true"></i></span>
+          <span class="icon-dot h-10 w-10 text-[1rem]"><i class="<%= s[0] %>" aria-hidden="true"></i></span>
           <span class="font-medium"><%= t(s[1]) %></span>
         </li>
       <% }) %>
@@ -110,12 +110,12 @@
 
     <form action="/find-seniors/id?_csrf=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" data-upload>
       <label for="idDocument" class="mb-4 block cursor-pointer rounded-card border-2 border-dashed border-indigo/40 bg-mist/60 p-7 text-center transition hover:border-indigo hover:bg-mist">
-        <i class="fa-solid fa-cloud-arrow-up text-[2.4rem] text-indigo" aria-hidden="true"></i>
+        <i class="icon-cloud-upload text-[2.4rem] text-indigo" aria-hidden="true"></i>
         <span class="mt-2 block text-[1.15rem] font-semibold text-indigo"><%= t('find.id_label') %></span>
         <span class="mt-1 block text-[0.95rem] text-gray-700"><%= t('find.id_hint') %></span>
         <input type="file" id="idDocument" name="idDocument" accept="image/jpeg,image/png,application/pdf" class="mx-auto mt-4 block w-full max-w-full text-[0.95rem]">
       </label>
-      <button class="btn w-full sm:w-full" data-uploading-text="<%= t('upload.uploading') %>"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i><%= status === 'rejected' ? t('find.id_resend') : t('find.id_send') %></button>
+      <button class="btn w-full sm:w-full" data-uploading-text="<%= t('upload.uploading') %>"><i class="icon-send" aria-hidden="true"></i><%= status === 'rejected' ? t('find.id_resend') : t('find.id_send') %></button>
     </form>
     <p class="mt-4 text-center text-gray-700"><%= t('find.events_unaffected') %></p>
     <script src="/js/upload.js" defer></script>

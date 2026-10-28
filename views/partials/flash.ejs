@@ -1,13 +1,13 @@
 <% if (flash) {
      const styles = {
-       success: ['bg-emerald-50 text-ink', 'fa-circle-check text-leaf'],
-       error: ['bg-full-bg text-ink', 'fa-circle-exclamation text-full-tag'],
-       info: ['bg-mist text-ink', 'fa-circle-info text-indigo']
+       success: ['bg-emerald-50 text-ink', 'icon-circle-check text-leaf'],
+       error: ['bg-full-bg text-ink', 'icon-circle-alert text-full-tag'],
+       info: ['bg-mist text-ink', 'icon-info text-indigo']
      };
      const s = styles[flash.type] || styles.info;
 %>
   <div role="<%= flash.type === 'error' ? 'alert' : 'status' %>" class="mb-6 flex items-start gap-3 rounded-card p-4 font-semibold <%= s[0] %>">
-    <i class="fa-solid <%= s[1] %> mt-0.5 text-[1.3rem]" aria-hidden="true"></i>
+    <i class="<%= s[1] %> mt-0.5 text-[1.3rem]" aria-hidden="true"></i>
     <span><%= flash.message %></span>
   </div>
 <% } %>
@@ -15,10 +15,10 @@
 <%# booking events for a parent on this phone: always say who for, and how to stop %>
 <% if (typeof bookingFor !== 'undefined' && bookingFor && !currentUser) { %>
   <div role="status" class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card bg-amber-bg p-4">
-    <p class="flex items-center gap-3 font-semibold text-amber-tag"><i class="fa-solid fa-people-roof text-[1.3rem]" aria-hidden="true"></i><%= t('book.banner', { name: bookingFor.name }) %></p>
+    <p class="flex items-center gap-3 font-semibold text-amber-tag"><i class="icon-house-plus text-[1.3rem]" aria-hidden="true"></i><%= t('book.banner', { name: bookingFor.name }) %></p>
     <form action="/book-for-parent/finish" method="post">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button class="btn-outline min-h-11 px-5 py-1.5"><%= t('book.finish') %></button>
+      <button class="btn-outline min-h-12 px-5 py-1.5"><%= t('book.finish') %></button>
     </form>
   </div>
 <% } %>

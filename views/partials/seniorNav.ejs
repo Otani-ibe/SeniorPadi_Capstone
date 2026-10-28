@@ -2,16 +2,17 @@
   // Home, Find events, Find seniors, Messages, My account
   const path = currentPath;
   const items = [
-    { href: '/', label: t('nav.home'), icon: 'fa-house', active: path === '/' || path === '/call' },
-    { href: '/events', label: t('nav.find_events'), short: t('nav.events'), icon: 'fa-calendar-days', active: path.startsWith('/events') || path.startsWith('/registrations') },
-    { href: '/find-seniors', label: t('nav.find_seniors'), short: t('nav.seniors'), icon: 'fa-user-group', active: path.startsWith('/find-seniors') || path.startsWith('/report') || path.startsWith('/block') },
-    { href: '/messages', label: t('nav.messages'), icon: 'fa-comments', active: path.startsWith('/messages') },
-    { href: '/about', label: t('about.title'), icon: 'fa-circle-info', topOnly: true, active: path === '/about' },
-    { href: '/account', label: t('nav.account'), icon: 'fa-circle-user', badge: unreadCount, active: ['/account', '/history', '/settings', '/notifications', '/change-password', '/verify'].some((p) => path.startsWith(p)) }
+    { href: '/', label: t('nav.home'), icon: 'icon-house', active: path === '/' || path === '/call' },
+    { href: '/events', label: t('nav.find_events'), short: t('nav.events'), icon: 'icon-calendar-days', active: path.startsWith('/events') || path.startsWith('/registrations') },
+    { href: '/find-seniors', label: t('nav.find_seniors'), short: t('nav.seniors'), icon: 'icon-users', active: path.startsWith('/find-seniors') || path.startsWith('/report') || path.startsWith('/block') },
+    { href: '/messages', label: t('nav.messages'), icon: 'icon-messages-square', active: path.startsWith('/messages') },
+    { href: '/about', label: t('about.title'), icon: 'icon-info', topOnly: true, active: path === '/about' },
+    // in the top menu, My account is the photo button at the right of the header instead
+    { href: '/account', label: t('nav.account'), icon: 'icon-circle-user', badge: unreadCount, bottomOnly: Boolean(currentUser), active: ['/account', '/history', '/settings', '/notifications', '/change-password', '/verify'].some((p) => path.startsWith(p)) }
   ];
   const bottom = placement === 'bottom';
 %>
-<% const shown = bottom ? items.filter(function (i) { return !i.topOnly; }) : items; %>
+<% const shown = items.filter(function (i) { return bottom ? !i.topOnly : !i.bottomOnly; }); %>
 <% if (bottom) { %>
 <nav aria-label="Main" class="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]">
   <%# minmax(0, 1fr): the five columns share the width evenly, even with long Yorùbá labels %>
@@ -19,14 +20,14 @@
     <% shown.forEach(function (item) { %>
       <li>
         <a href="<%= item.href %>" <%= item.active ? 'aria-current=page' : '' %>
-           class="relative flex min-h-16 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[0.66rem] leading-tight no-underline min-[360px]:text-[0.72rem] min-[400px]:text-[0.8rem]
+           class="relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-[0.68rem] leading-tight no-underline min-[360px]:text-[0.8rem] min-[400px]:text-[0.85rem] min-[440px]:text-[0.9rem]
                   <%= item.active ? 'font-semibold text-indigo' : 'font-medium text-gray-700' %>">
-          <span class="flex h-8 w-12 max-w-full items-center justify-center rounded-md text-[1.15rem] <%= item.active ? 'bg-mist' : '' %>">
-            <i class="fa-solid <%= item.icon %>" aria-hidden="true"></i>
+          <span class="flex h-7 w-11 max-w-full items-center justify-center rounded-md text-[1.1rem] <%= item.active ? 'bg-mist' : '' %>">
+            <i class="<%= item.icon %>" aria-hidden="true"></i>
           </span>
           <span class="max-w-full text-center [overflow-wrap:anywhere]"><%= item.short || item.label %></span>
           <% if (item.badge > 0) { %>
-            <span class="absolute right-2 top-1 rounded-full bg-indigo px-1.5 text-[0.7rem] font-semibold text-white"><%= item.badge %></span>
+            <span class="absolute right-1 top-1 rounded-full bg-indigo px-1.5 text-[0.8rem] font-semibold text-white"><%= item.badge %></span>
           <% } %>
         </a>
       </li>
@@ -39,7 +40,7 @@
     <% shown.forEach(function (item) { %>
       <li>
         <a href="<%= item.href %>" <%= item.active ? 'aria-current=page' : '' %>
-           class="relative inline-flex items-center gap-2 rounded-md px-4 py-2 text-[0.95rem] no-underline transition
+           class="relative inline-flex min-h-12 items-center gap-2 rounded-md px-4 py-2 text-[0.95rem] no-underline transition
                   <%= item.active ? 'bg-mist font-semibold text-indigo' : 'font-medium text-gray-700 hover:bg-surface hover:text-ink' %>">
           <%= item.label %>
           <% if (item.badge > 0) { %>

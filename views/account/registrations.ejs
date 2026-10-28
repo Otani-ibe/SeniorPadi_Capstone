@@ -1,19 +1,19 @@
 <%- include('../partials/header') %>
 
-<a href="/account" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
+<a href="/account" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
 <div class="page-head flex flex-wrap items-end justify-between gap-3">
   <div>
     <h1><%= t('stack.my_tickets') %></h1>
     <p class="lead"><%= t('tickets.subtitle') %></p>
   </div>
-  <a href="/history" class="btn-plain"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i><%= t('registrations.see_past') %></a>
+  <a href="/history" class="btn-plain"><i class="icon-history" aria-hidden="true"></i><%= t('registrations.see_past') %></a>
 </div>
 
 <% if (registrations.length === 0) { %>
   <div class="empty-state">
-    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="fa-solid fa-ticket" aria-hidden="true"></i></span>
+    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-ticket" aria-hidden="true"></i></span>
     <p class="mt-4 text-[1.15rem]"><%= t('registrations.none') %></p>
-    <a href="/events" class="btn mt-5"><%= t('nav.find_events') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+    <a href="/events" class="btn mt-5"><%= t('nav.find_events') %><i class="icon-arrow-right" aria-hidden="true"></i></a>
   </div>
 <% } %>
 
@@ -24,17 +24,17 @@
       <div class="flex gap-4">
         <%- include('../partials/eventImage', { event, imgClass: 'aspect-[4/5] w-28 shrink-0 self-start rounded-xl bg-mist object-contain sm:w-32' }) %>
         <div class="min-w-0">
-          <span class="<%= reg.type === 'volunteer' ? 'tag-leaf' : 'tag-mine' %>"><i class="fa-solid <%= reg.type === 'volunteer' ? 'fa-hand-holding-heart' : 'fa-user-check' %>" aria-hidden="true"></i><%= reg.type === 'volunteer' ? t('registrations.volunteering') : t('registrations.attending') %></span>
+          <span class="<%= reg.type === 'volunteer' ? 'tag-leaf' : 'tag-mine' %>"><i class="<%= reg.type === 'volunteer' ? 'icon-hand-heart' : 'icon-user-check' %>" aria-hidden="true"></i><%= reg.type === 'volunteer' ? t('registrations.volunteering') : t('registrations.attending') %></span>
           <h2 class="mt-2 text-[1.2rem] leading-snug"><a href="/events/<%= event.id %>" class="text-ink no-underline hover:underline"><%= event.title %></a></h2>
-          <p class="mt-1 text-[0.98rem] text-gray-700"><i class="fa-regular fa-calendar mr-1.5 text-indigo" aria-hidden="true"></i><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
-          <p class="text-[0.98rem] text-gray-700"><i class="fa-solid fa-location-dot mr-1.5 text-indigo" aria-hidden="true"></i><%= event.locationText %></p>
+          <p class="mt-1 text-[0.98rem] text-gray-700"><i class="icon-calendar mr-1.5 text-indigo" aria-hidden="true"></i><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+          <p class="text-[0.98rem] text-gray-700"><i class="icon-map-pin mr-1.5 text-indigo" aria-hidden="true"></i><%= event.locationText %></p>
         </div>
       </div>
       <div class="mt-4">
 
         <%# the ticket: a dashed "pass" %>
         <div class="mt-4 flex items-center justify-between gap-3 rounded-card border-2 border-dashed border-indigo/40 bg-white px-4 py-3">
-          <span class="text-gray-700"><i class="fa-solid fa-ticket mr-1.5 text-indigo" aria-hidden="true"></i><%= t('ticket.label') %></span>
+          <span class="text-gray-700"><i class="icon-ticket mr-1.5 text-indigo" aria-hidden="true"></i><%= t('ticket.label') %></span>
           <span class="whitespace-nowrap text-[1.15rem] font-bold tracking-wider text-indigo"><%= reg.ticketNumber %></span>
         </div>
         <%- include('../partials/qr', { qr: reg.qr }) %>
@@ -42,7 +42,7 @@
         <% if (new Date(event.startsAt) > new Date()) { %>
           <form action="/registrations/<%= reg.id %>/cancel" method="post" class="mt-4">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="inline-flex min-h-11 items-center gap-2 rounded-md px-1 font-semibold text-full-tag hover:underline"><i class="fa-solid fa-ban" aria-hidden="true"></i><%= reg.type === 'volunteer' ? t('registrations.cancel_volunteer') : t('registrations.cancel') %></button>
+            <button class="inline-flex min-h-12 items-center gap-2 rounded-md px-1 font-semibold text-full-tag hover:underline"><i class="icon-ban" aria-hidden="true"></i><%= reg.type === 'volunteer' ? t('registrations.cancel_volunteer') : t('registrations.cancel') %></button>
           </form>
         <% } else { %>
           <p class="mt-4 font-semibold text-leaf"><%= t('registrations.happening_now') %></p>

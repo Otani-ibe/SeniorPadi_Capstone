@@ -64,6 +64,16 @@
     bubble.appendChild(who);
     bubble.appendChild(body);
     bubble.appendChild(when);
+    // my newest message shows Sent or Read; the one before it stops showing it
+    if (mine) {
+      var old = thread.querySelector('[data-read-status]');
+      if (old) old.remove();
+      var status = document.createElement('p');
+      status.className = 'bubble-time font-semibold';
+      status.setAttribute('data-read-status', '');
+      bubble.appendChild(status);
+      showStatus(status, msg.read);
+    }
     li.appendChild(bubble);
     thread.appendChild(li);
 
@@ -72,7 +82,24 @@
     form.scrollIntoView({ block: 'end' });
   }
 
+  // "✓ Sent" or "✓✓ Read", the same as views/partials/readStatus.ejs
+  function showStatus(el, read) {
+    el.textContent = '';
+    var icon = document.createElement('i');
+    icon.className = '' + (read ? 'icon-check-check' : 'icon-check') + ' mr-1';
+    icon.setAttribute('aria-hidden', 'true');
+    el.appendChild(icon);
+    el.appendChild(document.createTextNode(thread.getAttribute(read ? 'data-read' : 'data-sent')));
+  }
+
   socket.on('message:new', addMessage);
+
+  // they opened the conversation: my newest message is now read
+  socket.on('messages:read', function (data) {
+    if (!data || data.readerId !== otherId) return;
+    var status = thread.querySelector('[data-read-status]');
+    if (status) showStatus(status, true);
+  });
 
   form.addEventListener('submit', function (event) {
     if (!live || !socket.connected) return; // normal form post
@@ -88,6 +115,7 @@
     socket.timeout(5000).emit('message:send', { recipientId: otherId, body: text }, function (err, reply) {
       if (!err && reply && reply.ok) {
         textarea.value = '';
+        textarea.dispatchEvent(new Event('input')); // the box shrinks back to one line
         textarea.focus();
       } else {
         // let the server handle it the normal way (it shows the right message)

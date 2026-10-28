@@ -1,14 +1,14 @@
 <%- include('../partials/header') %>
 <%# staff view of an event's guest list: door check-in, plus the link to send the host organization %>
 
-<a href="/admin/events" class="back-link print:hidden"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>Events</a>
+<a href="/admin/events" class="back-link print:hidden"><i class="icon-arrow-left" aria-hidden="true"></i>Events</a>
 
 <div class="admin-head">
   <div class="min-w-0">
     <h1><%= event.title %></h1>
     <p class="count"><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %> · <%= event.Organization.name %></p>
   </div>
-  <button type="button" onclick="window.print()" class="admin-plain print:hidden"><i class="fa-solid fa-print" aria-hidden="true"></i>Print list</button>
+  <button type="button" onclick="window.print()" class="admin-plain print:hidden"><i class="icon-printer" aria-hidden="true"></i>Print list</button>
 </div>
 
 <%- include('doorList') %>

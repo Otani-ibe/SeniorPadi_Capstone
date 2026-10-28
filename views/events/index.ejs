@@ -2,8 +2,8 @@
 
 <div class="mx-auto max-w-5xl">
   <% if (currentUser) { %>
-    <a href="/registrations" class="mb-5 inline-flex min-h-12 items-center gap-2.5 rounded-md bg-mist px-5 font-semibold text-indigo no-underline transition hover:bg-indigo hover:text-white">
-      <i class="fa-solid fa-ticket" aria-hidden="true"></i><%= t('stack.my_tickets') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+    <a href="/registrations" class="btn-plain mb-5">
+      <i class="icon-ticket" aria-hidden="true"></i><%= t('stack.my_tickets') %><i class="icon-arrow-right" aria-hidden="true"></i>
     </a>
   <% } %>
   <%# heading, and where in Ibadan %>
@@ -15,7 +15,7 @@
       <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
       <label for="area" class="mb-1 block font-semibold"><%= t('events.area_label') %></label>
       <span class="relative block">
-        <i class="fa-solid fa-location-dot pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-indigo" aria-hidden="true"></i>
+        <i class="icon-map-pin pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-indigo" aria-hidden="true"></i>
         <select id="area" name="area"
                 class="min-h-13 w-full appearance-none rounded-md border-2 border-gray-200 bg-surface py-3 pl-11 pr-12 font-medium text-ink focus:border-indigo focus:outline-none sm:w-72">
           <option value="all"><%= t('events.all_areas') %></option>
@@ -23,7 +23,7 @@
             <option value="<%= a %>" <%= area === a ? 'selected' : '' %>><%= t('area.' + a) %></option>
           <% }) %>
         </select>
-        <i class="fa-solid fa-chevron-down pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-gray-700" aria-hidden="true"></i>
+        <i class="icon-chevron-down pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-gray-700" aria-hidden="true"></i>
       </span>
       <noscript><button class="btn mt-2"><%= t('stack.show') %></button></noscript>
     </form>
@@ -36,12 +36,12 @@
     <label for="q" class="sr-only"><%= t('events.search_label') %></label>
     <div class="flex gap-2">
       <span class="relative block flex-1">
-        <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-indigo" aria-hidden="true"></i>
+        <i class="icon-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-indigo" aria-hidden="true"></i>
         <input type="search" id="q" name="q" value="<%= q %>" placeholder="<%= t('events.search_placeholder') %>" enterkeyhint="search"
-               class="min-h-14 w-full rounded-md border-2 border-gray-200 bg-white py-3 pl-11 pr-4 text-[1.05rem] text-ink placeholder:text-gray-500 focus:border-indigo focus:outline-none">
+               class="min-h-14 w-full rounded-md border-2 border-gray-200 bg-white py-3 pl-11 pr-4 text-[1.05rem] text-ink placeholder:text-gray-600 focus:border-indigo focus:outline-none">
       </span>
-      <button class="inline-flex min-h-14 shrink-0 items-center gap-2 rounded-md bg-indigo px-5 font-semibold text-white transition hover:bg-indigo-dark sm:px-7">
-        <i class="fa-solid fa-magnifying-glass sm:hidden" aria-hidden="true"></i><span class="max-sm:sr-only"><%= t('events.search_button') %></span>
+      <button class="btn shrink-0 px-5 sm:px-7">
+        <%= t('events.search_button') %>
       </button>
     </div>
     <% if (q) { %>
@@ -61,12 +61,13 @@
 
   <%# type of event %>
   <nav aria-label="<%= t('events.filter') %>" class="-mx-4 mb-8 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0">
-    <ul class="flex gap-2 pb-1 md:flex-wrap">
+    <ul class="flex gap-4 pb-1 md:flex-wrap md:gap-x-4 md:gap-y-3">
       <% [''].concat(categories).forEach(function (c) { const on = category === c; %>
         <li>
           <a href="<%= eventsUrl({ category: c, area, q }) %>" <%= on ? 'aria-current=page' : '' %>
              class="filter-chip <%= on ? 'filter-chip-on' : 'filter-chip-off' %>">
-            <i class="fa-solid <%= c ? categoryIcons[c] : 'fa-border-all' %> <%= on ? '' : 'text-indigo' %>" aria-hidden="true"></i>
+            <%# the chosen type shows a tick instead of its picture %>
+            <i class="<%= on ? 'icon-check' : c ? categoryIcons[c] : 'icon-layout-grid' %> <%= on ? '' : 'text-indigo' %>" aria-hidden="true"></i>
             <%= c ? t('category.' + c) : t('events.all_types') %>
           </a>
         </li>
@@ -79,7 +80,7 @@
     <p class="sr-only" aria-live="polite" data-deck-status></p>
     <% if (showSkipped) { %>
       <p class="mb-4 rounded-2xl bg-mist px-5 py-3 font-medium text-indigo">
-        <i class="fa-solid fa-rotate-left mr-2" aria-hidden="true"></i><%= t('stack.skipped_note') %>
+        <i class="icon-rotate-ccw mr-2" aria-hidden="true"></i><%= t('stack.skipped_note') %>
       </p>
     <% } %>
 
@@ -88,16 +89,16 @@
         <%- include('../partials/eventCard', { event, pos: Math.min(i, 3), number: i + 1, total: deck.length }) %>
       <% }) %>
     </div>
-    <p class="mt-6 hidden text-center text-gray-700 md:block" data-deck-hint><i class="fa-solid fa-hand-pointer mr-1" aria-hidden="true"></i><%= t('stack.swipe_hint') %></p>
+    <p class="mt-6 hidden text-center text-gray-700 md:block" data-deck-hint><i class="icon-pointer mr-1" aria-hidden="true"></i><%= t('stack.swipe_hint') %></p>
     <%# a way to the skipped events (or back to the new ones). Shown once something is skipped, even before a reload. %>
     <p class="mt-6 text-center" data-see-skipped <%= showSkipped || skippedCount ? '' : 'hidden' %>>
       <% if (showSkipped) { %>
-        <a href="<%= eventsUrl({ category, area, q }) %>" class="inline-flex min-h-12 items-center gap-2 rounded-md border-2 border-gray-200 px-5 py-2 font-medium text-ink no-underline transition hover:border-indigo hover:text-indigo">
-          <i class="fa-solid fa-arrow-left text-indigo" aria-hidden="true"></i><%= t('stack.see_new') %>
+        <a href="<%= eventsUrl({ category, area, q }) %>" class="btn-plain">
+          <i class="icon-arrow-left text-indigo" aria-hidden="true"></i><%= t('stack.see_new') %>
         </a>
       <% } else { %>
-        <a href="<%= eventsUrl({ category, area, q }) %>&skipped=1" class="inline-flex min-h-12 items-center gap-2 rounded-md border-2 border-gray-200 px-5 py-2 font-medium text-ink no-underline transition hover:border-indigo hover:text-indigo">
-          <i class="fa-solid fa-rotate-left text-indigo" aria-hidden="true"></i><%= t('stack.see_skipped') %>
+        <a href="<%= eventsUrl({ category, area, q }) %>&skipped=1" class="btn-plain">
+          <i class="icon-rotate-ccw text-indigo" aria-hidden="true"></i><%= t('stack.see_skipped') %>
         </a>
       <% } %>
     </p>
@@ -108,16 +109,16 @@
       Shown straight away by the page when the last new card is skipped. %>
   <% if (!showSkipped && (deck.length > 0 || skippedCount > 0)) { %>
     <div class="rounded-card bg-surface px-6 py-12 text-center" data-deck-done tabindex="-1" <%= deck.length > 0 ? 'hidden' : '' %>>
-      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo"><i class="icon-circle-check" aria-hidden="true"></i></span>
       <p class="mx-auto max-w-md text-[1.25rem] font-medium"><%= t('stack.no_more_new') %></p>
       <p class="mx-auto mt-2 max-w-md text-gray-700"><%= t('stack.skipped_choice') %></p>
-      <a href="<%= eventsUrl({ category, area, q }) %>&skipped=1" class="btn mt-6"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><%= t('stack.see_skipped') %></a>
+      <a href="<%= eventsUrl({ category, area, q }) %>&skipped=1" class="btn mt-6"><i class="icon-rotate-ccw" aria-hidden="true"></i><%= t('stack.see_skipped') %></a>
     </div>
   <% } %>
 
   <% if (deck.length === 0 && skippedCount === 0) { %>
     <div class="rounded-card bg-surface px-6 py-12 text-center">
-      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i></span>
+      <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white text-2xl text-indigo"><i class="icon-calendar-x" aria-hidden="true"></i></span>
       <p class="mx-auto max-w-md text-[1.25rem] font-medium"><%= q ? t('stack.no_match', { q }) : area ? t('stack.no_area', { area: t('area.' + area) }) : t('stack.none') %></p>
       <% if (area || category || q) { %>
         <a href="/events?area=all" class="btn mt-6"><%= t('stack.try_all') %></a>

@@ -25,11 +25,13 @@ async function sendMessage(io, sender, recipient, rawBody) {
   // checked on the server every single time
   if (!(await social.canMessage(sender, recipient))) return { ok: false, reason: 'unavailable' };
 
-  const message = await Message.create({ senderId: sender.id, recipientId: recipient.id, body });
   const room = roomName(sender.id, recipient.id);
+  // if they have the conversation open, they see it straight away, so it counts as read
+  const watching = await recipientIsWatching(io, room, recipient.id);
+  const message = await Message.create({ senderId: sender.id, recipientId: recipient.id, body, readAt: watching ? new Date() : null });
 
   // only notify if they aren't already reading the conversation
-  if (!(await recipientIsWatching(io, room, recipient.id))) {
+  if (!watching) {
     await social.addNotification(recipient.id, 'message.new', { senderId: sender.id, name: sender.firstName() }, '/messages/' + sender.id);
   }
 
@@ -38,11 +40,19 @@ async function sendMessage(io, sender, recipient, rawBody) {
       id: message.id,
       senderId: sender.id,
       body: message.body,
-      createdAt: message.createdAt
+      createdAt: message.createdAt,
+      read: watching
     });
   }
 
   return { ok: true, message };
 }
 
-module.exports = { MAX_MESSAGE, roomName, sendMessage };
+// the reader opened the conversation: their messages from the other person are now read.
+// If the sender has it open, their "Sent" changes to "Read" without reloading.
+async function markRead(io, readerId, senderId) {
+  const [count] = await Message.update({ readAt: new Date() }, { where: { senderId, recipientId: readerId, readAt: null } });
+  if (count > 0 && io) io.to(roomName(readerId, senderId)).emit('messages:read', { readerId });
+}
+
+module.exports = { MAX_MESSAGE, roomName, sendMessage, markRead };

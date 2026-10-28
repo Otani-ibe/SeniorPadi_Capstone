@@ -3,4 +3,4 @@
     needs: id, slotsLeft (a number, or null for no limit); cls (optional) %>
 <% const n = typeof slotsLeft === 'undefined' ? null : slotsLeft; %>
 <p data-slots-for="<%= id %>" data-one="<%= t('slots.left_one') %>" data-many="<%= t('slots.left', { n: '__N__' }) %>" data-full="<%= t('tag.full') %>"
-   class="slots <%= n !== null && n <= 5 ? 'slots-low' : 'slots-ok' %> <%= typeof cls !== 'undefined' ? cls : '' %>" <%= n === null ? 'hidden' : '' %>><i class="fa-solid fa-ticket" aria-hidden="true"></i><span data-slots-text><%= n === null ? '' : n === 0 ? t('tag.full') : n === 1 ? t('slots.left_one') : t('slots.left', { n }) %></span></p>
+   class="slots <%= n !== null && n <= 5 ? 'slots-low' : 'slots-ok' %> <%= typeof cls !== 'undefined' ? cls : '' %>" <%= n === null ? 'hidden' : '' %>><i class="icon-ticket" aria-hidden="true"></i><span data-slots-text><%= n === null ? '' : n === 0 ? t('tag.full') : n === 1 ? t('slots.left_one') : t('slots.left', { n }) %></span></p>

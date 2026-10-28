@@ -5,7 +5,7 @@
   <div class="auth-form">
 <h1 class="mb-2"><%= t('signup.title') %></h1>
 <p class="mb-2"><%= t('signup.intro') %></p>
-<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="fa-solid fa-mobile-screen mt-1 text-indigo" aria-hidden="true"></i><span><%= t('signup.code_note') %></span></p>
+<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="icon-smartphone mt-1 text-indigo" aria-hidden="true"></i><span><%= t('signup.code_note') %></span></p>
 
 <form action="/signup" method="post" novalidate>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">

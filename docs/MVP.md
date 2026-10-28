@@ -1,6 +1,6 @@
 # SeniorPadi: Initial MVP (Full-Stack Track)
 
-SeniorPadi is a free website that connects people aged 60 and over in Ibadan to community events (exercise, church, skills classes). Seniors can attend, volunteer, and meet other verified seniors safely. NGO staff run the events.
+SeniorPadi is a free website that connects people aged 50 and over in Ibadan to community events (exercise, church, skills classes). Seniors can attend, volunteer, and meet other verified seniors safely. NGO staff run the events.
 
 **GitHub:** https://github.com/Otani-ibe/SeniorPadi_Capstone.git · **Figma:** https://www.figma.com/design/sqFCpB8uT98d3noTAO0D8J/Untitled?node-id=16-2&t=rFjVQdjne0RzcCx4-1
 

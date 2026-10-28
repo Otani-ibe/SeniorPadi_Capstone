@@ -157,10 +157,16 @@
     <label for="image" class="flex cursor-pointer flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-indigo/30 bg-mist/50 p-5 text-center transition hover:border-indigo">
       <img id="image-preview" src="<%= event && event.imageUrl ? event.imageUrl : '' %>" <%= event && event.imageUrl ? '' : 'hidden' %>
            alt="Picture preview" class="h-48 w-full max-w-md rounded-2xl bg-mist object-contain shadow">
-      <span class="font-medium text-indigo"><i class="fa-solid fa-image mr-2" aria-hidden="true"></i>Choose a photo</span>
+      <span class="font-medium text-indigo"><i class="icon-image mr-2" aria-hidden="true"></i>Choose a photo</span>
       <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" class="w-full max-w-full text-[0.9rem]">
     </label>
     <span class="hint">Best size: a square flyer, 1080 x 1080 pixels. It is shown whole and never cropped. Keep the words away from the edges. JPG, PNG or WebP, up to 3MB. Without one, the event shows an empty picture space.</span>
+  </div>
+
+  <div class="field">
+    <label for="imageAlt">Describe the picture (for blind seniors)</label>
+    <textarea id="imageAlt" name="imageAlt" rows="3" maxlength="600"><%= values.imageAlt || '' %></textarea>
+    <span class="hint">Screen readers read this out instead of showing the picture. Say what it shows and copy any words on the flyer, e.g. "Flyer: seniors doing light exercise in a park. Text says Free fitness morning, Saturday 9am, Agodi Gardens." If you leave it empty, they hear "Flyer for" and the event title.</span>
   </div>
 
   <script>
@@ -174,7 +180,7 @@
     });
   </script>
 
-  <button class="btn" data-uploading-text="Saving…"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><%= event ? 'Save changes' : 'Publish event' %></button>
+  <button class="btn" data-uploading-text="Saving…"><i class="icon-save" aria-hidden="true"></i><%= event ? 'Save changes' : 'Publish event' %></button>
 </form>
 
 <script src="/js/upload.js" defer></script>

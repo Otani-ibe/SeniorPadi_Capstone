@@ -47,6 +47,30 @@ test('verified seniors can message each other with a plain form', async () => {
   expect(await Message.count()).toBe(1);
 });
 
+test('my newest message says Sent, then Read once they open the conversation', async () => {
+  const me = await verified();
+  const other = await verified();
+  const agent = await loggedInAgent(me.phone);
+
+  const page = await agent.get('/messages/' + other.id);
+  await agent.post('/messages/' + other.id).type('form').send({ _csrf: csrfFrom(page.text), body: 'First' });
+  await agent.post('/messages/' + other.id).type('form').send({ _csrf: csrfFrom(page.text), body: 'Second' });
+
+  let mine = await agent.get('/messages/' + other.id);
+  expect(mine.text.match(/data-read-status/g)).toHaveLength(1); // only under the newest
+  expect(mine.text).toContain('Sent');
+  expect(mine.text).not.toMatch(/icon-check-check/);
+
+  // opening my own conversation does not mark my messages as read
+  expect(await Message.count({ where: { readAt: null } })).toBe(2);
+
+  await (await loggedInAgent(other.phone)).get('/messages/' + me.id);
+  expect(await Message.count({ where: { readAt: null } })).toBe(0);
+
+  mine = await agent.get('/messages/' + other.id);
+  expect(mine.text).toMatch(/icon-check-check[^<]*<\/i>Read/);
+});
+
 test('report hides the reported senior from the reporter only', async () => {
   const reporter = await verified();
   const reported = await verified();

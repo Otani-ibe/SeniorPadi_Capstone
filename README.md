@@ -1,6 +1,6 @@
 # SeniorPadi
 
-SeniorPadi is a free website that helps people aged 60 and over in Ibadan find community events, like exercise groups, church programmes and skills classes. They can sign up to attend or volunteer, and once their ID is checked, they can meet and chat with other seniors.
+SeniorPadi is a free website that helps people aged 50 and over in Ibadan find community events, like exercise groups, church programmes and skills classes. They can sign up to attend or volunteer, and once their ID is checked, they can meet and chat with other seniors.
 
 NGO staff manage the events for partner organisations (churches, clubs, community centres).
 

@@ -35,8 +35,8 @@
       <p class="mt-2 text-[0.85rem] text-gray-500">Works <%= formatDate(link.opens) %> to <%= formatDate(link.closes) %>.</p>
 
       <div class="mt-4 flex flex-wrap gap-2">
-        <a href="https://wa.me/<%= waDigits %>?text=<%= encodeURIComponent(message) %>" target="_blank" rel="noopener" class="admin-add bg-[#1f8f4e] hover:bg-[#18733e]"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>Send on WhatsApp</a>
-        <% if (link.phone) { %><a href="sms:<%= link.phone %>?body=<%= encodeURIComponent(message) %>" class="admin-plain"><i class="fa-solid fa-comment-sms" aria-hidden="true"></i>Send by SMS</a><% } %>
+        <a href="https://wa.me/<%= waDigits %>?text=<%= encodeURIComponent(message) %>" target="_blank" rel="noopener" class="admin-add bg-[#1f8f4e] hover:bg-[#18733e]"><i class="icon-whatsapp" aria-hidden="true"></i>Send on WhatsApp</a>
+        <% if (link.phone) { %><a href="sms:<%= link.phone %>?body=<%= encodeURIComponent(message) %>" class="admin-plain"><i class="icon-message-square-text" aria-hidden="true"></i>Send by SMS</a><% } %>
         <button type="button" class="admin-plain" data-copy="<%= message %>">Copy message</button>
       </div>
       <p class="mt-2 text-[0.85rem] text-gray-500">

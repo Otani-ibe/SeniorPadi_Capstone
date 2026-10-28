@@ -4,10 +4,10 @@
     <div class="fixed inset-0 z-40 bg-ink/60" aria-hidden="true"></div>
     <div role="dialog" aria-modal="true" aria-labelledby="booked-title"
          class="fixed left-1/2 top-1/2 z-50 max-h-[92vh] w-[92%] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-card bg-white p-6 text-center shadow-2xl md:p-8">
-      <a href="<%= currentPath %>" data-booked-close class="absolute right-3 top-3 inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 font-semibold text-ink no-underline transition hover:bg-gray-100">
-        <i class="fa-solid fa-xmark text-[1.2rem]" aria-hidden="true"></i><%= t('modal.close') %>
+      <a href="<%= currentPath %>" data-booked-close class="absolute right-3 top-3 inline-flex min-h-12 items-center gap-1.5 rounded-md px-3 font-semibold text-ink no-underline transition hover:bg-gray-100">
+        <i class="icon-x text-[1.2rem]" aria-hidden="true"></i><%= t('modal.close') %>
       </a>
-      <span class="done-pop mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-leaf text-[2.2rem] text-white"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+      <span class="done-pop mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-leaf text-[2.2rem] text-white"><i class="icon-check" aria-hidden="true"></i></span>
       <h2 id="booked-title" class="mt-4 text-[1.9rem]"><%= t('book.popup_title', { name: b.name }) %></h2>
       <p class="mt-1 text-[1.1rem] font-semibold"><%= b.event.title %></p>
       <p class="text-gray-700"><%= formatDate(b.event.startsAt) %>, <%= formatTime(b.event.startsAt) %></p>

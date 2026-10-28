@@ -5,6 +5,6 @@
   <form action="/book-for-parent/<%= event.id %>/register" method="post" data-deck-register>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <input type="hidden" name="back" value="<%= currentPath === '/' ? '/#events' : currentPath %>">
-    <button class="btn w-full sm:w-full <%= typeof cls !== 'undefined' ? cls : '' %>"><i class="fa-solid fa-check" aria-hidden="true"></i><%= t('book.register', { name: bookingFor.name }) %></button>
+    <button aria-label="<%= forEvent(t('book.register', { name: bookingFor.name }), event) %>" class="btn w-full sm:w-full <%= typeof cls !== 'undefined' ? cls : '' %>"><i class="icon-check" aria-hidden="true"></i><%= t('book.register', { name: bookingFor.name }) %></button>
   </form>
 <% } %>

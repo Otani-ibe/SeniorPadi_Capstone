@@ -104,7 +104,7 @@ test('registering from the home page keeps the senior on the home page, with the
   const reg = await Registration.findOne({ where: { seniorId: me.id, eventId: event.id } });
   expect(after.text).toContain(reg.ticketNumber);          // the ticket pop-up is on the home page
   expect(after.text).toMatch(/Picked for you/);            // and it is still the recommended page behind it
-  expect(after.text).toMatch(/href="\/#events"[^>]*>\s*<i class="fa-solid fa-xmark/);
+  expect(after.text).toMatch(/href="\/#events"[^>]*>\s*<i class="icon-x/);
   expect(after.text).toContain('id="events"'); // Close goes back to the home page
 });
 

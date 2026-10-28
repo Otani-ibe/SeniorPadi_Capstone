@@ -11,12 +11,12 @@
         </p>
         <p class="text-gray-700"><%= t('footer.about') %></p>
       </div>
-      <ul class="grid grid-cols-2 gap-x-8 gap-y-3">
-        <li><a href="/about" class="font-medium text-indigo"><%= t('about.title') %></a></li>
-        <li><a href="/events" class="font-medium text-indigo"><%= t('nav.find_events') %></a></li>
-        <li><a href="/find-seniors" class="font-medium text-indigo"><%= t('nav.find_seniors') %></a></li>
-        <li><a href="<%= supportTel ? 'tel:' + supportTel : '/call' %>" class="font-medium text-indigo"><%= t('call.title') %></a></li>
-        <% if (supportTel) { %><li class="col-span-2"><a href="<%= whatsappUrl %>" target="_blank" rel="noopener" class="font-medium text-indigo"><%= t('whatsapp.text_us') %></a></li><% } %>
+      <ul class="grid grid-cols-2 gap-x-8">
+        <li><a href="/about" class="inline-flex min-h-12 items-center font-medium text-ink no-underline hover:underline"><%= t('about.title') %></a></li>
+        <li><a href="/events" class="inline-flex min-h-12 items-center font-medium text-ink no-underline hover:underline"><%= t('nav.find_events') %></a></li>
+        <li><a href="/find-seniors" class="inline-flex min-h-12 items-center font-medium text-ink no-underline hover:underline"><%= t('nav.find_seniors') %></a></li>
+        <li><a href="<%= supportTel ? 'tel:' + supportTel : '/call' %>" class="inline-flex min-h-12 items-center font-medium text-ink no-underline hover:underline"><%= t('call.title') %></a></li>
+        <% if (supportTel) { %><li class="col-span-2"><a href="<%= whatsappUrl %>" target="_blank" rel="noopener" class="inline-flex min-h-12 items-center font-medium text-ink no-underline hover:underline"><%= t('whatsapp.text_us') %></a></li><% } %>
       </ul>
     </div>
   </footer>
