@@ -15,7 +15,7 @@
   <link rel="icon" href="/images/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#6d28d9">
+  <meta name="theme-color" content="#6221c7">
   <%# what shows when the link is shared on WhatsApp or Facebook %>
   <meta name="description" content="<%= t('home.share_description') %>">
   <meta property="og:type" content="website">
@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/font/lucide.css">
   <link rel="stylesheet" href="/css/main.css">
   <script src="/js/phone-input.js" defer></script>
   <script src="/js/show-password.js" defer></script>
@@ -53,11 +53,11 @@
   <a href="#main" class="sr-only focus:not-sr-only focus:p-3"><%= t('nav.skip') %></a>
 
   <header class="sticky top-0 z-30 border-b border-gray-100 bg-white">
-    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-      <%# on very narrow phones only the round logo shows, so everything fits on one line %>
-      <a href="/" aria-label="SeniorPadi" class="logo flex min-w-0 shrink-0 items-center gap-2.5 text-[1.25rem] font-bold tracking-tight text-ink no-underline sm:text-[1.35rem]">
-        <%- include('logoMark', { size: 'h-10 w-10', uid: 'h' }) %>
-        <span class="logo-word <%= currentUser ? 'max-[429px]:sr-only' : 'max-[359px]:sr-only' %>">SeniorPadi</span>
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5">
+      <%# the name always shows beside the round logo %>
+      <a href="/" class="logo flex min-h-12 min-w-0 shrink-0 items-center gap-2 text-[1.2rem] font-bold tracking-tight text-ink no-underline sm:gap-2.5 sm:text-[1.35rem]">
+        <%- include('logoMark', { size: 'h-9 w-9 sm:h-10 sm:w-10', uid: 'h' }) %>
+        <span class="logo-word">SeniorPadi</span>
       </a>
 
       <%# the page links fit in the top bar only on wide screens; phones, tablets and small laptops use the bar at the bottom %>
@@ -69,17 +69,21 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <input type="hidden" name="back" value="<%= currentPath %>">
           <button name="lang" value="<%= otherLang %>" lang="<%= otherLang %>"
-                  class="inline-flex min-h-11 items-center gap-2 rounded-md bg-surface px-3 text-[0.95rem] font-medium text-ink hover:bg-mist sm:px-4">
-            <i class="fa-solid fa-language text-indigo" aria-hidden="true"></i>
+                  class="inline-flex min-h-12 items-center gap-2 rounded-md bg-surface px-3 text-[0.95rem] font-medium text-ink hover:bg-mist sm:px-4">
+            <span class="max-[399px]:hidden"><i class="icon-languages text-indigo" aria-hidden="true"></i></span>
             <%= otherLang === 'yo' ? 'Yorùbá' : 'English' %>
           </button>
         </form>
         <% if (currentUser) { %>
-          <a href="/account" aria-label="<%= t('nav.account') %>" class="block shrink-0 rounded-full ring-2 ring-mist no-underline transition hover:ring-indigo">
-            <%- include('avatar', { person: currentUser, cls: 'h-11 w-11' }) %>
+          <%# their photo and "My account". On narrow phones the words are left out to save room
+              (screen readers still hear them); the bar at the bottom has "My account" written out. %>
+          <a href="/account" <%= ['/account', '/history', '/settings', '/notifications', '/change-password', '/verify'].some(function (p) { return currentPath.startsWith(p); }) ? 'aria-current=page' : '' %>
+             class="relative inline-flex min-h-12 shrink-0 items-center gap-2 rounded-md p-0.5 text-[0.95rem] font-semibold text-ink no-underline transition hover:bg-surface sm:pr-3">
+            <%- include('avatar', { person: currentUser, cls: 'h-11 w-11' }) %><span class="max-sm:sr-only"><%= t('nav.account') %></span>
+            <% if (unreadCount > 0) { %><span class="absolute -right-1 -top-1 rounded-full bg-indigo px-1.5 text-[0.8rem] font-semibold text-white"><%= unreadCount %></span><% } %>
           </a>
         <% } else { %>
-          <a href="/login" class="hidden min-h-11 items-center rounded-md bg-indigo px-5 text-[0.95rem] font-semibold text-white no-underline hover:bg-indigo-dark sm:inline-flex"><%= t('home.login') %></a>
+          <a href="/login" class="btn hidden min-h-12 w-auto px-5 text-[0.95rem] sm:inline-flex"><%= t('home.login') %></a>
         <% } %>
       </div>
     </div>

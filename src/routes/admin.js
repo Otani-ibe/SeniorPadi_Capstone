@@ -236,7 +236,8 @@ function readEventForm(body) {
     price: body.pricing === 'paid' ? parseInt(String(body.price || '').replace(/[^\d]/g, ''), 10) || null : null,
     volunteerEnabled: body.volunteerEnabled === 'yes',
     volunteerCapacity: parseInt(body.volunteerCapacity, 10) || null,
-    hostedBySenior: body.hostedBySenior === 'yes'
+    hostedBySenior: body.hostedBySenior === 'yes',
+    imageAlt: (body.imageAlt || '').trim().slice(0, 600) || null
   };
 
   const errors = {};
@@ -564,7 +565,7 @@ router.post('/seniors/:id/remove-from-social', async (req, res) => {
   const senior = await User.findOne({ where: { id: req.params.id, role: 'senior' } });
   if (!senior) return res.redirect('/admin/seniors');
   await removeFromSocial(senior, req.user.id);
-  req.flash('success', senior.fullName + ' was removed from Find Seniors and messages. Their event places are unchanged.');
+  req.flash('success', senior.fullName + ' was removed from Find seniors and messages. Their event places are unchanged.');
   res.redirect('/admin/seniors/' + senior.id);
 });
 
@@ -609,7 +610,7 @@ router.post('/ids/:userId/approve', async (req, res) => {
   notify(senior, 'id.approved', { name: senior.firstName() });
   await addNotification(senior.id, 'id.approved', {}, '/find-seniors');
 
-  req.flash('success', senior.fullName + ' is verified. They can now use Find Seniors.');
+  req.flash('success', senior.fullName + ' is verified. They can now use Find seniors.');
   res.redirect('/admin/ids');
 });
 

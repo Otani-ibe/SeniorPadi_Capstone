@@ -27,7 +27,7 @@ test('only the Join page has the small link for sons and daughters; Log in and t
   // (the "having trouble?" help pop-up at the end of the page is separate, and only opens after a while)
   const popup = (await request(app).get('/events?login=1&mode=signup')).text.split('data-help-nudge')[0];
   expect(popup).not.toContain('/signup/parent');
-  expect(join.text).toContain('I am 60 years old or older');       // the original wording
+  expect(join.text).toContain('I am 50 years old or older');       // the original wording
   expect(join.text).not.toMatch(/Setting this up for your mum or dad\?\s*Use their name/);
 });
 

@@ -1,12 +1,12 @@
 <%- include('../partials/header') %>
 <%
-  const steps = [{ channel: 'phone', icon: 'fa-mobile-screen', done: Boolean(currentUser.phoneVerifiedAt), label: t('verify.phone_label', { phone: currentUser.localPhone() }) }];
-  if (currentUser.email) steps.push({ channel: 'email', icon: 'fa-envelope', done: Boolean(currentUser.emailVerifiedAt), label: t('verify.email_label', { email: currentUser.email }) });
+  const steps = [{ channel: 'phone', icon: 'icon-smartphone', done: Boolean(currentUser.phoneVerifiedAt), label: t('verify.phone_label', { phone: currentUser.localPhone() }) }];
+  if (currentUser.email) steps.push({ channel: 'email', icon: 'icon-mail', done: Boolean(currentUser.emailVerifiedAt), label: t('verify.email_label', { email: currentUser.email }) });
 %>
 
 <div class="mx-auto max-w-xl">
   <div class="page-head text-center">
-    <span class="icon-dot mx-auto h-16 w-16 text-[1.6rem]"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+    <span class="icon-dot mx-auto h-16 w-16 text-[1.6rem]"><i class="icon-shield" aria-hidden="true"></i></span>
     <h1 class="mt-4"><%= t('verify.title') %></h1>
     <p class="lead mx-auto"><%= t('verify.intro') %></p>
   </div>
@@ -15,7 +15,7 @@
     <% steps.forEach(function (step, i) { %>
       <li class="sheet <%= step.done ? 'border-leaf/40 bg-emerald-50' : '' %>">
         <p class="flex items-center gap-3 text-[1.1rem] font-semibold">
-          <span class="<%= step.done ? 'icon-dot bg-leaf' : 'icon-dot-soft' %>"><i class="fa-solid <%= step.done ? 'fa-check' : step.icon %>" aria-hidden="true"></i></span>
+          <span class="<%= step.done ? 'icon-dot bg-leaf' : 'icon-dot-soft' %>"><i class="<%= step.done ? 'icon-check' : step.icon %>" aria-hidden="true"></i></span>
           <span><%= i + 1 %>. <%= step.label %></span>
         </p>
 
@@ -46,7 +46,7 @@
     <% }) %>
   </ol>
 
-  <p class="mt-6 rounded-2xl bg-surface p-4 text-center text-gray-700"><i class="fa-solid fa-phone mr-2 text-indigo" aria-hidden="true"></i><%= t('verify.help', { phone: supportPhone }) %></p>
+  <p class="mt-6 rounded-2xl bg-surface p-4 text-center text-gray-700"><i class="icon-phone mr-2 text-indigo" aria-hidden="true"></i><%= t('verify.help', { phone: supportPhone }) %></p>
 </div>
 
 <%- include('../partials/footer') %>

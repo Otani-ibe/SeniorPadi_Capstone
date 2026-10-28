@@ -35,42 +35,31 @@
     <img src="<%= src %>" alt="" class="h-full w-full rounded-full object-cover">
   <% } else { %>
     <span class="flex h-full w-full items-center justify-center rounded-full bg-mist text-indigo/30">
-      <i class="fa-solid fa-user text-[1.4em]" aria-hidden="true"></i>
+      <i class="icon-user text-[1.4em]" aria-hidden="true"></i>
     </span>
   <% } %>
 <% } %>
 
-<%# the main button: a pill with an arrow in a white circle %>
+<%# the main button, with an arrow %>
 <% function bigButton(href, label) { %>
-  <a href="<%= href %>" class="group inline-flex min-h-16 w-full items-center justify-between gap-4 rounded-md bg-indigo py-2 pl-7 pr-2 text-[1.15rem] font-semibold text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark sm:w-auto">
-    <%= label %>
-    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-indigo transition group-hover:translate-x-1">
-      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-    </span>
-  </a>
+  <a href="<%= href %>" class="btn group"><%= label %><i class="icon-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></a>
 <% } %>
 
 <%# ================= 1. HERO: who we are, one clear next step =================
    phones: badge and headline, the circle, then the text and buttons. computers: text on the left, circle on the right %>
 <%# edge to edge, square corners; the help strip sits on its bottom edge %>
-<section class="relative overflow-hidden bg-gradient-to-b from-mist to-white">
+<section class="relative overflow-hidden bg-white">
   <div class="relative mx-auto flex max-w-6xl flex-col px-5 py-8 text-center md:grid md:grid-cols-[1.1fr_1fr] md:items-center md:gap-10 md:px-10 md:py-16 md:text-left">
-    <%# a soft warm glow in the corner, so the card is not flat %>
-    <span class="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-200/60 blur-3xl md:h-72 md:w-72" aria-hidden="true"></span>
     <div class="contents md:block">
     <div class="relative order-1">
-      <p class="inline-flex items-center gap-2.5 rounded-md border border-gray-200 bg-white px-4 py-1.5 text-[0.9rem] font-semibold text-ink shadow-sm md:text-[0.95rem]">
-        <span class="h-2.5 w-2.5 rounded-full bg-leaf" aria-hidden="true"></span><%= t('home.hero_badge') %>
-      </p>
-
       <% if (currentUser) { %>
-        <h1 class="mt-5 text-[2.3rem] leading-tight md:text-[3.5rem] md:leading-[1.08]" aria-label="<%= welcomeHeading %>">
+        <h1 class="text-[2.3rem] leading-tight md:text-[3.5rem] md:leading-[1.08]" aria-label="<%= welcomeHeading %>">
           <% const nameWords = highlight.split(' '); welcomeHeading.split(' ').forEach(function (word, i) { const isName = nameWords.some(function (w) { return w && word.includes(w); }); %>
             <span class="welcome-word <%= isName ? 'welcome-name text-indigo' : '' %>" style="animation-delay: <%= 150 + i * 160 %>ms" aria-hidden="true"><%= word %></span>
           <% }) %>
         </h1>
       <% } else { %>
-        <h1 class="mt-5 text-[2.3rem] leading-tight md:text-[3.5rem] md:leading-[1.08]"><%= t('home.hero_title_a') %> <span class="text-indigo"><%= t('home.hero_title_b') %></span></h1>
+        <h1 class="text-[2.3rem] leading-tight md:text-[3.5rem] md:leading-[1.08]"><%= t('home.hero_title_a') %> <span class="text-indigo"><%= t('home.hero_title_b') %></span></h1>
       <% } %>
     </div>
 
@@ -80,20 +69,20 @@
       <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center md:justify-start">
         <% if (currentUser) { %>
           <a href="/events" class="btn group">
-            <%= t('home.find_near') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
+            <%= t('home.find_near') %><i class="icon-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
           </a>
         <% } else { %>
           <a href="/signup" class="btn group">
-            <%= t('home.join') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
+            <%= t('home.join') %><i class="icon-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
           </a>
           <a href="/events" class="btn-outline"><%= t('home.browse_events') %></a>
         <% } %>
       </div>
 
-      <ul class="mt-6 grid grid-cols-3 gap-2 text-[0.85rem] font-semibold md:flex md:flex-wrap md:gap-x-7 md:gap-y-2 md:text-[0.98rem]">
-        <% [['home.tick_verified', 'fa-shield-heart'], ['home.tick_local', 'fa-house-chimney'], ['home.tick_booking', 'fa-hand-pointer']].forEach(function (tick) { %>
-          <li class="flex flex-col items-center gap-1.5 rounded-2xl bg-white/70 px-1 py-2.5 leading-tight md:flex-row md:gap-2 md:bg-transparent md:p-0">
-            <i class="fa-solid <%= tick[1] %> text-[1.2rem] text-indigo md:text-leaf" aria-hidden="true"></i><%= t(tick[0]) %>
+      <ul class="mt-6 grid grid-cols-3 gap-2 text-[0.9rem] font-semibold md:flex md:flex-wrap md:gap-x-7 md:gap-y-2 md:text-[0.98rem]">
+        <% [['home.tick_verified', 'icon-shield-check'], ['home.tick_local', 'icon-house'], ['home.tick_booking', 'icon-pointer']].forEach(function (tick) { %>
+          <li class="flex flex-col items-center gap-1.5 px-1 py-2.5 leading-tight md:flex-row md:gap-2 md:p-0">
+            <i class="<%= tick[1] %> text-[1.2rem] text-indigo md:text-leaf" aria-hidden="true"></i><%= t(tick[0]) %>
           </li>
         <% }) %>
       </ul>
@@ -126,9 +115,8 @@
 <%# ================= 2. EVENTS: picture on the left, details and Register on the right =================
    Signed in: recommended, so events like the ones they joined before come first. Visitors: upcoming events, soonest first.
    A visitor who taps an event or Register goes to sign up, then confirms their phone, then is registered. %>
-<section id="events" class="mx-auto max-w-5xl scroll-mt-4 px-4 pt-10 md:pt-14">
-  <p class="font-semibold uppercase tracking-wide text-indigo"><%= currentUser ? t('home.rec_kicker') : t('home.up_kicker') %></p>
-  <h2 class="mt-1 text-[1.75rem] md:text-[2.1rem]"><%= currentUser ? t('home.rec_title_user') : t('home.up_title') %></h2>
+<section id="events" class="mx-auto max-w-5xl scroll-mt-4 px-4 pt-14 md:pt-20">
+  <h2 class="text-[1.75rem] md:text-[2.1rem]"><%= currentUser ? t('home.rec_title_user') : t('home.up_title') %></h2>
 
   <% if (typeof recommended === 'undefined' || recommended.length === 0) { %>
     <p class="mt-6 rounded-card bg-surface p-6 text-gray-700"><%= t('home.soon_empty') %></p>
@@ -142,7 +130,7 @@
             <% if (event.imageUrl) { %>
               <img src="<%= event.imageUrl %>" alt="" loading="lazy" draggable="false" class="aspect-[4/5] w-24 rounded-xl bg-mist object-contain min-[400px]:w-28 sm:w-36">
             <% } else { %>
-              <span class="flex aspect-[4/5] w-24 items-center justify-center rounded-xl bg-gradient-to-b from-mist to-indigo/10 text-[2.2rem] text-indigo min-[400px]:w-28 sm:w-36"><i class="fa-solid <%= categoryIcons[event.category] || 'fa-calendar-days' %>"></i></span>
+              <span class="flex aspect-[4/5] w-24 items-center justify-center rounded-xl bg-gradient-to-b from-mist to-indigo/10 text-[2.2rem] text-indigo min-[400px]:w-28 sm:w-36"><i class="<%= categoryIcons[event.category] || 'icon-calendar-days' %>"></i></span>
             <% } %>
           </a>
           <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -155,12 +143,12 @@
                 <form action="/events/<%= event.id %>/register" method="post">
                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                   <input type="hidden" name="from" value="home">
-                  <button class="inline-flex min-h-12 items-center rounded-md bg-indigo px-6 font-semibold text-white transition hover:bg-indigo-dark"><%= t('stack.register') %></button>
+                  <button aria-label="<%= forEvent(t('stack.register'), event) %>" class="btn min-h-12 w-auto px-6"><%= t('stack.register') %></button>
                 </form>
               <% } else if (bookingFor) { %>
                 <%- include('partials/bookButton', { event, cls: 'min-h-12 px-6' }) %>
               <% } else { %>
-                <a href="<%= detailsHref %>" class="inline-flex min-h-12 items-center rounded-md bg-indigo px-6 font-semibold text-white no-underline transition hover:bg-indigo-dark"><%= t('stack.register') %></a>
+                <a href="<%= detailsHref %>" aria-label="<%= forEvent(t('stack.register'), event) %>" class="btn min-h-12 w-auto px-6"><%= t('stack.register') %></a>
               <% } %>
             </div>
           </div>
@@ -168,14 +156,14 @@
       <% }) %>
     </div>
     <div class="mt-5 flex justify-end">
-      <a href="/events" class="btn-quiet group"><%= t('home.see_all_events') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></a>
+      <a href="/events" class="btn-quiet group"><%= t('home.see_all_events') %><i class="icon-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></a>
     </div>
   <% } %>
 </section>
 
 <%# ================= 3. FIND SENIORS: two square photos that take turns changing (public/js/home-faces.js) ================= %>
-<section class="px-4 pt-10 md:pt-14">
-  <div class="mx-auto grid max-w-5xl gap-8 rounded-card bg-mist p-6 md:grid-cols-2 md:items-center md:gap-12 md:p-10">
+<section class="px-4 pt-16 md:pt-24">
+  <div class="mx-auto grid max-w-5xl gap-8 md:grid-cols-2 md:items-center md:gap-14">
     <div class="grid max-w-lg grid-cols-2 gap-3.5" data-face-pool="<%= JSON.stringify(photos.seniorsPool) %>">
       <% photos.seniors.forEach(function (src) { %>
         <span class="face-slot block aspect-square overflow-hidden rounded-3xl bg-white">
@@ -184,18 +172,17 @@
       <% }) %>
     </div>
     <div>
-      <p class="font-semibold uppercase tracking-wide text-indigo"><%= t('nav.find_seniors') %></p>
-      <h2 class="mt-1 text-[1.75rem] leading-tight md:text-[2.3rem]"><%= t('home.seniors_title') %></h2>
+      <h2 class="text-[1.75rem] leading-tight md:text-[2.3rem]"><%= t('home.seniors_title') %></h2>
       <p class="mt-4 text-[1.15rem] text-gray-700"><%= t('home.seniors_text') %></p>
-      <a href="/find-seniors" class="group mt-6 inline-flex min-h-14 items-center gap-3 rounded-md bg-ink px-7 text-[1.1rem] font-semibold text-white no-underline transition hover:bg-black">
-        <%= t('home.meet_seniors') %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
+      <a href="/find-seniors" class="btn group mt-6">
+        <%= t('home.meet_seniors') %><i class="icon-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i>
       </a>
     </div>
   </div>
 </section>
 
 <%# ================= 4. CALL SENIORPADI ================= %>
-<section class="mx-auto max-w-5xl px-4 pt-6">
+<section class="mx-auto max-w-5xl px-4 pt-12">
   <%# Call SeniorPadi: a thin bar with the call button on the right %>
   <a href="<%= supportTel ? 'tel:' + supportTel : '/call' %>" class="group mt-4 flex items-center gap-3 rounded-md bg-indigo py-3 pl-6 pr-3 text-white no-underline shadow-lg shadow-indigo/25 transition hover:bg-indigo-dark sm:gap-4">
     <span class="min-w-0 flex-1 leading-snug">
@@ -203,7 +190,7 @@
       <span class="hidden text-[0.95rem] text-white/85 sm:block"><%= t('home.card_call') %></span>
     </span>
     <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-indigo transition group-hover:scale-105">
-      <i class="fa-solid fa-phone" aria-hidden="true"></i>
+      <i class="icon-phone" aria-hidden="true"></i>
     </span>
   </a>
   <%# WhatsApp: the WhatsApp logo on the right, and common questions taking turns in the middle
@@ -218,16 +205,15 @@
         <span class="block text-[0.95rem] text-gray-700 transition-opacity duration-300" data-wa-text><%= waMessages[0] %></span>
       </span>
       <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-leaf text-[1.4rem] text-white transition group-hover:scale-105">
-        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+        <i class="icon-whatsapp" aria-hidden="true"></i>
       </span>
     </a>
   <% } %>
 </section>
 
 <%# ================= 5. HOW IT WORKS: three short steps ================= %>
-<section class="mx-auto max-w-5xl px-4 pt-10 md:pt-14">
-  <p class="text-center font-semibold text-indigo md:text-left"><%= t('home.how_kicker') %></p>
-  <h2 class="mt-1 text-center text-[1.75rem] md:text-left md:text-[2.1rem]"><%= t('home.how_title') %></h2>
+<section class="mx-auto max-w-5xl px-4 pt-16 md:pt-24">
+  <h2 class="text-center text-[1.75rem] md:text-left md:text-[2.1rem]"><%= t('home.how_title') %></h2>
   <%# flat panels, like printed steps: a small label on top, a big title, one line, then a link.
       The whole panel is the link. Signed in, step 1 goes to their account and step 3 to their registrations. %>
   <% const steps = [
@@ -235,19 +221,19 @@
        { title: 'home.step2_title', text: 'home.step2', href: '/events', link: 'home.step2_link' },
        { title: 'home.step3_title', text: 'home.step3', href: currentUser ? '/registrations' : '/about', link: currentUser ? 'home.step3_link_user' : 'home.step3_link' }
      ]; %>
-  <ol class="mt-6 grid gap-3 md:grid-cols-3 md:gap-4">
+  <ol class="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">
     <% steps.forEach(function (step, i) { %>
       <li>
-        <a href="<%= step.href %>" class="group flex h-full flex-col rounded-card border border-transparent bg-surface p-6 text-ink no-underline transition hover:border-gray-300 hover:bg-white md:min-h-64 md:p-7">
-          <span class="text-[0.85rem] font-bold uppercase tracking-[0.1em] text-gray-500"><%= t('home.step_label', { n: '0' + (i + 1) }) %></span>
-          <span class="mt-5 block text-[1.5rem] font-semibold leading-tight md:mt-8 md:text-[1.7rem]"><%= t(step.title) %></span>
-          <span class="mt-2 block text-[1.05rem] text-gray-700"><%= t(step.text) %></span>
-          <span class="mt-auto inline-flex items-center gap-2 pt-6 font-semibold text-indigo group-hover:underline"><%= t(step.link) %><i class="fa-solid fa-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></span>
+        <a href="<%= step.href %>" class="group flex h-full flex-col border-t-2 border-gray-200 pt-5 text-ink no-underline transition hover:border-ink md:pt-6">
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-mist font-semibold text-ink" aria-hidden="true"><%= i + 1 %></span><span class="sr-only"><%= t('home.step_label', { n: i + 1 }) %></span>
+          <span class="mt-3 block text-[1.3rem] font-semibold leading-tight md:mt-4 md:text-[1.6rem]"><%= t(step.title) %></span>
+          <span class="mt-1 block text-gray-700 md:mt-2 md:text-[1.05rem]"><%= t(step.text) %></span>
+          <span class="mt-auto inline-flex min-h-12 items-center gap-2 pt-1 font-semibold md:pt-6 text-ink group-hover:underline"><%= t(step.link) %><i class="icon-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></span>
         </a>
       </li>
     <% }) %>
   </ol>
-  <a href="/about" class="mt-6 inline-flex min-h-12 items-center gap-2 font-semibold no-underline"><%= t('home.about_more') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+  <a href="/about" class="mt-6 inline-flex min-h-12 items-center gap-2 font-semibold no-underline"><%= t('home.about_more') %><i class="icon-arrow-right" aria-hidden="true"></i></a>
 </section>
 
 <%# ================= 7. READY TO JOIN? (visitors only) ================= %>

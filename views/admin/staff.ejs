@@ -13,7 +13,7 @@
           <form action="/admin/staff/<%= m.id %>/reset-password" method="post"
                 onsubmit="return confirm('Give <%= safeName %> a new temporary password?');">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="inline-flex min-h-11 items-center gap-2 rounded-md px-4 font-semibold no-underline bg-mist text-indigo hover:bg-indigo hover:text-white">Reset password</button>
+            <button class="inline-flex min-h-11 items-center gap-2 rounded-md px-4 font-semibold no-underline bg-mist text-ink hover:bg-ink hover:text-white">Reset password</button>
           </form>
           <form action="/admin/staff/<%= m.id %>/remove" method="post"
                 onsubmit="return confirm('Remove staff access for <%= safeName %>?');">

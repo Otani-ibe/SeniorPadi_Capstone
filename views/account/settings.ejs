@@ -1,6 +1,6 @@
 <%- include('../partials/header') %>
 
-<a href="/account" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
+<a href="/account" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
 <div class="page-head"><h1><%= t('settings.title') %></h1></div>
 
 <div class="grid gap-6 md:grid-cols-[1fr_1.6fr] md:items-start">
@@ -17,7 +17,7 @@
           <input type="file" id="picture" name="picture" accept="image/jpeg,image/png,image/webp" class="block w-full rounded-2xl border-2 border-dashed border-indigo/30 bg-mist p-3 text-[0.95rem]">
           <span class="hint"><%= t('settings.picture_hint') %></span>
         </div>
-        <button class="btn-plain w-full sm:w-full" data-uploading-text="<%= t('upload.uploading') %>"><i class="fa-solid fa-upload" aria-hidden="true"></i><%= t('settings.picture_upload') %></button>
+        <button class="btn-plain w-full sm:w-full" data-uploading-text="<%= t('upload.uploading') %>"><i class="icon-upload" aria-hidden="true"></i><%= t('settings.picture_upload') %></button>
       </form>
     </section>
   </div>
@@ -27,7 +27,7 @@
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 
     <section class="sheet">
-      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="fa-solid fa-user" aria-hidden="true"></i></span><%= t('settings.about_you') %></h2>
+      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="icon-user" aria-hidden="true"></i></span><%= t('settings.about_you') %></h2>
       <div class="field">
         <label for="bio"><%= t('settings.bio') %></label>
         <textarea id="bio" name="bio" rows="4" maxlength="500"><%= currentUser.bio || '' %></textarea>
@@ -43,7 +43,7 @@
     </section>
 
     <section class="sheet">
-      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="fa-solid fa-language" aria-hidden="true"></i></span><%= t('settings.language') %></h2>
+      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="icon-languages" aria-hidden="true"></i></span><%= t('settings.language') %></h2>
       <fieldset class="field">
         <legend class="sr-only"><%= t('settings.language') %></legend>
         <div class="grid grid-cols-2 gap-3">
@@ -59,7 +59,7 @@
     </section>
 
     <section class="sheet">
-      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="fa-solid fa-bell" aria-hidden="true"></i></span><%= t('settings.reminders_title') %></h2>
+      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="icon-bell" aria-hidden="true"></i></span><%= t('settings.reminders_title') %></h2>
       <label class="field flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl bg-surface px-4 font-semibold">
         <input type="checkbox" name="remindersEnabled" value="yes" class="h-6 w-6 shrink-0 accent-indigo" <%= currentUser.remindersEnabled ? 'checked' : '' %>>
         <span><%= t('settings.remind_me') %></span>
@@ -76,7 +76,7 @@
     </section>
 
     <section class="sheet">
-      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span><%= t('settings.contact') %></h2>
+      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="icon-mail" aria-hidden="true"></i></span><%= t('settings.contact') %></h2>
       <div class="field">
         <label for="email"><%= t('signup.email') %></label>
         <input type="email" id="email" name="email" value="<%= currentUser.email || '' %>">
@@ -91,13 +91,13 @@
     </section>
 
     <div>
-      <button class="btn w-full sm:w-full"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><%= t('settings.save') %></button>
+      <button class="btn w-full sm:w-full"><i class="icon-save" aria-hidden="true"></i><%= t('settings.save') %></button>
     </div>
 
     <section class="rounded-card bg-full-bg/60 p-5">
       <h2 class="text-[1.2rem]"><%= t('delete.title') %></h2>
       <p class="mt-1 text-gray-700"><%= t('delete.settings_intro') %></p>
-      <a href="/account/delete" class="mt-2 inline-flex min-h-11 items-center gap-2 font-semibold text-full-tag"><i class="fa-solid fa-user-xmark" aria-hidden="true"></i><%= t('delete.title') %></a>
+      <a href="/account/delete" class="mt-2 inline-flex min-h-12 items-center gap-2 font-semibold text-full-tag"><i class="icon-user-x" aria-hidden="true"></i><%= t('delete.title') %></a>
     </section>
   </form>
 </div>

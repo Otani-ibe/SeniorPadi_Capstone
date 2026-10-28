@@ -1,0 +1,2 @@
+<%# "✓ Sent" or "✓✓ Read" under a message. public/js/chat.js builds the same thing. %>
+<i class="<%= read ? 'icon-check-check' : 'icon-check' %> mr-1" aria-hidden="true"></i><%= read ? t('messages.read') : t('messages.sent') %>

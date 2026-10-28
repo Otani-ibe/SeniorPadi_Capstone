@@ -35,7 +35,7 @@ test('the sign-up form only asks for name, phone number and password', async () 
   }
 });
 
-test('signup needs the 60+ box ticked', async () => {
+test('signup needs the 50+ box ticked', async () => {
   const agent = request.agent(app);
   const page = await agent.get('/signup');
   const res = await agent.post('/signup').type('form').send({

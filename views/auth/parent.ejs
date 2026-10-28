@@ -3,10 +3,10 @@
 <div class="auth-shell">
   <%- include('../partials/authAside') %>
   <div class="auth-form">
-<a href="/signup" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('parent.back') %></a>
+<a href="/signup" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('parent.back') %></a>
 <h1 class="mb-2"><%= t('parent.page_title') %></h1>
 <p class="mb-4 rounded-2xl bg-amber-bg p-4 font-semibold text-amber-tag"><%= t('parent.check') %> <a href="/signup" class="font-semibold text-amber-tag"><%= t('parent.check_link') %></a></p>
-<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="fa-solid fa-mobile-screen mt-1 text-indigo" aria-hidden="true"></i><span><%= t('parent.intro') %></span></p>
+<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="icon-smartphone mt-1 text-indigo" aria-hidden="true"></i><span><%= t('parent.intro') %></span></p>
 
 <form action="/signup/parent" method="post" novalidate>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">

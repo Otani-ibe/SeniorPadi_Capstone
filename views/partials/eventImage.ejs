@@ -1,12 +1,14 @@
 <%# event picture: the uploaded photo, or an empty picture space until one is added.
     natural: true shows the whole photo at its own shape (nothing cut off), for flyers;
-    the empty space is then 4:3. %>
+    the empty space is then 4:3.
+    Screen readers hear what staff wrote about the picture, or "Flyer for {title}". %>
 <% const imgCls = typeof imgClass !== 'undefined' ? imgClass : 'aspect-video w-full rounded-2xl object-cover';
-   const whole = typeof natural !== 'undefined' && natural; %>
+   const whole = typeof natural !== 'undefined' && natural;
+   const alt = event.tImageAlt || event.imageAlt || t('event.image_alt', { title: event.tTitle || event.title }); %>
 <% if (event.imageUrl) { %>
-  <img src="<%= event.imageUrl %>" alt="" loading="lazy" draggable="false" class="<%= whole ? imgCls + ' h-auto' : imgCls %>" width="800" height="600">
+  <img src="<%= event.imageUrl %>" alt="<%= alt %>" loading="lazy" draggable="false" class="<%= whole ? imgCls + ' h-auto' : imgCls %>" width="800" height="600">
 <% } else { %>
   <span class="flex items-center justify-center bg-mist text-[2.5rem] text-indigo/30 <%= whole ? imgCls + ' aspect-[4/3]' : imgCls %>" aria-hidden="true">
-    <i class="fa-regular fa-image" aria-hidden="true"></i>
+    <i class="icon-image" aria-hidden="true"></i>
   </span>
 <% } %>

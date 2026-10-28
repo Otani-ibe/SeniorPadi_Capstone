@@ -19,7 +19,7 @@ test('events: each card shows the details, and the picture opens the edit page',
   expect(page.text).toContain('Morning walk');
   expect(page.text).toContain('Egbeda');
   expect(page.text).toMatch(new RegExp('href="/admin/events/' + event.id + '/edit"[^>]*aria-label="Edit Morning walk"'));
-  expect(page.text).toContain('fa-plus');
+  expect(page.text).toContain('icon-plus');
   expect(page.text).toContain('Add event');
 });
 
@@ -128,6 +128,29 @@ test('after the event, everyone not ticked can be marked as didn\'t come in one 
   await agent.post('/admin/events/' + event.id + '/rest-missed').type('form').send({ _csrf: csrfFrom(page.text) });
   expect((await waiting.reload()).status).toBe('no_show');
   expect((await came.reload()).status).toBe('attended');
+});
+
+test('staff describe the flyer; screen readers hear it, or "Flyer for" the title when it is empty', async () => {
+  const described = await makeEvent({ title: 'Morning walk', imageUrl: 'https://example.com/a.jpg', imageAlt: 'Seniors walking in Agodi Gardens' });
+  const plain = await makeEvent({ title: 'Bible study', imageUrl: 'https://example.com/b.jpg' });
+
+  const form = await (await staff()).get('/admin/events/' + described.id + '/edit');
+  expect(form.text).toContain('name="imageAlt"');
+  expect(form.text).toContain('Seniors walking in Agodi Gardens');
+
+  expect((await request(app).get('/events/' + described.id)).text).toContain('alt="Seniors walking in Agodi Gardens"');
+  expect((await request(app).get('/events/' + plain.id)).text).toContain('alt="Flyer for Bible study"');
+});
+
+test('Register and Skip buttons say which event they are for', async () => {
+  const event = await makeEvent({ title: 'Morning walk' });
+  const senior = await makeUser();
+  const agent = request.agent(app);
+  await signIn(agent, senior.phone);
+  const page = await agent.get('/events?area=all');
+  expect(page.text).toMatch(/aria-label="Register: Morning walk, [^"]+"/);
+  expect(page.text).toMatch(/aria-label="Skip: Morning walk, [^"]+"/);
+  expect((await agent.get('/events/' + event.id)).text).toMatch(/aria-label="Register: Morning walk, [^"]+"/);
 });
 
 test('the welcome video is gone from the staff menu', async () => {

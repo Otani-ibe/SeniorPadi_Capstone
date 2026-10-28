@@ -7,13 +7,13 @@
     <h1>Organizations</h1>
     <p class="count"><%= filtered ? organizations.length + ' of ' + total : total %> organization<%= total === 1 ? '' : 's' %></p>
   </div>
-  <a href="/admin/organizations/new" class="admin-add"><i class="fa-solid fa-plus" aria-hidden="true"></i>Add organization</a>
+  <a href="/admin/organizations/new" class="admin-add"><i class="icon-plus" aria-hidden="true"></i>Add organization</a>
 </div>
 
 <form action="/admin/organizations" method="get" role="search" class="admin-filters sm:grid-cols-[minmax(0,1fr)_auto_auto]" data-filters>
   <div class="admin-search">
     <label for="q" class="sr-only">Search organizations</label>
-    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <i class="icon-search" aria-hidden="true"></i>
     <input type="search" id="q" name="q" value="<%= filters.q %>" placeholder="Search by name, contact, phone or address" class="admin-input">
   </div>
   <label for="lga" class="sr-only">Local government area</label>
@@ -55,7 +55,7 @@
               <% if (!org.lga && !org.address) { %><span class="text-gray-500">Not set</span><% } %>
             </td>
             <td><a href="/admin/events?q=<%= encodeURIComponent(org.name) %>"><%= eventCounts[org.id] || 0 %></a></td>
-            <td class="text-right"><a href="/admin/organizations/<%= org.id %>/edit" class="admin-plain min-h-9 px-3 text-[0.9rem]"><i class="fa-solid fa-pen" aria-hidden="true"></i>Edit</a></td>
+            <td class="text-right"><a href="/admin/organizations/<%= org.id %>/edit" class="admin-plain min-h-9 px-3 text-[0.9rem]"><i class="icon-pencil" aria-hidden="true"></i>Edit</a></td>
           </tr>
         <% }) %>
       </tbody>

@@ -3,7 +3,7 @@ const express = require('express');
 const { Op } = require('sequelize');
 const { User, Message, Skip, Block, Report, ReportHide, Notification } = require('../models');
 const social = require('../services/social');
-const { sendMessage, MAX_MESSAGE } = require('../services/messaging');
+const { sendMessage, markRead, MAX_MESSAGE } = require('../services/messaging');
 const exchange = require('../services/phoneExchange');
 const { translateTexts } = require('../services/translate');
 const cloud = require('../services/cloudinary');
@@ -226,11 +226,16 @@ router.get('/messages/:seniorId', requireVerified, requireContactVerified, async
   const hasOlder = page.length > PAGE_SIZE;
   const messages = page.slice(0, PAGE_SIZE).reverse();
 
-  // mark this conversation's message notifications as read
+  // mark this conversation's message notifications as read, and their messages, so they see "Read"
   await Notification.update(
     { readAt: new Date() },
     { where: { userId: req.user.id, type: 'message.new', readAt: null, payload: { senderId: other.id } } }
   );
+  await markRead(req.app.get('io'), req.user.id, other.id);
+
+  // "Sent" or "Read" goes under the newest message I sent
+  // (not on the "older messages" pages)
+  const lastMine = req.query.before ? null : messages.filter((m) => m.senderId === req.user.id).pop();
 
   const ex = await exchange.between(req.user.id, other.id);
   res.render('social/thread', {
@@ -239,6 +244,7 @@ router.get('/messages/:seniorId', requireVerified, requireContactVerified, async
     exchange: ex,
     incomingRequest: Boolean(ex && ex.status === 'pending' && ex.recipientId === req.user.id),
     messages,
+    lastMineId: lastMine ? lastMine.id : null,
     olderLink: hasOlder ? '/messages/' + other.id + '?before=' + messages[0].id : null
   });
 });

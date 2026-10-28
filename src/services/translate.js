@@ -56,15 +56,16 @@ async function translateTexts(texts, targetLang) {
   return results;
 }
 
-// adds .tTitle and .tDescription to each event (the original stays in .title / .description)
+// adds .tTitle, .tDescription and .tImageAlt to each event (the original stays in .title / .description / .imageAlt)
 async function translateEvents(events, lang) {
   const list = events.filter(Boolean);
   const texts = [];
-  list.forEach((e) => texts.push(e.title, e.description));
+  list.forEach((e) => texts.push(e.title, e.description, e.imageAlt || ''));
   const out = await translateTexts(texts, lang);
   list.forEach((e, i) => {
-    e.tTitle = out[i * 2];
-    e.tDescription = out[i * 2 + 1];
+    e.tTitle = out[i * 3];
+    e.tDescription = out[i * 3 + 1];
+    e.tImageAlt = out[i * 3 + 2];
   });
   return events;
 }

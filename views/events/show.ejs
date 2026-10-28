@@ -1,6 +1,6 @@
 <%- include('../partials/header') %>
 
-<a href="/events" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('events.back') %></a>
+<a href="/events" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('events.back') %></a>
 
 <%# on a phone: name, then picture, then details. On a wide screen the picture is on the left. %>
 <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:grid-rows-[auto_1fr] lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] md:gap-x-10 md:gap-y-0">
@@ -19,24 +19,24 @@
     <%# when and where, as big readable rows %>
     <ul class="space-y-3 md:mt-5">
       <li class="flex items-start gap-3">
-        <span class="icon-dot-soft h-11 w-11"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></span>
-        <span class="pt-1"><span class="font-semibold"><%= formatDate(event.startsAt) %></span><br><%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %></span>
+        <span class="flex w-7 shrink-0 justify-center pt-0.5 text-[1.35rem] text-gray-700"><i class="icon-calendar" aria-hidden="true"></i></span>
+        <span><span class="font-semibold"><%= formatDate(event.startsAt) %></span><br><%= formatTime(event.startsAt) %> – <%= formatTime(event.endsAt) %></span>
       </li>
       <li class="flex items-start gap-3">
-        <span class="icon-dot-soft h-11 w-11"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
-        <span class="pt-1">
+        <span class="flex w-7 shrink-0 justify-center pt-0.5 text-[1.35rem] text-gray-700"><i class="icon-map-pin" aria-hidden="true"></i></span>
+        <span>
           <span class="font-semibold"><%= event.area ? t('area.' + event.area) : t('events.area_unconfirmed') %></span><br><%= event.locationText %>
-          <% if (event.locationMapsUrl) { %><br><a href="<%= event.locationMapsUrl %>" rel="noopener" target="_blank"><%= t('event.open_map') %></a><% } %>
+          <% if (event.locationMapsUrl) { %><br><a href="<%= event.locationMapsUrl %>" rel="noopener" target="_blank" class="inline-flex min-h-12 items-center" aria-label="<%= forEvent(t('event.open_map'), event) %>"><%= t('event.open_map') %></a><% } %>
         </span>
       </li>
       <li class="flex items-start gap-3">
-        <span class="icon-dot-soft h-11 w-11"><i class="fa-solid <%= event.priceLabel() ? 'fa-tag' : 'fa-gift' %>" aria-hidden="true"></i></span>
-        <span class="pt-1"><span class="font-semibold"><%= t('events.price') %></span><br><%= event.priceLabel() || t('events.free') %></span>
+        <span class="flex w-7 shrink-0 justify-center pt-0.5 text-[1.35rem] text-gray-700"><i class="<%= event.priceLabel() ? 'icon-tag' : 'icon-gift' %>" aria-hidden="true"></i></span>
+        <span><span class="font-semibold"><%= t('events.price') %></span><br><%= event.priceLabel() || t('events.free') %></span>
       </li>
       <% if (state.isOpen) { %>
         <li class="flex items-start gap-3">
-          <span class="icon-dot-soft h-11 w-11"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></span>
-          <span class="pt-1"><span class="font-semibold"><%= t('event.deadline') %></span><br><%= formatDate(event.registrationDeadline) %>, <%= formatTime(event.registrationDeadline) %></span>
+          <span class="flex w-7 shrink-0 justify-center pt-0.5 text-[1.35rem] text-gray-700"><i class="icon-hourglass" aria-hidden="true"></i></span>
+          <span><span class="font-semibold"><%= t('event.deadline') %></span><br><%= formatDate(event.registrationDeadline) %>, <%= formatTime(event.registrationDeadline) %></span>
         </li>
       <% } %>
     </ul>
@@ -74,14 +74,14 @@
       <%# attend %>
       <div class="rounded-card bg-white p-5">
         <% if (mine.attendee) { %>
-          <p class="mb-3 flex items-center gap-2 font-semibold text-leaf"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><%= t('event.you_are_going') %></p>
+          <p class="mb-3 flex items-center gap-2 font-semibold text-leaf"><i class="icon-circle-check" aria-hidden="true"></i><%= t('event.you_are_going') %></p>
           <a href="/registrations" class="btn-plain w-full sm:w-full"><%= t('event.manage') %></a>
         <% } else if (state.attendeeFull) { %>
           <button class="btn w-full sm:w-full" disabled><%= t('tag.full') %></button>
         <% } else { %>
           <form action="/events/<%= event.id %>/register" method="post">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="btn w-full sm:w-full"><i class="fa-solid fa-check" aria-hidden="true"></i><%= t('event.register') %></button>
+            <button class="btn w-full sm:w-full" aria-label="<%= forEvent(t('event.register'), event) %>"><i class="icon-check" aria-hidden="true"></i><%= t('event.register') %></button>
           </form>
         <% } %>
       </div>
@@ -90,14 +90,14 @@
       <% if (state.volunteerEnabled) { %>
         <div class="rounded-card bg-white p-5">
           <% if (mine.volunteer) { %>
-            <p class="mb-3 flex items-center gap-2 font-semibold text-leaf"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><%= t('event.you_are_volunteering') %></p>
+            <p class="mb-3 flex items-center gap-2 font-semibold text-leaf"><i class="icon-circle-check" aria-hidden="true"></i><%= t('event.you_are_volunteering') %></p>
             <a href="/registrations" class="btn-plain w-full sm:w-full"><%= t('event.manage') %></a>
           <% } else if (state.volunteerFull) { %>
             <button class="btn-volunteer w-full sm:w-full" disabled><%= t('tag.volunteer_full') %></button>
           <% } else { %>
             <form action="/events/<%= event.id %>/volunteer" method="post">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="btn-volunteer w-full sm:w-full"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i><%= t('event.volunteer') %></button>
+              <button class="btn-volunteer w-full sm:w-full" aria-label="<%= forEvent(t('event.volunteer'), event) %>"><i class="icon-hand-heart" aria-hidden="true"></i><%= t('event.volunteer') %></button>
             </form>
           <% } %>
           <p class="mt-2 text-gray-700"><%= t('event.volunteer_hint') %></p>
@@ -114,7 +114,7 @@
           <p class="mb-3"><%= t('notify_me.offer') %></p>
           <form action="/events/<%= event.id %>/notify-me" method="post">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <button class="btn-plain"><i class="fa-solid fa-bell" aria-hidden="true"></i><%= t('notify_me.button') %></button>
+            <button class="btn-plain"><i class="icon-bell" aria-hidden="true"></i><%= t('notify_me.button') %></button>
           </form>
         <% } %>
       </div>

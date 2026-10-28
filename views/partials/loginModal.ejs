@@ -13,7 +13,9 @@
             md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-full md:max-w-lg md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:p-8">
   <div class="mb-2 flex items-start justify-between gap-4">
     <h2 id="login-title" class="text-[1.6rem]"><%= isSignup ? t('modal.title_signup') : heading %></h2>
-    <a href="<%= closeHref %>" data-modal-close class="rounded-lg px-2 text-3xl leading-none text-ink no-underline" aria-label="<%= t('modal.close') %>">&times;</a>
+    <a href="<%= closeHref %>" data-modal-close class="inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-md px-3 font-semibold text-ink no-underline transition hover:bg-gray-100">
+      <i class="icon-x text-[1.2rem]" aria-hidden="true"></i><%= t('modal.close') %>
+    </a>
   </div>
 
   <% if (isSignup) { %>

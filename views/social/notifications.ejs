@@ -1,11 +1,11 @@
 <%- include('../partials/header') %>
 
-<a href="/account" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
+<a href="/account" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
 <div class="page-head"><h1><%= t('notifications.title') %></h1></div>
 
 <% if (notifications.length === 0) { %>
   <div class="empty-state">
-    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
+    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-bell" aria-hidden="true"></i></span>
     <p class="mt-4 text-[1.15rem]"><%= t('notifications.none') %></p>
   </div>
 <% } %>
@@ -13,11 +13,11 @@
 <ul class="space-y-3">
   <% notifications.forEach(function (n) { const unread = !n.readAt; %>
     <li class="flex items-start gap-4 rounded-card p-4 <%= unread ? 'bg-mist ring-2 ring-indigo/30' : 'bg-surface' %>">
-      <span class="<%= unread ? 'icon-dot' : 'icon-dot-soft' %>"><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
+      <span class="<%= unread ? 'icon-dot' : 'icon-dot-soft' %>"><i class="icon-bell" aria-hidden="true"></i></span>
       <span class="min-w-0 flex-1">
         <span class="block font-semibold"><%= t('notification.' + n.type, n.payload) %></span>
         <span class="block text-[0.95rem] text-gray-700"><%= formatDate(n.createdAt) %>, <%= formatTime(n.createdAt) %></span>
-        <% if (n.link) { %><a href="<%= n.link %>" class="mt-1 inline-flex min-h-11 items-center gap-2 font-semibold"><%= t('notifications.open') %><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a><% } %>
+        <% if (n.link) { %><a href="<%= n.link %>" class="mt-1 inline-flex min-h-12 items-center gap-2 font-semibold"><%= t('notifications.open') %><i class="icon-arrow-right" aria-hidden="true"></i></a><% } %>
       </span>
     </li>
   <% }) %>

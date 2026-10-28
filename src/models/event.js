@@ -2,16 +2,16 @@ const { DataTypes } = require('sequelize');
 
 const CATEGORIES = ['fitness', 'faith', 'learning', 'skills', 'social', 'health', 'charity', 'creativity'];
 
-// Font Awesome icon for each category
+// line icon for each category (Lucide icon font)
 const CATEGORY_ICONS = {
-  fitness: 'fa-person-walking',
-  faith: 'fa-hands-praying',
-  learning: 'fa-book-open-reader',
-  skills: 'fa-scissors',
-  social: 'fa-people-group',
-  health: 'fa-heart-pulse',
-  charity: 'fa-hand-holding-heart',
-  creativity: 'fa-palette'
+  fitness: 'icon-footprints',
+  faith: 'icon-church',
+  learning: 'icon-book-open',
+  skills: 'icon-scissors',
+  social: 'icon-users-round',
+  health: 'icon-heart-pulse',
+  charity: 'icon-hand-heart',
+  creativity: 'icon-palette'
 };
 
 // the 11 local government areas of Ibadan. Names are in locales as "area.<key>".
@@ -26,6 +26,7 @@ module.exports = (sequelize) => {
     description: { type: DataTypes.TEXT, allowNull: false },
     imageUrl: DataTypes.STRING,
     imagePublicId: DataTypes.STRING,
+    imageAlt: DataTypes.TEXT, // what the picture shows, read out by screen readers; empty = "Flyer for {title}"
     startsAt: { type: DataTypes.DATE, allowNull: false },
     endsAt: { type: DataTypes.DATE, allowNull: false },
     locationText: { type: DataTypes.STRING, allowNull: false },

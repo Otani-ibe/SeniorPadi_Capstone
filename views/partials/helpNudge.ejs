@@ -14,35 +14,35 @@
      ].filter(Boolean); %>
   <div data-help-nudge data-wait="<%= NUDGE_SECONDS %>" hidden>
     <div class="fixed inset-0 z-40 bg-ink/60" data-help-close aria-hidden="true"></div>
+    <%# a small box in the middle of the screen, on phones too %>
     <div role="dialog" aria-modal="true" aria-labelledby="help-title" tabindex="-1" style="outline: none"
-         class="help-sheet fixed inset-x-0 bottom-0 z-50 max-h-[94vh] overflow-y-auto rounded-t-card bg-white px-5 pt-6 pb-7 shadow-2xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[92%] sm:max-w-xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-card sm:p-8">
-      <div class="flex items-start justify-between gap-4">
-        <p class="pt-2.5 text-[0.85rem] font-bold uppercase tracking-[0.1em] text-gray-500"><%= t('help.ticker_label') %></p>
-        <button type="button" data-help-close class="-mr-2 inline-flex min-h-11 items-center gap-1.5 rounded-md px-3 font-semibold text-ink transition hover:bg-gray-100">
-          <i class="fa-solid fa-xmark text-[1.2rem]" aria-hidden="true"></i><%= t('modal.close') %>
+         class="help-sheet fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[calc(100%-3rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-card bg-white p-4 shadow-2xl sm:max-w-md sm:p-6">
+      <div class="flex items-start justify-between gap-3">
+        <h2 id="help-title" class="pt-2 text-[1.15rem] leading-tight sm:text-[1.5rem]"><%= t('help.nudge_title') %></h2>
+        <button type="button" data-help-close class="-mr-2 -mt-1 inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-md px-3 font-semibold text-ink transition hover:bg-gray-100">
+          <i class="icon-x text-[1.2rem]" aria-hidden="true"></i><%= t('modal.close') %>
         </button>
       </div>
+      <p class="mt-1 text-[0.95rem] leading-snug text-gray-700"><%= t('help.nudge_text') %></p>
 
-      <h2 id="help-title" class="mt-2 text-[1.7rem] leading-tight sm:text-[2rem]"><%= t('help.nudge_title') %></h2>
-      <p class="mt-2 text-[1.1rem] text-gray-700"><%= t('help.nudge_text') %></p>
-
-      <%# one bordered list, a line between each choice, the action on the right %>
-      <ul class="mt-6 divide-y divide-gray-200 rounded-card border border-gray-200">
+      <%# one bordered list, a line between each choice, the action on the right.
+          The line under each choice is left out on phones to keep the box small. %>
+      <ul class="mt-3 divide-y divide-gray-200 rounded-card border border-gray-200">
         <% options.forEach(function (o) { %>
           <li>
             <a href="<%= o.href %>" <%- o.external ? 'target="_blank" rel="noopener"' : '' %>
-               class="group flex flex-wrap items-center justify-between gap-x-4 gap-y-3 p-4 text-ink no-underline transition hover:bg-surface sm:flex-nowrap">
-              <span class="min-w-0 flex-1 basis-56 leading-snug">
-                <span class="block text-[1.15rem] font-semibold"><%= o.title %></span>
-                <span class="mt-0.5 block text-[0.98rem] text-gray-700"><%= o.text %></span>
+               class="group flex items-center justify-between gap-3 px-3 py-1.5 text-ink no-underline transition hover:bg-surface">
+              <span class="min-w-0 flex-1 leading-snug">
+                <span class="block text-[0.95rem] font-semibold sm:text-base"><%= o.title %></span>
+                <span class="mt-0.5 hidden text-[0.95rem] text-gray-700 sm:block"><%= o.text %></span>
               </span>
-              <span class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md px-4 font-semibold transition <%= o.main ? 'bg-indigo text-white group-hover:bg-indigo-dark' : 'border border-gray-300 bg-white group-hover:border-ink' %>"><%= o.action %></span>
+              <span class="<%= o.main ? 'btn' : 'btn-plain' %> min-h-12 w-auto shrink-0 px-4 sm:w-auto"><%= o.action %></span>
             </a>
           </li>
         <% }) %>
       </ul>
 
-      <button type="button" data-help-close class="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md font-semibold text-gray-700 transition hover:bg-gray-100"><%= t('help.no_thanks') %></button>
+      <button type="button" data-help-close class="mt-3 hidden min-h-12 w-full items-center justify-center rounded-md font-semibold text-gray-700 sm:inline-flex transition hover:bg-gray-100"><%= t('help.no_thanks') %></button>
     </div>
   </div>
 <% } %>

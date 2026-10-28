@@ -12,7 +12,7 @@
        { href: '/signup/parent', photo: 'senior-1', title: 'help.t5_title', tag: 'help.t5_tag' }
      ].filter(Boolean); %>
   <section class="ticker flex items-stretch bg-indigo-deep text-white" aria-label="<%= t('help.ticker_label') %>" data-ticker>
-    <p class="flex w-28 shrink-0 items-center border-r border-white/10 px-4 text-[0.78rem] font-bold uppercase leading-snug tracking-[0.1em] text-white/75 sm:w-auto sm:px-8 sm:text-[0.9rem] md:pl-[max(2.5rem,calc((100vw-72rem)/2+2.5rem))]">
+    <p class="flex w-32 shrink-0 items-center border-r border-white/10 px-4 text-[1rem] font-semibold leading-snug text-white/90 sm:w-auto sm:px-8 sm:text-[0.9rem] md:pl-[max(2.5rem,calc((100vw-72rem)/2+2.5rem))]">
       <%= t('help.ticker_label') %>
     </p>
     <div class="ticker-viewport min-w-0 flex-1">
@@ -25,7 +25,7 @@
                    class="group flex items-center gap-3.5 text-white no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                   <img src="/images/home/<%= item.photo %>.jpg" alt="" class="h-10 w-10 shrink-0 rounded-full object-cover sm:h-11 sm:w-11" width="44" height="44">
                   <span class="whitespace-nowrap text-[1.2rem] font-semibold group-hover:underline sm:text-[1.35rem]"><%= t(item.title) %></span>
-                  <span class="whitespace-nowrap text-[0.85rem] font-bold uppercase tracking-[0.08em] text-white/55 group-hover:text-white sm:text-[0.9rem]"><%= t(item.tag) %></span>
+                  <span class="whitespace-nowrap text-[1rem] text-white/80 group-hover:text-white"><%= t(item.tag) %></span>
                 </a>
               </li>
             <% }) %>

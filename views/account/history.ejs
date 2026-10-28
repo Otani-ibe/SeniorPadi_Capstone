@@ -1,11 +1,11 @@
 <%- include('../partials/header') %>
 
-<a href="/account" class="back-link"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
+<a href="/account" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('nav.account') %></a>
 <div class="page-head"><h1><%= t('history.title') %></h1></div>
 
 <% if (registrations.length === 0) { %>
   <div class="empty-state">
-    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
+    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-history" aria-hidden="true"></i></span>
     <p class="mt-4 text-[1.15rem]"><%= t('history.none') %></p>
   </div>
 <% } %>
@@ -13,7 +13,7 @@
 <ul class="space-y-3">
   <% registrations.forEach(function (reg) { const came = reg.status === 'attended'; %>
     <li class="flex items-center gap-4 rounded-card bg-surface p-4">
-      <span class="<%= came ? 'icon-dot bg-leaf' : 'icon-dot-soft' %>"><i class="fa-solid <%= came ? 'fa-circle-check' : 'fa-calendar' %>" aria-hidden="true"></i></span>
+      <span class="<%= came ? 'icon-dot bg-leaf' : 'icon-dot-soft' %>"><i class="<%= came ? 'icon-circle-check' : 'icon-calendar' %>" aria-hidden="true"></i></span>
       <span class="min-w-0 flex-1">
         <span class="block text-[1.1rem] font-semibold"><%= reg.Event.title %></span>
         <span class="block text-gray-700"><%= formatDate(reg.Event.startsAt) %></span>

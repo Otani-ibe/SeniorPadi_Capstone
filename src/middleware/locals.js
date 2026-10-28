@@ -30,6 +30,9 @@ async function locals(req, res, next) {
   res.locals.t = req.t;
   res.locals.formatDate = (d) => dates.formatDate(d, lang);
   res.locals.formatTime = dates.formatTime;
+  // what a screen reader says for a button about one event: "Register: Morning walk, Tuesday 29 October".
+  // It starts with the button's own words, so voice control ("tap Register") still finds it.
+  res.locals.forEvent = (label, event) => label + ': ' + (event.tTitle || event.title) + ', ' + dates.formatDate(event.startsAt, lang);
   res.locals.shortDate = dates.shortDate;
   res.locals.currentPath = req.path;
   res.locals.supportPhone = process.env.SUPPORT_PHONE || '';
