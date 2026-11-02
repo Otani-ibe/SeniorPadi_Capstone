@@ -6,10 +6,12 @@
      };
      const s = styles[flash.type] || styles.info;
 %>
-  <div role="<%= flash.type === 'error' ? 'alert' : 'status' %>" class="mb-6 flex items-start gap-3 rounded-card p-4 font-semibold <%= s[0] %>">
+  <%# gone by itself after a few seconds (public/js/flash.js); an error stays a little longer %>
+  <div data-flash data-seconds="<%= flash.type === 'error' ? 8 : 5 %>" role="<%= flash.type === 'error' ? 'alert' : 'status' %>" class="mb-6 flex items-start gap-3 rounded-card p-4 font-semibold transition-all duration-500 <%= s[0] %>">
     <i class="<%= s[1] %> mt-0.5 text-[1.3rem]" aria-hidden="true"></i>
-    <span><%= flash.message %></span>
+    <span class="flex-1"><%= flash.message %></span>
   </div>
+  <script src="/js/flash.js" defer></script>
 <% } %>
 
 <%# booking events for a parent on this phone: always say who for, and how to stop %>

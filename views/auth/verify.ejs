@@ -1,6 +1,6 @@
 <%- include('../partials/header') %>
 <%
-  const steps = [{ channel: 'phone', icon: 'icon-smartphone', done: Boolean(currentUser.phoneVerifiedAt), label: t('verify.phone_label', { phone: currentUser.localPhone() }) }];
+  const steps = [{ channel: 'phone', icon: 'icon-phone', done: Boolean(currentUser.phoneVerifiedAt), label: t('verify.phone_label', { phone: currentUser.localPhone() }) }];
   if (currentUser.email) steps.push({ channel: 'email', icon: 'icon-mail', done: Boolean(currentUser.emailVerifiedAt), label: t('verify.email_label', { email: currentUser.email }) });
 %>
 

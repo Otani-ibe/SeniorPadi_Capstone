@@ -1,17 +1,27 @@
-// Live chat on top of the normal form.
+// Live chat on top of the normal form: messages appear without reloading.
 // If anything here fails, we do nothing and the form keeps working as usual.
 (function () {
   var thread = document.getElementById('thread');
   var form = document.querySelector('form[data-chat-form]');
   if (!thread || !form || typeof io === 'undefined') return;
 
+  var scroller = document.getElementById('thread-scroll');
   var myId = Number(thread.getAttribute('data-me'));
   var otherId = Number(thread.getAttribute('data-other'));
+  var otherName = thread.getAttribute('data-other-name');
   var textarea = form.querySelector('textarea');
   var csrf = form.querySelector('input[name="_csrf"]').value;
   var live = false;
 
+  // ---------- keep the newest message in view ----------
+  function toBottom() { if (scroller) scroller.scrollTop = scroller.scrollHeight; }
+  toBottom();
+  // photos and videos change the height when they finish loading
+  if (scroller) scroller.addEventListener('load', toBottom, true);
+  window.addEventListener('resize', toBottom);
+
   var socket = io({ auth: { csrf: csrf }, reconnectionAttempts: 5 });
+  window.spSocket = socket; // public/js/presence.js and call.js reuse this connection
 
   // give up quietly if we can't connect within 3 seconds
   var giveUp = setTimeout(function () {
@@ -37,7 +47,7 @@
     if (!live) socket.close();
   });
 
-  // build a message bubble. textContent keeps it safe from HTML in messages.
+  // ---------- building a message ----------
   function addMessage(msg) {
     if (document.getElementById('msg-' + msg.id)) return; // already shown
     var mine = msg.senderId === myId;
@@ -51,27 +61,29 @@
 
     var who = document.createElement('p');
     who.className = 'sr-only';
-    who.textContent = mine ? thread.getAttribute('data-you') : thread.getAttribute('data-other-name') + ':';
+    who.textContent = mine ? thread.getAttribute('data-you') : otherName + ':';
+    bubble.appendChild(who);
 
     var body = document.createElement('p');
     body.className = 'whitespace-pre-line';
     body.textContent = msg.body;
+    bubble.appendChild(body);
 
     var when = document.createElement('p');
     when.className = 'bubble-time';
-    when.textContent = thread.getAttribute('data-just-now');
-
-    bubble.appendChild(who);
-    bubble.appendChild(body);
+    var time = document.createElement('span');
+    time.textContent = thread.getAttribute('data-just-now');
+    when.appendChild(time);
     bubble.appendChild(when);
+
     // my newest message shows Sent or Read; the one before it stops showing it
     if (mine) {
       var old = thread.querySelector('[data-read-status]');
       if (old) old.remove();
-      var status = document.createElement('p');
-      status.className = 'bubble-time font-semibold';
+      var status = document.createElement('span');
+      status.className = 'font-semibold';
       status.setAttribute('data-read-status', '');
-      bubble.appendChild(status);
+      when.appendChild(status);
       showStatus(status, msg.read);
     }
     li.appendChild(bubble);
@@ -79,7 +91,7 @@
 
     var empty = document.getElementById('thread-empty');
     if (empty) empty.remove();
-    form.scrollIntoView({ block: 'end' });
+    toBottom();
   }
 
   // "✓ Sent" or "✓✓ Read", the same as views/partials/readStatus.ejs
@@ -101,16 +113,13 @@
     if (status) showStatus(status, true);
   });
 
+  // ---------- sending ----------
   form.addEventListener('submit', function (event) {
     if (!live || !socket.connected) return; // normal form post
 
     var text = textarea.value.trim();
-    if (!text) {
-      event.preventDefault();
-      return;
-    }
-
     event.preventDefault();
+    if (!text) return;
 
     socket.timeout(5000).emit('message:send', { recipientId: otherId, body: text }, function (err, reply) {
       if (!err && reply && reply.ok) {

@@ -113,9 +113,9 @@ test('a number with no account is told to sign the parent up first', async () =>
 });
 
 test('the parent\'s code text says who is asking', () => {
-  const sms = t('parent.book_code.sms', 'en', { child: 'Tunde', code: '123456', minutes: 10 });
-  expect(sms).toContain('Tunde wants to book events for you');
-  expect(sms).toContain('Only read it to Tunde if you agree');
+  const sms = t('parent.book_code.sms', 'en', { name: 'Mama Tolu', child: 'Tunde', code: '123456', minutes: 10 });
+  expect(sms).toContain('Tunde wants to book events for Mama Tolu');
+  expect(sms).toContain('Only share it if you agree');
 });
 
 test('right after signing a parent up, the child can book for them straight away, with no new code', async () => {
@@ -125,7 +125,7 @@ test('right after signing a parent up, the child can book for them straight away
   const form = await agent.get('/signup/parent');
   await agent.post('/signup/parent').type('form').send({
     _csrf: csrfFrom(form.text), childName: 'Tunde', childPhone: '0805 111 2222',
-    parentName: 'Mrs Esther Bello', parentPhone: '0805 333 4444', ageDeclared: 'yes'
+    parentName: 'Mrs Esther Bello', parentPhone: '0805 333 4444', lga: 'ibadan-north', ageDeclared: 'yes'
   });
   const parent = await User.findOne({ where: { fullName: 'Mrs Esther Bello' } });
   const codePage = await agent.get('/signup/parent/code');

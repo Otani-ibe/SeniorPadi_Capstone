@@ -75,7 +75,7 @@ test('signing up with a number that already has an account is refused', async ()
   const agent = request.agent(app);
   const page = await agent.get('/signup');
   const res = await agent.post('/signup').type('form').send({
-    _csrf: csrfFrom(page.text), fullName: 'Someone Else', phone: user.phone, ageDeclared: 'yes'
+    _csrf: csrfFrom(page.text), fullName: 'Someone Else', phone: user.phone, lga: 'ibadan-north', ageDeclared: 'yes'
   });
   expect(res.status).toBe(400);
   expect(res.text).toMatch(/already has an account/);
@@ -86,7 +86,7 @@ test('a number that never typed its code can sign up again, and is not signed in
   for (const name of ['First Try', 'Second Try']) {
     const page = await agent.get('/signup');
     const res = await agent.post('/signup').type('form').send({
-      _csrf: csrfFrom(page.text), fullName: name, phone: '0805 777 1234', ageDeclared: 'yes'
+      _csrf: csrfFrom(page.text), fullName: name, phone: '0805 777 1234', lga: 'ibadan-north', ageDeclared: 'yes'
     });
     expect(res.headers.location).toBe('/login/code');
     expect((await agent.get('/account')).headers.location).toBe('/login');
@@ -98,8 +98,8 @@ test('a number that never typed its code can sign up again, and is not signed in
 test('a new account\'s texts tell the phone\'s owner what is happening (a child may be signing them up)', () => {
   const { t } = require('../src/services/i18n');
   const code = t('signup.code.sms', 'en', { name: 'Mama Tolu', code: '123456', minutes: 10 });
-  expect(code).toContain('a new account is being created for Mama Tolu');
-  expect(code).toContain('Only share it if you agree');
+  expect(code).toContain('Hi Mama Tolu, your code is');
+  expect(code).toContain("Don't share it with anyone");
   expect(t('signup.welcome_text.sms', 'en', { name: 'Mama Tolu' })).toContain('Your account is ready');
 });
 
@@ -124,4 +124,26 @@ test('a title on its own is not a name: "Mr Kunle", "Mama Tolu", plain "Tolu"', 
   expect((await makeUser({ fullName: 'Chief. Samuel Eze' })).firstName()).toBe('Chief. Samuel');
   expect((await makeUser({ fullName: 'Tolu Adeyemi' })).firstName()).toBe('Tolu');
   expect((await makeUser({ fullName: 'Mr' })).firstName()).toBe('Mr');
+});
+
+test('signing up asks where the senior lives, needs an area, and saves it so Settings is already filled in', async () => {
+  const agent = request.agent(app);
+  const page = await agent.get('/signup');
+  expect(page.text).toContain('name="lga"');
+  expect(page.text).toContain('name="area"');
+
+  const missing = await agent.post('/signup').type('form').send({
+    _csrf: csrfFrom(page.text), fullName: 'No Place', phone: '0805 888 1234', ageDeclared: 'yes'
+  });
+  expect(missing.status).toBe(400);
+  expect(missing.text).toContain('Please choose your local government area.');
+  expect(await User.count()).toBe(0);
+
+  const ok = await agent.post('/signup').type('form').send({
+    _csrf: csrfFrom(page.text), fullName: 'With Place', phone: '0805 888 1234', lga: 'oluyole', area: ' Challenge ', ageDeclared: 'yes'
+  });
+  expect(ok.headers.location).toBe('/login/code');
+  const user = await User.findOne({ where: { fullName: 'With Place' } });
+  expect(user.lga).toBe('oluyole');
+  expect(user.area).toBe('Challenge');
 });

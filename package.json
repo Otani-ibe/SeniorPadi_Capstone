@@ -23,7 +23,11 @@
     "seed:neon": "cross-env DB_TARGET=neon node src/scripts/seed.js --yes-wipe-neon",
     "create-admin": "node src/scripts/createAdmin.js",
     "test": "cross-env NODE_ENV=test jest --runInBand --forceExit",
-    "translate:ui": "node src/scripts/translateUi.js"
+    "translate:ui": "node src/scripts/translateUi.js",
+    "events:add": "node src/scripts/addEvents.js",
+    "events:add:neon": "cross-env DB_TARGET=neon node src/scripts/addEvents.js",
+    "events:remove": "node src/scripts/addEvents.js --remove",
+    "seniors:add": "node src/scripts/addSeniors.js"
   },
   "author": "",
   "license": "MIT",
@@ -31,6 +35,7 @@
     "@tailwindcss/cli": "^4.3.3",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.11.0",
+    "compression": "^1.8.2",
     "connect-pg-simple": "^10.0.0",
     "csrf-sync": "^4.2.1",
     "dotenv": "^18.0.4",

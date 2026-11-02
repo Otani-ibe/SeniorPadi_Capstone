@@ -2,8 +2,20 @@
 // available in every view.
 const { User, Notification, Event, Registration } = require('../models');
 const { t } = require('../services/i18n');
+const fs = require('fs');
+const path = require('path');
+const presence = require('../services/presence');
+const social = require('../services/social');
+const { Op } = require('sequelize');
 const dates = require('../services/dates');
 const { signInExpired, bookingActive } = require('../services/sessionTimes');
+
+// the stylesheet's web address carries the time it last changed, so a new stylesheet is never
+// replaced by an old copy kept by the browser (even though files are cached for days on the live site)
+const CSS_FILE = path.join(__dirname, '../../public/css/main.css');
+function cssVersion() {
+  try { return Math.round(fs.statSync(CSS_FILE).mtimeMs); } catch (err) { return 0; }
+}
 
 async function locals(req, res, next) {
   let user = null;
@@ -24,8 +36,18 @@ async function locals(req, res, next) {
   req.lang = lang;
   req.t = (key, vars) => t(key, lang, vars);
 
+  res.locals.cssVersion = cssVersion();
   res.locals.currentUser = user;
-  res.locals.unreadCount = user ? await Notification.count({ where: { userId: user.id, readAt: null } }) : 0;
+  // the Account badge counts notifications other than messages; new messages show on Messages instead
+  // both counts are looked up at the same time
+  const [unread, unreadFrom] = user
+    ? await Promise.all([
+      Notification.count({ where: { userId: user.id, readAt: null, type: { [Op.ne]: 'message.new' } } }),
+      social.unreadSenderIds(user.id)
+    ])
+    : [0, new Set()];
+  res.locals.unreadCount = unread;
+  res.locals.unreadMessages = unreadFrom.size;
   res.locals.lang = lang;
   res.locals.t = req.t;
   res.locals.formatDate = (d) => dates.formatDate(d, lang);
@@ -53,6 +75,7 @@ async function locals(req, res, next) {
   const waDigits = waNumber.startsWith('+') ? waNumber.slice(1) : waNumber.startsWith('0') ? '234' + waNumber.slice(1) : waNumber;
   res.locals.supportTel = (process.env.SUPPORT_PHONE || '').replace(/[^\d+]/g, '');
   res.locals.whatsappUrl = waDigits ? 'https://wa.me/' + waDigits + '?text=' + encodeURIComponent(req.t('whatsapp.hello')) : '';
+  res.locals.presenceOf = presence.statusOf; // 'online', 'offline' or null (hidden)
   res.locals.categoryIcons = Event.CATEGORY_ICONS;
   res.locals.lgas = Event.AREAS;
   // "Bodija, Ibadan North": their neighbourhood and local government area, whichever they gave

@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 const { Event, Organization, Registration } = require('../models');
 const { notify } = require('../services/notify');
+const presence = require('../services/presence');
 const cloud = require('../services/cloudinary');
 const { shortDate } = require('../services/dates');
 const { requireAuth } = require('../middleware/auth');
@@ -90,6 +91,7 @@ router.post('/settings', requireAuth, async (req, res) => {
       preferredLanguage: req.body.preferredLanguage === 'yo' ? 'yo' : 'en',
       reminderDaysBefore: [1, 2, 3, 7].includes(days) ? days : 2,
       remindersEnabled: req.body.remindersEnabled === 'yes',
+      showOnlineStatus: req.body.showOnlineStatus === 'yes',
       email: email || null,
       emailVerifiedAt: emailChanged ? null : req.user.emailVerifiedAt,
       area: (req.body.area || '').trim() || null,
@@ -105,6 +107,13 @@ router.post('/settings', requireAuth, async (req, res) => {
       });
     }
     throw err;
+  }
+
+  const io = req.app.get('io');
+  if (io) {
+    const show = req.user.showOnlineStatus !== false;
+    for (const s of await io.fetchSockets()) if (s.data.userId === req.user.id) s.data.showStatus = show;
+    io.to(presence.presenceRoom(req.user.id)).emit('presence:update', { id: req.user.id, status: presence.statusOf(req.user) });
   }
 
   req.flash('success', req.t('settings.saved', { days: req.user.reminderDaysBefore }));

@@ -27,7 +27,7 @@
     <% } %>
 
     <p class="mt-5 flex items-center gap-2.5 text-[1.05rem] text-ink">
-      <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white text-indigo"><i class="icon-clock" aria-hidden="true"></i></span>
+      <i class="icon-clock text-[1.35rem] text-gray-700" aria-hidden="true"></i>
       <span><span class="font-semibold"><%= t('call.hours_label') %>:</span> <%= hours %></span>
     </p>
   </div>
@@ -41,7 +41,7 @@
   <ul class="mt-5 grid gap-3 sm:grid-cols-2">
     <% reasons.forEach(function (r) { %>
       <li class="flex items-center gap-4 py-2">
-        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo text-[1.2rem] text-white"><i class="<%= r[0] %>" aria-hidden="true"></i></span>
+        <span class="flex w-8 shrink-0 justify-center text-[1.6rem] text-ink"><i class="<%= r[0] %>" aria-hidden="true"></i></span>
         <span class="text-[1.1rem] font-medium leading-snug"><%= r[1] %></span>
       </li>
     <% }) %>

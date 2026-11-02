@@ -24,6 +24,10 @@ services:
         sync: false
       - key: SUPPORT_PHONE
         sync: false
+      - key: CLOUDFLARE_TURN_KEY_ID
+        sync: false
+      - key: CLOUDFLARE_TURN_API_TOKEN
+        sync: false # voice calls: Cloudflare Realtime > TURN Server
       - key: BREVO_API_KEY
         sync: false
       - key: BREVO_SENDER_EMAIL

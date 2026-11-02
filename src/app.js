@@ -2,6 +2,7 @@ require('dotenv').config({ quiet: true });
 
 const path = require('path');
 const express = require('express');
+const compression = require('compression');
 const sessionMiddleware = require('./config/session');
 
 const locals = require('./middleware/locals');
@@ -15,6 +16,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
 if (isProduction) app.set('trust proxy', 1);
 
+// gzip pages, CSS and JS so they load quickly on slow phone connections
+app.use(compression());
 app.use(express.static(path.join(__dirname, '../public'), { maxAge: isProduction ? '7d' : 0 }));
 app.use(express.urlencoded({ extended: false }));
 
@@ -32,6 +35,7 @@ app.use('/', require('./routes/events'));
 app.use('/', require('./routes/bookForParent'));
 app.use('/', require('./routes/account'));
 app.use('/', require('./routes/social'));
+app.use('/', require('./routes/calls'));
 app.use('/', require('./routes/onboarding'));
 app.use('/', require('./routes/host')); // before /admin: a host organization may scan a QR code
 app.use('/admin', require('./routes/admin'));

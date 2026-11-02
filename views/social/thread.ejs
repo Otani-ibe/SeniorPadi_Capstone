@@ -1,84 +1,106 @@
 <%- include('../partials/header') %>
 
-<p class="mb-4"><a href="/messages"><i class="icon-arrow-left mr-2" aria-hidden="true"></i><%= t('messages.back') %></a></p>
+<%# a chat app. Wide screens: the people on the left, this chat on the right. Phones: just this chat, full screen.
+    The top (who you are talking to), the box to write in, and Report / Block stay in place; only the messages scroll. %>
+<% const canSwap = !incomingRequest && !(exchange && (exchange.status === 'accepted' || (exchange.status === 'pending' && exchange.requesterId === currentUser.id))); %>
+<div class="chat-shell mx-auto flex w-full max-w-6xl overflow-hidden bg-white md:my-4 md:rounded-[1.5rem] md:shadow-md md:shadow-slate-900/5 md:ring-1 md:ring-slate-200">
+  <%- include('../partials/chatList', { activeId: other.id }) %>
 
-<%# who you are talking to: their picture (or illustration), name and where they live %>
-<div class="mb-4 flex items-center gap-4 rounded-card bg-surface p-4">
-  <%- include('../partials/avatar', { person: other, cls: 'h-16 w-16 shrink-0 ring-4 ring-white md:h-20 md:w-20' }) %>
-  <div class="min-w-0">
-    <h1 class="text-[1.75rem] leading-tight md:text-[2rem]"><%= other.firstName() %></h1>
-    <% if (placeOf(other)) { %><p class="text-gray-700"><i class="icon-map-pin mr-1 text-indigo" aria-hidden="true"></i><%= placeOf(other) %></p><% } %>
-  </div>
-</div>
+  <section class="flex min-h-0 min-w-0 flex-1 flex-col" aria-label="<%= other.firstName() %>">
 
-<%# swap phone numbers %>
-<div class="mb-6">
-  <% if (exchange && exchange.status === 'accepted') { %>
-    <p class="panel flex flex-wrap items-center gap-2"><i class="icon-phone text-indigo" aria-hidden="true"></i><%= t('exchange.their_number', { name: other.firstName() }) %>
-      <a href="tel:<%= other.localPhone() %>" class="font-bold"><%= other.localPhone() %></a></p>
-  <% } else if (exchange && exchange.status === 'pending' && exchange.requesterId === currentUser.id) { %>
-    <p class="panel flex items-center gap-3"><i class="icon-hourglass text-indigo" aria-hidden="true"></i><%= t('exchange.waiting', { name: other.firstName() }) %></p>
-  <% } else if (!incomingRequest) { %>
-    <form action="/messages/<%= other.id %>/exchange" method="post">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button class="btn-plain"><i class="icon-phone" aria-hidden="true"></i><%= t('exchange.button') %></button>
-    </form>
-  <% } %>
-</div>
-
-<% if (olderLink) { %><p class="mb-4 text-center"><a href="<%= olderLink %>" class="inline-flex min-h-12 items-center gap-2 rounded-md bg-surface px-5 font-semibold no-underline"><i class="icon-arrow-up" aria-hidden="true"></i><%= t('messages.older') %></a></p><% } %>
-
-<% if (messages.length === 0) { %>
-  <p id="thread-empty" class="empty-state mb-6 text-[1.1rem]"><%= t("messages.start", { name: other.firstName() }) %></p>
-<% } %>
-
-<ol id="thread" class="mb-6 space-y-2.5" aria-label="<%= t('messages.title') %>" aria-live="polite"
-    data-me="<%= currentUser.id %>" data-other="<%= other.id %>" data-other-name="<%= other.firstName() %>"
-    data-you="<%= t('messages.you') %>" data-just-now="<%= t('messages.just_now') %>"
-    data-sent="<%= t('messages.sent') %>" data-read="<%= t('messages.read') %>">
-  <% messages.forEach(function (m) { const mine = m.senderId === currentUser.id; %>
-    <li id="msg-<%= m.id %>" class="flex <%= mine ? 'justify-end' : 'justify-start' %>">
-      <div class="bubble <%= mine ? 'bubble-mine' : 'bubble-theirs' %>">
-        <p class="sr-only"><%= mine ? t('messages.you') : other.firstName() + ':' %></p>
-        <p class="whitespace-pre-line"><%= m.body %></p>
-        <p class="bubble-time"><%= formatDate(m.createdAt) %>, <%= formatTime(m.createdAt) %></p>
-        <%# under my newest message only: Sent, or Read once they opened it (public/js/chat.js updates it live) %>
-        <% if (m.id === lastMineId) { %>
-          <p class="bubble-time font-semibold" data-read-status><%- include('../partials/readStatus', { read: Boolean(m.readAt) }) %></p>
-        <% } %>
+    <%# ===== top: back, who, call ===== %>
+    <header class="flex shrink-0 items-center gap-3 border-b border-slate-100 bg-white px-3 py-2.5 md:px-5">
+      <a href="/messages" class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[1.4rem] text-ink no-underline hover:bg-slate-100 md:hidden" aria-label="<%= t('messages.back') %>"><i class="icon-arrow-left" aria-hidden="true"></i></a>
+      <a href="/seniors/<%= other.id %>" class="relative shrink-0 no-underline" aria-label="<%= t('profile.view', { name: other.firstName() }) %>">
+        <%- include('../partials/avatar', { person: other, cls: 'h-12 w-12' }) %>
+        <%- include('../partials/presence', { person: other, corner: true }) %>
+      </a>
+      <div class="min-w-0 flex-1">
+        <h1 class="truncate text-[1.3rem] font-bold leading-tight md:text-[1.4rem]"><a href="/seniors/<%= other.id %>" class="text-slate-900 no-underline hover:underline"><%= other.firstName() %></a></h1>
+        <p class="flex flex-wrap items-center gap-x-3 text-[0.95rem] text-slate-600">
+          <%- include('../partials/presence', { person: other }) %>
+          <% if (placeOf(other)) { %><span class="truncate"><i class="icon-map-pin mr-1 text-indigo" aria-hidden="true"></i><%= placeOf(other) %></span><% } %>
+        </p>
       </div>
-    </li>
-  <% }) %>
-</ol>
+      <%# voice call. Always visible; greyed out while they are offline (public/js/call.js keeps it up to date) %>
+      <button type="button" data-call-to="<%= other.id %>" data-call-name="<%= other.firstName() %>" data-call-avatar="<%= other.avatarUrl() %>"
+              data-online="<%= presenceOf(other) === 'online' ? 'true' : 'false' %>" aria-label="<%= t('voice.call_name', { name: other.firstName() }) %>"
+              class="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-indigo bg-indigo px-5 text-[1.05rem] font-bold text-white transition-colors hover:bg-indigo-dark data-[online=false]:border-slate-300 data-[online=false]:bg-white data-[online=false]:text-slate-600 data-[online=false]:hover:bg-slate-100">
+        <i class="icon-phone text-[1.2rem]" aria-hidden="true"></i><%= t('voice.call') %>
+      </button>
+    </header>
 
-<form action="/messages/<%= other.id %>" method="post" id="latest" data-chat-form>
-  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <%# the send box: write, then one big Send button %>
-  <div class="rounded-card bg-surface p-3">
-    <label for="body" class="mb-2 block px-2 pt-1 font-semibold"><%= t('messages.write', { name: other.firstName() }) %></label>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
-      <%# starts one line tall, the same as Send, and grows as they type (up to about 6 lines, then it scrolls) %>
-      <textarea id="body" name="body" rows="1" maxlength="1000" required data-grow
-                class="block max-h-60 min-h-14 w-full flex-1 resize-none overflow-y-auto rounded-card border-2 border-gray-300 bg-white px-4 py-3 text-[1.05rem] field-sizing-content focus:border-indigo focus:outline-none focus:ring-4 focus:ring-indigo/15"></textarea>
-      <button class="btn shrink-0"><i class="icon-send" aria-hidden="true"></i><%= t('messages.send') %></button>
+    <%# phone numbers: a visible button until they are swapped; then the number shows here and the button is gone %>
+    <% if (exchange && exchange.status === 'accepted') { %>
+      <p class="mx-3 mt-2 flex shrink-0 flex-wrap items-center gap-2 rounded-[1rem] bg-mist px-4 py-2.5 md:mx-5"><i class="icon-phone text-indigo" aria-hidden="true"></i><%= t('exchange.their_number', { name: other.firstName() }) %>
+        <a href="tel:<%= other.localPhone() %>" class="font-bold"><%= other.localPhone() %></a></p>
+    <% } else if (exchange && exchange.status === 'pending' && exchange.requesterId === currentUser.id) { %>
+      <p class="mx-3 mt-2 flex shrink-0 items-center gap-3 rounded-[1rem] bg-mist px-4 py-2.5 md:mx-5"><i class="icon-hourglass text-indigo" aria-hidden="true"></i><%= t('exchange.waiting', { name: other.firstName() }) %></p>
+    <% } else if (canSwap) { %>
+      <form action="/messages/<%= other.id %>/exchange" method="post" class="mx-3 mt-2 shrink-0 md:mx-5">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="flex min-h-12 w-full items-center justify-center gap-2 rounded-[1rem] bg-mist px-4 font-bold text-indigo transition hover:bg-indigo hover:text-white"><i class="icon-arrow-left-right" aria-hidden="true"></i><%= t('exchange.button') %></button>
+      </form>
+    <% } %>
+
+    <%# ===== the messages: the only part that scrolls ===== %>
+    <div id="thread-scroll" class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-50 px-3 py-4 md:px-6">
+      <% if (olderLink) { %><p class="mb-4 text-center"><a href="<%= olderLink %>" class="inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 font-semibold text-slate-700 no-underline shadow-sm ring-1 ring-slate-200"><i class="icon-arrow-up" aria-hidden="true"></i><%= t('messages.older') %></a></p><% } %>
+
+      <% if (messages.length === 0) { %>
+        <p id="thread-empty" class="mx-auto mb-6 max-w-sm rounded-[1.25rem] bg-white p-6 text-center text-[1.1rem] text-slate-700 shadow-sm ring-1 ring-slate-200"><%= t("messages.start", { name: other.firstName() }) %></p>
+      <% } %>
+
+      <ol id="thread" class="space-y-1.5" aria-label="<%= t('messages.title') %>" aria-live="polite"
+          data-me="<%= currentUser.id %>" data-other="<%= other.id %>" data-other-name="<%= other.firstName() %>"
+          data-you="<%= t('messages.you') %>" data-just-now="<%= t('messages.just_now') %>"
+          data-sent="<%= t('messages.sent') %>" data-read="<%= t('messages.read') %>">
+        <% let lastDay = ''; %>
+        <% messages.forEach(function (m) { const mine = m.senderId === currentUser.id; const day = new Date(m.createdAt).toDateString(); %>
+          <% if (day !== lastDay) { lastDay = day; %>
+            <li class="pb-1 pt-4 text-center text-[0.9rem] font-semibold text-slate-500"><%= formatDate(m.createdAt) %></li>
+          <% } %>
+          <li id="msg-<%= m.id %>" class="flex <%= mine ? 'justify-end' : 'justify-start' %>">
+            <div class="bubble <%= mine ? 'bubble-mine' : 'bubble-theirs' %>">
+              <p class="sr-only"><%= mine ? t('messages.you') : other.firstName() + ':' %></p>
+              <p class="whitespace-pre-line"><%= m.body %></p>
+              <%# the time, and under my newest message Sent or Read once they opened it (public/js/chat.js updates it live) %>
+              <p class="bubble-time"><span><%= formatTime(m.createdAt) %></span><% if (m.id === lastMineId) { %><span class="font-semibold" data-read-status><%- include('../partials/readStatus', { read: Boolean(m.readAt) }) %></span><% } %></p>
+            </div>
+          </li>
+        <% }) %>
+      </ol>
     </div>
-  </div>
-  <script>
-    // browsers that can't size the box to its text themselves
-    (function () {
-      var box = document.querySelector('[data-grow]');
-      if (!box || CSS.supports('field-sizing', 'content')) return;
-      function grow() { box.style.height = 'auto'; box.style.height = box.scrollHeight + 4 + 'px'; }
-      box.addEventListener('input', grow);
-      grow();
-    })();
-  </script>
-</form>
 
-<p class="mt-6 flex flex-wrap gap-3">
-  <a href="/report/<%= other.id %>" class="inline-flex min-h-12 items-center gap-2 rounded-md bg-surface px-4 font-semibold text-ink no-underline hover:bg-full-bg"><i class="icon-flag text-full-tag" aria-hidden="true"></i><%= t('find.report') %></a>
-  <a href="/block/<%= other.id %>" class="inline-flex min-h-12 items-center gap-2 rounded-md bg-surface px-4 font-semibold text-ink no-underline hover:bg-full-bg"><i class="icon-ban text-full-tag" aria-hidden="true"></i><%= t('block.link', { name: other.firstName() }) %></a>
-</p>
+    <%# ===== the box to write in: stays at the bottom ===== %>
+    <form action="/messages/<%= other.id %>" method="post" id="latest" data-chat-form class="shrink-0 bg-white px-3 pt-3 md:px-5">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="flex items-end gap-2 rounded-[1.5rem] bg-slate-100 py-1.5 pl-5 pr-1.5 transition focus-within:bg-white focus-within:shadow-sm focus-within:ring-4 focus-within:ring-indigo/25">
+        <label for="body" class="sr-only"><%= t('messages.write', { name: other.firstName() }) %></label>
+        <%# starts one line tall and grows as they type (up to about 6 lines, then it scrolls) %>
+        <textarea id="body" name="body" rows="1" maxlength="1000" required data-grow placeholder="<%= t('messages.write', { name: other.firstName() }) %>"
+                  class="block max-h-40 min-h-11 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent py-2.5 text-[1.05rem] text-ink outline-none placeholder:text-slate-500 field-sizing-content focus:outline-none focus:ring-0"></textarea>
+        <button class="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo px-4 font-bold text-white transition-colors hover:bg-indigo-dark sm:px-6"><i class="icon-send text-[1.1rem]" aria-hidden="true"></i><span class="max-sm:sr-only"><%= t('messages.send') %></span></button>
+      </div>
+    </form>
+    <script>
+      // browsers that can't size the box to its text themselves
+      (function () {
+        var box = document.querySelector('[data-grow]');
+        if (!box || CSS.supports('field-sizing', 'content')) return;
+        function grow() { box.style.height = 'auto'; box.style.height = box.scrollHeight + 4 + 'px'; }
+        box.addEventListener('input', grow);
+        grow();
+      })();
+    </script>
+
+    <%# Report and Block stay in view under the box to write in %>
+    <p class="flex shrink-0 items-center justify-center gap-6 bg-white px-3 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1">
+      <a href="/report/<%= other.id %>" class="inline-flex min-h-12 items-center gap-2 font-semibold text-slate-600 no-underline hover:text-full-tag"><i class="icon-flag" aria-hidden="true"></i><%= t('find.report') %></a>
+      <a href="/block/<%= other.id %>" class="inline-flex min-h-12 items-center gap-2 font-semibold text-slate-600 no-underline hover:text-full-tag"><i class="icon-ban" aria-hidden="true"></i><%= t('block.link', { name: other.firstName() }) %></a>
+    </p>
+  </section>
+</div>
 
 <%# optional: live messages. If these fail to load, the form above still works. %>
 <script src="/socket.io/socket.io.js" defer></script>

@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+
+<div class="mx-auto max-w-md">
+  <a href="/messages/<%= other.id %>" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('profile.back') %></a>
+
+  <article class="overflow-hidden rounded-[1.75rem] bg-white p-3 shadow-lg shadow-slate-900/10 ring-1 ring-slate-200">
+    <%# the whole picture, nothing written over it %>
+    <div class="relative overflow-hidden rounded-[1.25rem] bg-slate-100">
+      <% if (other.profilePictureUrl) { %>
+        <img src="<%= other.profilePictureUrl %>" alt="<%= other.firstName() %>" class="block h-auto max-h-[32rem] w-full object-cover object-top">
+      <% } else { %>
+        <span class="flex aspect-[5/4] items-center justify-center bg-mist"><img src="<%= other.avatarUrl() %>" alt="" class="h-3/4 w-3/4 object-contain"></span>
+      <% } %>
+      <span class="absolute left-3 top-3 tag-leaf shadow"><i class="icon-circle-check" aria-hidden="true"></i><%= t('find.verified') %></span>
+      <span class="presence-chip absolute right-3 top-3"><%- include('../partials/presence', { person: other }) %></span>
+    </div>
+
+    <div class="px-2 pb-2 pt-4">
+      <h1 class="text-[1.9rem] font-extrabold leading-tight tracking-tight text-slate-900"><%= other.firstName() %></h1>
+      <% if (placeOf(other)) { %><p class="mt-1 flex items-center gap-2 text-slate-600"><i class="icon-map-pin text-indigo" aria-hidden="true"></i><%= placeOf(other) %></p><% } %>
+      <h2 class="mt-4 text-[1.1rem] text-slate-900"><%= t('profile.about') %></h2>
+      <p class="mt-1 whitespace-pre-line leading-relaxed text-slate-700"><%= other.tBio || other.bio || t('find.no_bio') %></p>
+    </div>
+  </article>
+
+  <div class="mt-5 grid grid-cols-2 gap-3">
+    <a href="/messages/<%= other.id %>" class="btn"><i class="icon-message-circle-more" aria-hidden="true"></i><%= t('find.message_short') %></a>
+    <a href="/report/<%= other.id %>" class="btn-plain"><i class="icon-flag" aria-hidden="true"></i><%= t('find.report') %></a>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

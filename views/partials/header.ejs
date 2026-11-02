@@ -4,6 +4,7 @@
   const otherLang = lang === 'en' ? 'yo' : 'en';
   const isWide = typeof wide !== 'undefined' && wide;
   const isFull = typeof fullWidth !== 'undefined' && fullWidth; // landing page: sections go edge to edge
+  const isChat = typeof chatPage !== 'undefined' && chatPage; // messages: on phones the chat fills the screen
 %>
 <!DOCTYPE html>
 <html lang="<%= lang %>">
@@ -31,11 +32,12 @@
     // the logo plays its little hello once per visit, not on every page
     try { if (!sessionStorage.getItem('spLogo')) { document.documentElement.classList.add('logo-intro'); sessionStorage.setItem('spLogo', '1'); } } catch (e) {}
   </script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/font/lucide.css">
-  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/main.css?v=<%= cssVersion %>">
   <script src="/js/phone-input.js" defer></script>
   <script src="/js/show-password.js" defer></script>
   <script src="/js/reveal.js" defer></script>
@@ -49,10 +51,10 @@
     <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-10 md:py-10">
       <%- include('flash') %>
 <% } else { %>
-<body class="flex min-h-screen flex-col pb-20 xl:pb-0">
+<body class="flex min-h-screen flex-col pb-20 xl:pb-0 <%= isChat ? 'max-md:!pb-0' : '' %>">
   <a href="#main" class="sr-only focus:not-sr-only focus:p-3"><%= t('nav.skip') %></a>
 
-  <header class="sticky top-0 z-30 border-b border-gray-100 bg-white">
+  <header class="sticky top-0 z-30 border-b border-gray-100 bg-white <%= isChat ? 'max-md:hidden' : '' %>">
     <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-1.5">
       <%# the name always shows beside the round logo %>
       <a href="/" class="logo flex min-h-12 min-w-0 shrink-0 items-center gap-2 text-[1.2rem] font-bold tracking-tight text-ink no-underline sm:gap-2.5 sm:text-[1.35rem]">
@@ -69,7 +71,7 @@
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <input type="hidden" name="back" value="<%= currentPath %>">
           <button name="lang" value="<%= otherLang %>" lang="<%= otherLang %>"
-                  class="inline-flex min-h-12 items-center gap-2 rounded-md bg-surface px-3 text-[0.95rem] font-medium text-ink hover:bg-mist sm:px-4">
+                  class="inline-flex min-h-11 items-center gap-2 rounded-md bg-surface px-3 text-[0.95rem] font-medium text-ink hover:bg-mist">
             <span class="max-[399px]:hidden"><i class="icon-languages text-indigo" aria-hidden="true"></i></span>
             <%= otherLang === 'yo' ? 'Yorùbá' : 'English' %>
           </button>
@@ -83,14 +85,14 @@
             <% if (unreadCount > 0) { %><span class="absolute -right-1 -top-1 rounded-full bg-indigo px-1.5 text-[0.8rem] font-semibold text-white"><%= unreadCount %></span><% } %>
           </a>
         <% } else { %>
-          <a href="/login" class="btn hidden min-h-12 w-auto px-5 text-[0.95rem] sm:inline-flex"><%= t('home.login') %></a>
+          <a href="/login" class="btn hidden min-h-11 w-auto px-4 text-[0.95rem] sm:inline-flex"><%= t('home.login') %></a>
         <% } %>
       </div>
     </div>
   </header>
 
   <%# on phones the same menu sits at the bottom of the screen %>
-  <div class="xl:hidden"><%- include('seniorNav', { placement: 'bottom' }) %></div>
+  <div class="xl:hidden <%= isChat ? 'max-md:hidden' : '' %>"><%- include('seniorNav', { placement: 'bottom' }) %></div>
 
   <main id="main" class="<%= isFull ? 'w-full' : (isWide ? 'page-wide' : 'page') %> flex-1">
     <% if (isFull) { %><div class="mx-auto max-w-6xl px-4 pt-4 [&:not(:has(*))]:hidden"><%- include('flash') %></div><% } else { %><%- include('flash') %><% } %>

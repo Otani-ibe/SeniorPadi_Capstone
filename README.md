@@ -89,6 +89,7 @@ In `.env`, set `DB_TARGET=local` to use PostgreSQL on your computer, or `DB_TARG
 | `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` | SMS and email |
 | `NOTIFY_DRY_RUN` | Set to `true` to print messages in the terminal instead of sending them |
 | `SUPPORT_PHONE` | The number seniors can call for help |
+| `CLOUDFLARE_TURN_KEY_ID`, `CLOUDFLARE_TURN_API_TOKEN` | Voice calls between seniors. Cloudflare dashboard, Realtime, TURN Server. Calls still work for testing without them, but many phone networks need this relay |
 
 Never commit `.env`. It's already in `.gitignore`.
 

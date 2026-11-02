@@ -37,12 +37,17 @@ router.get('/find-seniors', async (req, res) => {
   if (req.user.role === 'admin') return res.redirect('/admin');
 
   let next = null;
+  let after = [];
+  let skippedCount = 0;
   if (req.user.verificationStatus === 'approved') {
-    next = await social.nextSeniorFor(req.user);
+    // everything is looked up at the same time
+    const [upcoming, skipped] = await Promise.all([social.upcomingSeniorsFor(req.user, 3), social.skippedSeniorsFor(req.user)]);
+    next = upcoming[0] || null;
+    after = upcoming.slice(1);
+    skippedCount = skipped.length;
     if (next && next.bio) next.tBio = (await translateTexts([next.bio], req.lang))[0];
   }
-  const skippedCount = req.user.verificationStatus === 'approved' ? (await social.skippedSeniorsFor(req.user)).length : 0;
-  res.render('social/find', { title: req.t('find.title'), wide: true, next, skippedCount });
+  res.render('social/find', { title: req.t('find.title'), wide: true, next, after, skippedCount });
 });
 
 router.post('/find-seniors/id', requireAuth, uploadLimiter, idUpload('idDocument'), async (req, res) => {
@@ -112,6 +117,17 @@ async function loadOtherSenior(req, res) {
   return other;
 }
 
+// someone's profile: their picture and the whole introduction. Only for people who may message each other.
+router.get('/seniors/:seniorId', requireVerified, async (req, res) => {
+  const other = await loadOtherSenior(req, res);
+  if (!other) return;
+  if (!(await social.canMessage(req.user, other))) {
+    return res.status(403).render('error', { title: req.t('messages.title'), message: req.t('messages.unavailable') });
+  }
+  if (other.bio) other.tBio = (await translateTexts([other.bio], req.lang))[0];
+  res.render('social/profile', { title: other.firstName(), other });
+});
+
 router.get('/report/:seniorId', requireVerified, async (req, res) => {
   const other = await loadOtherSenior(req, res);
   if (!other) return;
@@ -172,9 +188,8 @@ router.post('/block/:seniorId', requireVerified, async (req, res) => {
 
 // ---------- messages ----------
 
-// list of conversations, newest first
-router.get('/messages', requireVerified, requireContactVerified, async (req, res) => {
-  const me = req.user.id;
+// every conversation, newest first, with who has unread messages (shown in the list beside a chat)
+async function loadConversations(me) {
   const recent = await Message.findAll({
     where: { [Op.or]: [{ senderId: me }, { recipientId: me }] },
     order: [['createdAt', 'DESC']],
@@ -196,13 +211,15 @@ router.get('/messages', requireVerified, requireContactVerified, async (req, res
   }
   conversations.sort((a, b) => b.last.createdAt - a.last.createdAt);
 
-  const unreadFrom = await Notification.findAll({
-    where: { userId: me, type: 'message.new', readAt: null },
-    attributes: ['payload']
-  });
-  const unreadIds = new Set(unreadFrom.map((n) => n.payload.senderId));
+  return { conversations, unreadIds: await social.unreadSenderIds(me) };
+}
 
-  res.render('social/inbox', { title: req.t('messages.title'), conversations, unreadIds });
+// the chat screens fill the whole screen, so they use the full width and have no footer on phones
+const CHAT_PAGE = { fullWidth: true, chatPage: true };
+
+router.get('/messages', requireVerified, requireContactVerified, async (req, res) => {
+  const { conversations, unreadIds } = await loadConversations(req.user.id);
+  res.render('social/inbox', { title: req.t('messages.title'), conversations, unreadIds, fullWidth: true, noPhoneFooter: true }); // keeps the site menu: it is the way to other pages
 });
 
 router.get('/messages/:seniorId', requireVerified, requireContactVerified, async (req, res) => {
@@ -232,12 +249,14 @@ router.get('/messages/:seniorId', requireVerified, requireContactVerified, async
     { where: { userId: req.user.id, type: 'message.new', readAt: null, payload: { senderId: other.id } } }
   );
   await markRead(req.app.get('io'), req.user.id, other.id);
+  res.locals.unreadMessages = (await social.unreadSenderIds(req.user.id)).size; // the badge was counted before this was read
 
   // "Sent" or "Read" goes under the newest message I sent
   // (not on the "older messages" pages)
   const lastMine = req.query.before ? null : messages.filter((m) => m.senderId === req.user.id).pop();
 
   const ex = await exchange.between(req.user.id, other.id);
+  const { conversations, unreadIds } = await loadConversations(req.user.id);
   res.render('social/thread', {
     title: other.firstName(),
     other,
@@ -245,7 +264,10 @@ router.get('/messages/:seniorId', requireVerified, requireContactVerified, async
     incomingRequest: Boolean(ex && ex.status === 'pending' && ex.recipientId === req.user.id),
     messages,
     lastMineId: lastMine ? lastMine.id : null,
-    olderLink: hasOlder ? '/messages/' + other.id + '?before=' + messages[0].id : null
+    olderLink: hasOlder ? '/messages/' + other.id + '?before=' + messages[0].id : null,
+    conversations,
+    unreadIds,
+    ...CHAT_PAGE
   });
 });
 
@@ -287,11 +309,11 @@ router.post('/messages/:seniorId/exchange/:answer', requireVerified, requireCont
 // ---------- notifications ----------
 router.get('/notifications', requireAuth, async (req, res) => {
   const notifications = await Notification.findAll({
-    where: { userId: req.user.id },
+    where: { userId: req.user.id, type: { [Op.ne]: 'message.new' } },
     order: [['createdAt', 'DESC']],
     limit: 50
   });
-  // opening the page counts as reading everything except unread messages
+  // new messages are shown under Messages, not here; opening the page counts as reading the rest
   await Notification.update(
     { readAt: new Date() },
     { where: { userId: req.user.id, readAt: null, type: { [Op.ne]: 'message.new' } } }

@@ -69,7 +69,7 @@ test('a visitor who picks an event signs up with just a name and number, types t
   const page = await agent.get('/signup?register=' + event.id);
   const res = await agent.post('/signup').type('form').send({
     _csrf: csrfFrom(page.text), registerEventId: String(event.id),
-    fullName: 'Mama Tolu', phone: '0805 123 4567', ageDeclared: 'yes'
+    fullName: 'Mama Tolu', phone: '0805 123 4567', lga: 'ibadan-north', ageDeclared: 'yes'
   });
   expect(res.headers.location).toBe('/login/code');
   expect(await VerificationCode.count()).toBe(1); // the code was texted
@@ -114,7 +114,7 @@ test('a visitor who started on the home page comes back to it, with the ticket, 
   const page = await agent.get('/signup?register=' + event.id + '&from=home');
   await agent.post('/signup').type('form').send({
     _csrf: csrfFrom(page.text), registerEventId: String(event.id), from: 'home',
-    fullName: 'Mama Tolu', phone: '0805 123 4567', ageDeclared: 'yes'
+    fullName: 'Mama Tolu', phone: '0805 123 4567', lga: 'ibadan-north', ageDeclared: 'yes'
   });
   const user = await User.findOne({ where: { fullName: 'Mama Tolu' } });
   const codePage = await agent.get('/login/code');

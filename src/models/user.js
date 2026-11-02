@@ -25,6 +25,7 @@ module.exports = (sequelize) => {
     idDocumentFormat: DataTypes.STRING,
     reminderDaysBefore: { type: DataTypes.INTEGER, defaultValue: 2 },
     remindersEnabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+    showOnlineStatus: { type: DataTypes.BOOLEAN, defaultValue: true },
     phoneVerifiedAt: DataTypes.DATE,
     emailVerifiedAt: DataTypes.DATE,
     onboardingSeenAt: DataTypes.DATE,

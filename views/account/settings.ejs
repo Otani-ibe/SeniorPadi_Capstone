@@ -7,18 +7,21 @@
 
   <%# ===== left: picture, then other things you can do ===== %>
   <div class="space-y-4 md:sticky md:top-28">
-    <section class="sheet text-center">
-      <h2 class="text-[1.3rem]"><%= t('settings.picture') %></h2>
-      <%- include('../partials/avatar', { person: currentUser, cls: 'mx-auto mt-4 h-32 w-32 ring-4 ring-mist', alt: t('settings.picture_alt') }) %>
+    <section class="sheet overflow-hidden !p-0 text-center">
+      <div class="h-24 bg-indigo" aria-hidden="true"></div>
+      <div class="px-5 pb-6 md:px-7">
+      <h2 class="sr-only"><%= t('settings.picture') %></h2>
+      <%- include('../partials/avatar', { person: currentUser, cls: '-mt-14 mx-auto h-28 w-28 shadow-lg ring-4 ring-white', alt: t('settings.picture_alt') }) %>
       <%# token goes in the URL because this is a file upload form %>
       <form action="/settings/profile-picture?_csrf=<%= encodeURIComponent(csrfToken) %>" method="post" enctype="multipart/form-data" data-upload class="mt-4 text-left">
         <div class="field">
           <label for="picture"><%= t('settings.picture_choose') %></label>
-          <input type="file" id="picture" name="picture" accept="image/jpeg,image/png,image/webp" class="block w-full rounded-2xl border-2 border-dashed border-indigo/30 bg-mist p-3 text-[0.95rem]">
+          <input type="file" id="picture" name="picture" accept="image/jpeg,image/png,image/webp" class="block w-full rounded-xl border-2 border-dashed border-indigo/30 bg-mist p-3 text-[0.95rem]">
           <span class="hint"><%= t('settings.picture_hint') %></span>
         </div>
         <button class="btn-plain w-full sm:w-full" data-uploading-text="<%= t('upload.uploading') %>"><i class="icon-upload" aria-hidden="true"></i><%= t('settings.picture_upload') %></button>
       </form>
+      </div>
     </section>
   </div>
 
@@ -48,7 +51,7 @@
         <legend class="sr-only"><%= t('settings.language') %></legend>
         <div class="grid grid-cols-2 gap-3">
           <% [['en', 'English'], ['yo', 'Yorùbá']].forEach(function (opt) { %>
-            <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border-2 border-gray-300 bg-white px-4 font-semibold has-[:checked]:border-indigo has-[:checked]:bg-mist has-[:checked]:text-indigo">
+            <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-2 border-slate-200 bg-white px-4 font-semibold transition has-[:checked]:border-indigo has-[:checked]:bg-mist has-[:checked]:text-indigo">
               <input type="radio" name="preferredLanguage" value="<%= opt[0] %>" class="h-6 w-6 shrink-0 accent-indigo" <%= currentUser.preferredLanguage === opt[0] ? 'checked' : '' %>>
               <%= opt[1] %>
             </label>
@@ -60,7 +63,7 @@
 
     <section class="sheet">
       <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="icon-bell" aria-hidden="true"></i></span><%= t('settings.reminders_title') %></h2>
-      <label class="field flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl bg-surface px-4 font-semibold">
+      <label class="field flex min-h-14 cursor-pointer items-center gap-3 rounded-xl bg-slate-50 px-4 font-semibold ring-1 ring-slate-100">
         <input type="checkbox" name="remindersEnabled" value="yes" class="h-6 w-6 shrink-0 accent-indigo" <%= currentUser.remindersEnabled ? 'checked' : '' %>>
         <span><%= t('settings.remind_me') %></span>
       </label>
@@ -90,11 +93,22 @@
       </div>
     </section>
 
-    <div>
+    <% if (currentUser.role === 'senior') { %>
+    <section class="sheet">
+      <h2 class="mb-4 flex items-center gap-3 text-[1.3rem]"><span class="icon-dot-soft h-10 w-10 text-[1rem]"><i class="icon-circle-dot" aria-hidden="true"></i></span><%= t('presence.settings_title') %></h2>
+      <label class="field flex min-h-14 cursor-pointer items-center gap-3 rounded-xl bg-slate-50 px-4 font-semibold ring-1 ring-slate-100">
+        <input type="checkbox" name="showOnlineStatus" value="yes" class="h-6 w-6 shrink-0 accent-indigo" <%= currentUser.showOnlineStatus !== false ? 'checked' : '' %>>
+        <span><%= t('presence.show_me') %></span>
+      </label>
+      <span class="hint"><%= t('presence.show_hint') %></span>
+    </section>
+    <% } %>
+
+    <div class="sticky bottom-[5.5rem] z-10 rounded-2xl bg-white/85 p-2 shadow-lg shadow-slate-900/10 ring-1 ring-slate-100 backdrop-blur xl:bottom-4">
       <button class="btn w-full sm:w-full"><i class="icon-save" aria-hidden="true"></i><%= t('settings.save') %></button>
     </div>
 
-    <section class="rounded-card bg-full-bg/60 p-5">
+    <section class="rounded-card bg-full-bg/60 p-5 ring-1 ring-full-tag/10">
       <h2 class="text-[1.2rem]"><%= t('delete.title') %></h2>
       <p class="mt-1 text-gray-700"><%= t('delete.settings_intro') %></p>
       <a href="/account/delete" class="mt-2 inline-flex min-h-12 items-center gap-2 font-semibold text-full-tag"><i class="icon-user-x" aria-hidden="true"></i><%= t('delete.title') %></a>

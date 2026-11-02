@@ -1,0 +1,50 @@
+<%# Voice calls: the "someone is calling" pop-up and the call screen. Both start hidden;
+    public/js/call.js shows them. The words come from here so they follow the language.
+    Included on every page for verified seniors (see footer.ejs). %>
+<div data-call-ui data-text-calling="<%= t('voice.calling', { name: '__NAME__' }) %>"
+     data-text-incoming="<%= t('voice.incoming', { name: '__NAME__' }) %>"
+     data-text-connected="<%= t('voice.connected') %>"
+     data-text-connecting="<%= t('voice.connecting') %>"
+     data-text-mute="<%= t('voice.mute') %>" data-text-unmute="<%= t('voice.unmute') %>"
+     data-text-declined="<%= t('voice.declined', { name: '__NAME__' }) %>"
+     data-text-missed="<%= t('voice.missed', { name: '__NAME__' }) %>"
+     data-text-busy="<%= t('voice.busy', { name: '__NAME__' }) %>"
+     data-text-offline="<%= t('voice.offline', { name: '__NAME__' }) %>"
+     data-text-ended="<%= t('voice.ended') %>"
+     data-text-dropped="<%= t('voice.dropped') %>"
+     data-text-no-mic="<%= t('voice.no_mic') %>"
+     data-text-failed="<%= t('voice.failed') %>"
+     data-text-unavailable="<%= t('voice.unavailable') %>"
+     data-text-unsupported="<%= t('voice.unsupported') %>"
+     data-text-missed-toast="<%= t('voice.missed_toast', { name: '__NAME__' }) %>" data-text-open="<%= t('voice.open_chat') %>">
+
+  <%# someone is calling you %>
+  <div data-call-incoming hidden>
+    <div class="fixed inset-0 z-[60] bg-ink/70" aria-hidden="true"></div>
+    <div role="alertdialog" aria-modal="true" aria-labelledby="call-incoming-title" tabindex="-1" style="outline: none"
+         class="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-card bg-white p-6 text-center shadow-2xl">
+      <img data-call-incoming-pic src="/images/senior-avatar.svg" alt="" class="mx-auto h-28 w-28 rounded-full bg-mist object-cover ring-4 ring-mist">
+      <h2 id="call-incoming-title" class="mt-4 text-[1.6rem] leading-tight" data-call-incoming-text></h2>
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <button type="button" data-call-decline class="inline-flex min-h-16 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-[1.15rem] font-bold text-white hover:bg-red-700"><i class="icon-phone-off" aria-hidden="true"></i><%= t('voice.decline') %></button>
+        <button type="button" data-call-answer class="inline-flex min-h-16 items-center justify-center gap-2 rounded-md bg-indigo px-4 text-[1.15rem] font-bold text-white hover:bg-indigo-dark"><i class="icon-phone" aria-hidden="true"></i><%= t('voice.answer') %></button>
+      </div>
+    </div>
+  </div>
+
+  <%# the call itself: white, their picture, two big buttons. It doesn't scroll. %>
+  <div data-call-screen hidden role="dialog" aria-modal="true" aria-labelledby="call-screen-title"
+       class="fixed inset-0 z-[70] flex h-dvh touch-none flex-col items-center justify-between overflow-hidden overscroll-none bg-white px-6 pb-10 pt-16 text-center text-ink">
+    <div class="flex flex-col items-center">
+      <img data-call-pic src="/images/senior-avatar.svg" alt="" class="h-44 w-44 rounded-full bg-mist object-cover ring-8 ring-mist">
+      <h2 id="call-screen-title" class="mt-8 text-[2.2rem] font-bold leading-tight" data-call-name></h2>
+      <p class="mt-2 text-[1.3rem] text-gray-700" data-call-status role="status" aria-live="polite"></p>
+    </div>
+    <div class="grid w-full max-w-sm grid-cols-2 gap-4">
+      <button type="button" data-call-mute aria-pressed="false" class="inline-flex min-h-16 items-center justify-center gap-2 rounded-md bg-indigo px-4 text-[1.1rem] font-bold text-white hover:bg-indigo-dark aria-pressed:bg-indigo-deep"><i class="icon-mic" aria-hidden="true" data-call-mute-icon></i><span data-call-mute-text><%= t('voice.mute') %></span></button>
+      <button type="button" data-call-hangup class="inline-flex min-h-16 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-[1.1rem] font-bold text-white hover:bg-red-700"><i class="icon-phone-off" aria-hidden="true"></i><%= t('voice.hangup') %></button>
+    </div>
+  </div>
+
+  <audio data-call-audio autoplay playsinline></audio>
+</div>

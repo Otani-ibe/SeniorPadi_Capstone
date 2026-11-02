@@ -3,7 +3,7 @@
 <% if (isAdminFooter) { %>
   </div>
 <% } else { %>
-  <footer class="mt-12 border-t border-gray-100 bg-surface">
+  <footer class="mt-12 border-t border-gray-100 bg-surface <%= (typeof chatPage !== 'undefined' && chatPage) || (typeof noPhoneFooter !== 'undefined' && noPhoneFooter) ? 'max-md:hidden' : '' %>">
     <div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 md:flex-row md:items-start md:justify-between">
       <div class="max-w-md">
         <p class="logo mb-2 flex items-center gap-2 text-[1.2rem] font-bold tracking-tight">
@@ -23,6 +23,14 @@
 <% } %>
   <%- include('helpNudge') %>
   <script src="/js/swipe.js" defer></script>
+  <% if (currentUser && currentUser.role === 'senior' && currentUser.verificationStatus === 'approved') { %>
+    <%# online status: loaded on every page, so being on the site counts as being online %>
+    <% if (!/^\/messages\/\d/.test(currentPath)) { %><script src="/socket.io/socket.io.js" defer></script><% } %>
+    <script src="/js/presence.js" data-csrf="<%= csrfToken %>" defer></script>
+    <%# voice calls: the incoming-call pop-up and call screen work on every page %>
+    <%- include('callUi') %>
+    <script src="/js/call.js" defer></script>
+  <% } %>
   <% if (!currentUser && !bookingFor) { %><script src="/js/help.js" defer></script><% } %>
 </body>
 </html>

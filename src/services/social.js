@@ -1,19 +1,33 @@
 // Rules for who can see and message who.
 const { Op } = require('sequelize');
-const { User, Skip, Block, ReportHide, Notification } = require('../models');
+const { User, Skip, Block, ReportHide, Notification, Message } = require('../models');
+
+// people this senior already has a conversation with (either of them wrote). They are in Messages,
+// so Find Seniors doesn't show them again.
+async function messagedIds(userId) {
+  const rows = await Message.findAll({
+    where: { [Op.or]: [{ senderId: userId }, { recipientId: userId }] },
+    attributes: ['senderId', 'recipientId'],
+    group: ['senderId', 'recipientId']
+  });
+  return new Set(rows.map((m) => (m.senderId === userId ? m.recipientId : m.senderId)));
+}
 
 // ids this senior should never see in Find Seniors
 async function hiddenIdsFor(userId) {
-  const skips = await Skip.findAll({ where: { seniorId: userId }, attributes: ['skippedId'] });
-  const blocks = await Block.findAll({
-    where: { [Op.or]: [{ blockerId: userId }, { blockedId: userId }] }
-  });
-  const hides = await ReportHide.findAll({ where: { reporterId: userId }, attributes: ['reportedId'] });
+  // the four lookups run at the same time (the database may be far away, so waiting for each one in turn is slow)
+  const [skips, blocks, hides, messaged] = await Promise.all([
+    Skip.findAll({ where: { seniorId: userId }, attributes: ['skippedId'] }),
+    Block.findAll({ where: { [Op.or]: [{ blockerId: userId }, { blockedId: userId }] } }),
+    ReportHide.findAll({ where: { reporterId: userId }, attributes: ['reportedId'] }),
+    messagedIds(userId)
+  ]);
 
   const ids = new Set([userId]);
   skips.forEach((s) => ids.add(s.skippedId));
   blocks.forEach((b) => ids.add(b.blockerId === userId ? b.blockedId : b.blockerId));
   hides.forEach((h) => ids.add(h.reportedId));
+  messaged.forEach((id) => ids.add(id));
   return Array.from(ids);
 }
 
@@ -46,14 +60,20 @@ async function canMessage(sender, recipient) {
 
 // the next verified senior to show in Find Seniors, or null
 async function nextSeniorFor(user) {
+  return (await upcomingSeniorsFor(user, 1))[0] || null;
+}
+
+// the next few verified seniors to show, in order
+async function upcomingSeniorsFor(user, limit = 3) {
   const hidden = await hiddenIdsFor(user.id);
-  return User.findOne({
+  return User.findAll({
     where: {
       role: 'senior',
       verificationStatus: 'approved',
       id: { [Op.notIn]: hidden }
     },
-    order: [['createdAt', 'ASC']]
+    order: [['createdAt', 'ASC']],
+    limit
   });
 }
 
@@ -63,13 +83,21 @@ async function skippedSeniorsFor(user) {
   const skips = await Skip.findAll({ where: { seniorId: user.id }, order: [['createdAt', 'DESC']] });
   if (skips.length === 0) return [];
 
-  const people = await User.findAll({
-    where: { id: skips.map((s) => s.skippedId), role: 'senior', verificationStatus: 'approved' }
-  });
+  const [people, blocks, hides, messaged] = await Promise.all([
+    User.findAll({ where: { id: skips.map((s) => s.skippedId), role: 'senior', verificationStatus: 'approved' } }),
+    Block.findAll({ where: { [Op.or]: [{ blockerId: user.id }, { blockedId: user.id }] } }),
+    ReportHide.findAll({ where: { [Op.or]: [{ reporterId: user.id }, { reportedId: user.id }] } }),
+    messagedIds(user.id)
+  ]);
+  const out = new Set();
+  blocks.forEach((x) => out.add(x.blockerId === user.id ? x.blockedId : x.blockerId));
+  hides.forEach((x) => out.add(x.reporterId === user.id ? x.reportedId : x.reporterId));
+
+  const byId = new Map(people.map((p) => [p.id, p]));
   const result = [];
   for (const skip of skips) {
-    const person = people.find((p) => p.id === skip.skippedId);
-    if (person && !(await isBlockedOrHidden(user.id, person.id))) result.push(person);
+    const person = byId.get(skip.skippedId);
+    if (person && !messaged.has(person.id) && !out.has(person.id)) result.push(person);
   }
   return result;
 }
@@ -83,4 +111,10 @@ async function notifyAdmins(type, payload, link) {
   for (const admin of admins) await addNotification(admin.id, type, payload, link);
 }
 
-module.exports = { hiddenIdsFor, isBlockedOrHidden, canMessage, nextSeniorFor, skippedSeniorsFor, addNotification, notifyAdmins };
+// the ids of people whose messages this person hasn't opened yet (one id per person, however many messages)
+async function unreadSenderIds(userId) {
+  const rows = await Notification.findAll({ where: { userId, type: 'message.new', readAt: null }, attributes: ['payload'] });
+  return new Set(rows.map((n) => n.payload && n.payload.senderId).filter(Boolean));
+}
+
+module.exports = { upcomingSeniorsFor, unreadSenderIds, hiddenIdsFor, isBlockedOrHidden, canMessage, nextSeniorFor, skippedSeniorsFor, addNotification, notifyAdmins };

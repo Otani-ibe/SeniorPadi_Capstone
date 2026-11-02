@@ -1,0 +1,168 @@
+// The Ibadan events list (3 December 2026 to 16 January 2027), from SeniorPadi_events_list.pdf.
+// Used by src/scripts/addEvents.js. Times are Lagos time (WAT, UTC+1).
+//
+// area: one of the 11 Ibadan local government areas, only where the venue's area is certain.
+// Where it is not, it is left empty (the card says "Area to be confirmed") so staff can set it in the admin page.
+
+const ev = (title, category, date, from, to, description, org, location, area) => ({
+  title, category, description, org, location, area: area || null,
+  startsAt: new Date(date + 'T' + from + ':00+01:00'),
+  endsAt: new Date(date + 'T' + to + ':00+01:00')
+});
+
+const events = [
+  ev('Lunch for Retirees Hosted by Rotary', 'social', '2026-12-03', '12:30', '15:00',
+    'A sit-down lunch for retired teachers, civil servants and traders, with Rotary members hosting each table. Three retirees share short stories about what they did after work. A good chance to meet people from other parts of Ibadan.',
+    'Rotary Club of Ibadan Jericho Metro', 'Jericho, Ibadan', 'ibadan-north-west'),
+  ev('Phone Camera Class: Take Better Photos of Family', 'skills', '2026-12-04', '10:00', '12:30',
+    'A photographer shows how to hold your phone steady, use window light and frame a good portrait. Practise on each other, then print one photo to take home.',
+    'Standard Institute of Photography', 'Standard Institute of Photography, Ibadan'),
+  ev('Sunrise Stretching and Balance Class', 'fitness', '2026-12-05', '06:45', '08:00',
+    'Gentle breathing, balance and stretching on the lawn, led by a physiotherapy student group at a slow pace. Chairs are nearby for anyone who needs to sit.',
+    'Agodi Gardens', 'Agodi Gardens, Ibadan', 'ibadan-north'),
+  ev('Guided Museum Tour: Elders Explain the Objects', 'learning', '2026-12-08', '11:00', '13:00',
+    'A guided museum tour where elders say what each object was used for in their own childhood. Curators record what they hear for a future exhibit.',
+    'National Museum of Unity', 'National Museum of Unity, Ibadan'),
+  ev('Beadwork Class: Make a Necklace and Bracelet', 'skills', '2026-12-09', '10:00', '12:30',
+    'Learn basic bead stringing and knotting with local beadmakers. Each person makes one necklace and one bracelet. Elders with a beading history are invited to teach alongside the instructors.',
+    'Tunde Odunlade Arts and Culture Connexions', 'Tunde Odunlade Arts and Culture Connexions, New Bodija, Ibadan', 'ibadan-north'),
+  ev('Free Eye Test and Cataract Screening', 'health', '2026-12-10', '09:00', '14:00',
+    'Free eye tests, screening for cataract and glaucoma, and reading glasses for those who need them. People who need surgery are referred and helped to book.',
+    'Royal Heritage Health Foundation', 'Mapo Hall, Ibadan'),
+  ev('Elders’ Tea Party with Live Highlife Band and Headgear Contest', 'social', '2026-12-11', '14:00', '17:00',
+    'A radio-hosted afternoon built around elders. Live highlife band, a best-headgear and best-tie contest, short health tips from a nurse, and tea with small chops. Seniors can request a song on air.',
+    'Premier FM (FRCN Ibadan)', 'Premier FM Studios, Ibadan'),
+  ev('Make Your Own Adire: Hands-On Tie-Dye Workshop', 'skills', '2026-12-12', '10:00', '13:00',
+    'Learn to fold, tie and dye cloth the traditional way with local artisans. Each person finishes one wrapper-sized piece to take home. Elders who already know adire are asked to help teach.',
+    'Cultural Centre Mokola Art Village', 'Cultural Centre, Mokola, Ibadan', 'ibadan-north'),
+  ev('Evening of Remembrance for Those Who Lost a Loved One', 'faith', '2026-12-12', '16:00', '18:00',
+    'A quiet evening for people who have lost a spouse, child or friend. Readings, a few hymns, and time to light a candle and say a name aloud. Tea afterwards, with someone to sit with if you wish. Open to all faiths.',
+    'Ibadan Lay Dominican Elderly Care Foundation', 'Tom and Carolyn Walker Hall, Dominican University Ibadan, Samonda', 'ibadan-north'),
+  ev('Blanket and Warm Clothes Drive for Elders', 'charity', '2026-12-14', '10:00', '14:00',
+    'Blankets, warm wrappers and socks are collected and handed out to elders for the cold harmattan season. Seniors can come to receive items or help sort and pack. The public can drop off donations from 9:00 AM.',
+    'Senior Citizen Palace Foundation', 'Senior Citizen Palace, Bashorun Estate, Akobo, Ibadan'),
+  ev('Smartphone Help: WhatsApp, Video Calls and Scam Spotting', 'learning', '2026-12-15', '10:00', '12:30',
+    'Dominican University students sit one-to-one with seniors and teach video calls, WhatsApp voice notes and how to spot a fake bank message. They repeat things as often as needed.',
+    'Dominican University Ibadan', 'Dominican University Ibadan, Samonda', 'ibadan-north'),
+  ev('Paint a Yoruba Proverb on Canvas', 'creativity', '2026-12-16', '11:00', '14:00',
+    'Pick a proverb you heard growing up and paint what it means to you. A local artist helps with composition and colour. The finished canvases are shown in a small exhibition and kept by the painters afterwards.',
+    'Topfat Art Gallery', 'Topfat Art Gallery, Lekan Salami Complex, Adamasingba, Ibadan'),
+  ev('History Talk: How Ibadan Began, with Palace Gallery Tour', 'learning', '2026-12-17', '11:00', '13:00',
+    'A palace historian tells the story of how Ibadan grew, followed by a gallery walk through portraits of past Olubadans. Time is set aside for elders to share their own memories of old Ibadan.',
+    'Olubadan Palace Learning Initiative', 'Olubadan Royal Palace Gallery, Ibadan'),
+  ev('Friday Tafsir Session on Patience and Gratitude in Old Age', 'faith', '2026-12-18', '14:30', '16:30',
+    'A short tafsir session on patience, gratitude and keeping a good heart in later life, followed by tea and conversation. Open to men and women, with seating in separate sections. Elders may share their own reflections if they wish.',
+    'Ibadan Central Mosque', 'Ibadan Central Mosque, Ibadan'),
+  ev('Food Hamper Packing and Giveaway for Elders', 'charity', '2026-12-18', '09:00', '13:00',
+    'Food hampers are packed and handed out to older residents of Ibadan North. Seniors can come to receive a hamper or help with packing and loading. Light lunch for volunteers.',
+    'Fatade Idowu Foundation', 'Islamic Mission School, Ibadan North LGA', 'ibadan-north'),
+  ev('Guided Morning Walk at Agodi Gardens', 'fitness', '2026-12-19', '07:00', '09:00',
+    'An easy guided walk on the garden paths, with benches every few minutes. A volunteer walks at the back so nobody is rushed. Water and a light breakfast after.',
+    'Agodi Gardens', 'Agodi Gardens, Ibadan', 'ibadan-north'),
+  // This one is the same gathering as the Christmas hymns evening already listed at the Kudeti cathedral on 19 December,
+  // so addEvents.js skips it and says why.
+  ev('Christmas Carols and Old Hymns Sing-Along', 'faith', '2026-12-19', '16:00', '18:00',
+    'An afternoon of Christmas carols and old hymns that elders grew up singing. Request a carol from the choir, then join in the chorus. Tea and cake in the parish hall afterwards. Hymn books provided.',
+    'Cathedral Church of St. David, Kudeti', 'Cathedral Church of St. David, Kudeti, Ibadan'),
+  ev('Watch a Polo Match Over Tea', 'social', '2026-12-20', '15:30', '18:00',
+    'Sit in the shade with tea and snacks while a friendly polo match is played. A club member explains the rules for first-timers.',
+    'Ibadan Polo Club', 'Ibadan Polo Club, Ibadan'),
+  ev('Free Dental Check-Up and Denture Advice', 'health', '2026-12-21', '09:00', '14:00',
+    'Dental students, supervised by a lecturer, offer free check-ups, cleaning and advice on gum disease, loose teeth and dentures. A short talk covers why oral health matters for eating well. First come, first served.',
+    'University of Ibadan Association of Dental Students', 'Molete Market, Ibadan'),
+  ev('Free Blood Pressure and Blood Sugar Check', 'health', '2026-12-22', '09:00', '13:00',
+    'Free blood pressure and blood sugar checks, short counselling with a nurse, and a talk on eating well on a small budget. Anyone with a high reading is referred to the nearest clinic on the same day.',
+    'Global Health Charity and Training Foundation', 'ALGON Primary Health Centre, Airport Road, Alakia, Egbeda LGA', 'egbeda'),
+  ev('Thanksgiving Mass and Lunch for Elders', 'faith', '2027-01-02', '10:00', '13:30',
+    'A thanksgiving Mass for senior parishioners and friends, followed by a shared lunch of jollof rice and moin moin. Elders carry the offertory gifts.',
+    'Ibadan Lay Dominican Elderly Care Foundation', 'Tom and Carolyn Walker Hall, Dominican University Ibadan, Samonda', 'ibadan-north'),
+  ev('Record Your Life Story: Audio Interviews with Student Volunteers', 'learning', '2027-01-05', '10:00', '13:00',
+    'Elders sit with trained student volunteers and record a 15-minute audio story about their working life, their town, or a lesson they want to pass on. Each person leaves with a copy to share with family.',
+    'U3A Nigeria', 'Trenchard Hall, University of Ibadan', 'ibadan-north'),
+  ev('Seated Exercise and Dance Class', 'fitness', '2027-01-06', '09:00', '10:30',
+    'A seated class led by a sports science instructor: stretching, arm and leg work, and a closing dance to old favourites. Done entirely from a chair, so it suits people with bad knees or balance worries.',
+    'University of Ibadan Sports Centre', 'University of Ibadan Sports Centre, Ibadan', 'ibadan-north'),
+  ev('Free Health Insurance Sign-Up for Older Adults', 'charity', '2027-01-07', '10:00', '15:00',
+    'Volunteers help older adults register for state health insurance. The first year’s premium is covered for those who qualify.',
+    'Rotary Club of Ibadan Jericho Metro', 'Ladunni Primary Health Centre, Ido LGA', 'ido'),
+  ev('Learn to Play the Talking Drum (Beginners)', 'creativity', '2027-01-08', '15:00', '17:00',
+    'A master drummer teaches how the talking drum imitates Yoruba tones and greetings. Everyone gets a drum for the session and plays together by the end. Elders who drummed in their youth are invited to lead a round.',
+    'Tunde Odunlade Arts and Culture Connexions', 'Tunde Odunlade Arts and Culture Connexions, New Bodija, Ibadan', 'ibadan-north'),
+  ev('Ayo and Draughts Tournament', 'social', '2027-01-09', '14:00', '17:00',
+    'A friendly ayo olopon and draughts tournament with a table for beginners. Winners get a small prize, but the main point is a long afternoon of talking and teasing. Refreshments served.',
+    'Senior Citizen Palace Foundation', 'Senior Citizen Palace, Bashorun Estate, Akobo, Ibadan'),
+  ev('Kidney Health Talk and Dialysis Unit Tour', 'health', '2027-01-12', '10:00', '12:30',
+    'A nurse-led tour of the dialysis unit, a simple talk on kidney warning signs, and free blood pressure checks. Seniors learn what to watch for, such as swollen feet, tiredness and changes in urine.',
+    'Adeoyo State Hospital', 'Adeoyo State Hospital, Yemetu, Ibadan'),
+  ev('Paint a Community Mural Together', 'creativity', '2027-01-13', '10:00', '13:00',
+    'A shared mural on the theme ‘What I Know Now’. Each person paints one panel from a simple outline, with help from a local artist. The finished wall stays on display at the gallery.',
+    'Ibadan Affordable Art Fair', 'Cultural Centre, Mokola, Ibadan', 'ibadan-north'),
+  ev('Basic Sewing Class: Fix Hems, Buttons and Tears', 'skills', '2027-01-14', '10:00', '12:30',
+    'Learn to fix a hem, replace a button, patch a tear and sew a simple wrapper by hand. A tailor guides small groups, and everyone leaves with a basic sewing kit.',
+    'Jummy Stitches', 'Jummy Stitches Training Studio, Alakia, Ibadan', 'egbeda'),
+  ev('Beginner Golf Lesson for Ages 60 and Above', 'fitness', '2027-01-16', '08:00', '10:30',
+    'A coach teaches putting and short chipping on the practice green at a slow pace. Clubs are lent out. A light breakfast follows on the terrace. Good for balance and gentle movement.',
+    'Ibadan Golf Club', 'Ibadan Golf Club, Ibadan')
+];
+
+// How many places each event has. Chosen by the kind of event and the venue: hands-on classes with kits or one-to-one help
+// are small; screenings, drives and hall gatherings are large. Staff can change any of them in the admin page.
+const CAPACITY = {
+  'Lunch for Retirees Hosted by Rotary': 40,
+  'Phone Camera Class: Take Better Photos of Family': 15,
+  'Sunrise Stretching and Balance Class': 30,
+  'Guided Museum Tour: Elders Explain the Objects': 25,
+  'Beadwork Class: Make a Necklace and Bracelet': 20,
+  'Free Eye Test and Cataract Screening': 150,
+  'Elders’ Tea Party with Live Highlife Band and Headgear Contest': 80,
+  'Make Your Own Adire: Hands-On Tie-Dye Workshop': 20,
+  'Evening of Remembrance for Those Who Lost a Loved One': 50,
+  'Blanket and Warm Clothes Drive for Elders': 100,
+  'Smartphone Help: WhatsApp, Video Calls and Scam Spotting': 20,
+  'Paint a Yoruba Proverb on Canvas': 15,
+  'History Talk: How Ibadan Began, with Palace Gallery Tour': 40,
+  'Friday Tafsir Session on Patience and Gratitude in Old Age': 60,
+  'Food Hamper Packing and Giveaway for Elders': 150,
+  'Guided Morning Walk at Agodi Gardens': 40,
+  'Christmas Carols and Old Hymns Sing-Along': 60,
+  'Watch a Polo Match Over Tea': 40,
+  'Free Dental Check-Up and Denture Advice': 80,
+  'Free Blood Pressure and Blood Sugar Check': 100,
+  'Thanksgiving Mass and Lunch for Elders': 120,
+  'Record Your Life Story: Audio Interviews with Student Volunteers': 30,
+  'Seated Exercise and Dance Class': 30,
+  'Free Health Insurance Sign-Up for Older Adults': 100,
+  'Learn to Play the Talking Drum (Beginners)': 20,
+  'Ayo and Draughts Tournament': 40,
+  'Kidney Health Talk and Dialysis Unit Tour': 25,
+  'Paint a Community Mural Together': 25,
+  'Basic Sewing Class: Fix Hems, Buttons and Tears': 20,
+  'Beginner Golf Lesson for Ages 60 and Above': 12
+};
+
+// The area (local government area) where the list's venue was not certain. These are best guesses from where each
+// place is in Ibadan; staff can correct any of them in the admin page.
+const AREA_GUESS = {
+  'Phone Camera Class: Take Better Photos of Family': 'ibadan-north',
+  'Christmas Carols and Old Hymns Sing-Along': 'ibadan-south-east', // the same church as the hymns evening already on the site
+  'Guided Museum Tour: Elders Explain the Objects': 'ibadan-south-west',
+  'Free Eye Test and Cataract Screening': 'ibadan-south-east',
+  'Elders’ Tea Party with Live Highlife Band and Headgear Contest': 'ibadan-north',
+  'Blanket and Warm Clothes Drive for Elders': 'ibadan-north',
+  'Paint a Yoruba Proverb on Canvas': 'ibadan-south-east',
+  'History Talk: How Ibadan Began, with Palace Gallery Tour': 'ibadan-north',
+  'Friday Tafsir Session on Patience and Gratitude in Old Age': 'ibadan-north',
+  'Watch a Polo Match Over Tea': 'ibadan-north',
+  'Free Dental Check-Up and Denture Advice': 'ibadan-south-west',
+  'Ayo and Draughts Tournament': 'ibadan-north',
+  'Kidney Health Talk and Dialysis Unit Tour': 'ibadan-north',
+  'Beginner Golf Lesson for Ages 60 and Above': 'ibadan-south-west'
+};
+
+// The flyer for each event: public/images/events/ibadan/01.jpg ... 30.jpg, in the order of the list above.
+module.exports = events.map((e, i) => ({
+  ...e,
+  imageUrl: '/images/events/ibadan/' + String(i + 1).padStart(2, '0') + '.jpg',
+  area: e.area || AREA_GUESS[e.title] || null,
+  capacity: CAPACITY[e.title] || null
+}));

@@ -5,7 +5,7 @@
   <div class="auth-form">
 <h1 class="mb-2"><%= t('signup.title') %></h1>
 <p class="mb-2"><%= t('signup.intro') %></p>
-<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="icon-smartphone mt-1 text-indigo" aria-hidden="true"></i><span><%= t('signup.code_note') %></span></p>
+<p class="mb-6 flex items-start gap-3 rounded-2xl bg-mist p-4"><i class="icon-message-square mt-1 text-indigo" aria-hidden="true"></i><span><%= t('signup.code_note') %></span></p>
 
 <form action="/signup" method="post" novalidate>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -24,6 +24,14 @@
     <%- include('../partials/phoneInput', { id: 'phone', name: 'phone', value: values.phone }) %>
     <span class="hint"><%= t('signup.phone_hint') %></span>
     <% if (errors.phone) { %><span class="error"><%= errors.phone %></span><% } %>
+  </div>
+
+  <%- include('../partials/lgaField', { id: 'lga', value: values.lga, error: errors.lga }) %>
+
+  <div class="field">
+    <label for="area"><%= t('settings.area') %></label>
+    <input type="text" id="area" name="area" value="<%= values.area || '' %>" autocomplete="address-level3">
+    <span class="hint"><%= t('settings.area_hint') %></span>
   </div>
 
   <div class="field">

@@ -191,6 +191,11 @@ async function main() {
   await OnboardingVideo.create({ language: 'en', transcript: en['onboarding.default_transcript'], uploadedByAdminId: admin.id });
   await OnboardingVideo.create({ language: 'yo', transcript: yo['onboarding.default_transcript'], uploadedByAdminId: admin.id });
 
+  // the demo seniors (all verified, with pictures) and the Ibadan events list: kept every time the data is reseeded
+  const models = require('../models');
+  await require('../services/sampleSeniors').ensureSampleSeniors(models);
+  await require('../services/sampleEvents').addSampleEvents(models);
+
   console.log('Seeded. Log in with any of these (password: password123):');
   console.log('  Admin:  08000000001');
   console.log('  Senior: 08030000011 (' + seniors[1].fullName + ', English)');

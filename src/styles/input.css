@@ -29,14 +29,13 @@
 
   --color-indigo-deep: #2a1157; /* the brand purple, very dark: the help strip under the hero */
 
-  /* corners: straight edges with a small, even rounding everywhere. Only photos of people,
-     dots and icon discs are circles. Buttons and chips use rounded-md (6px). */
-  --radius-card: 0.5rem;
-  --radius-panel: 0.5rem;
-  --radius-inner: 0.375rem;
-  --radius-xl: 0.5rem;
-  --radius-2xl: 0.5rem;
-  --radius-3xl: 0.5rem;
+  /* corners: generously rounded cards (20px) and buttons (16px); chips and tags are capsules */
+  --radius-card: 1.25rem;
+  --radius-panel: 1.25rem;
+  --radius-inner: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
   /* the one soft shadow for cards that sit on the page */
   --shadow-soft: 0 2px 10px rgb(26 21 35 / 0.06);
 }
@@ -48,10 +47,10 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    @apply bg-white text-ink leading-relaxed antialiased;
+    @apply bg-slate-50 text-ink leading-relaxed antialiased;
   }
   h1 {
-    @apply text-[1.75rem] font-semibold leading-tight tracking-tight md:text-[2rem];
+    @apply text-[1.75rem] font-bold leading-tight tracking-tight text-slate-900 md:text-[2rem];
   }
   h2 {
     @apply text-[1.3rem] font-semibold leading-snug;
@@ -96,7 +95,7 @@
   }
   /* log-in, sign-up and password pages: form on the left, photo on the right */
   .auth-shell {
-    @apply mx-auto grid max-w-5xl overflow-clip rounded-card bg-white shadow-xl shadow-indigo/10 ring-1 ring-gray-200 md:grid-cols-2;
+    @apply mx-auto grid max-w-5xl overflow-clip rounded-card bg-white shadow-md shadow-slate-900/5 ring-1 ring-gray-200 md:grid-cols-2;
   }
   .auth-form {
     @apply p-6 sm:p-8 lg:px-10;
@@ -114,7 +113,7 @@
   /* ---------- page heading: small purple line, big title, optional intro ---------- */
   .page-head { @apply mb-6; }
   .page-head .kicker { @apply font-semibold text-indigo; }
-  .page-head h1 { @apply mt-1 text-[2.1rem] font-bold leading-tight tracking-tight md:text-[2.6rem]; }
+  .page-head h1 { @apply mt-1 text-[2.1rem] font-extrabold leading-tight tracking-tight text-slate-900 md:text-[2.6rem]; }
   .page-head .lead { @apply mt-2 max-w-2xl text-[1.1rem] text-gray-700; }
   .back-link { @apply mb-4 inline-flex min-h-12 items-center gap-2 font-semibold text-ink no-underline hover:underline; }
 
@@ -122,21 +121,21 @@
   .btn,
   .btn-volunteer,
   .btn-coral {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-md bg-indigo px-7 py-3 text-center text-[1.05rem]
-      font-semibold text-white no-underline shadow-lg shadow-indigo/20 transition hover:bg-indigo-dark sm:w-auto;
+    @apply inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo px-5 py-2 text-center text-[1.05rem]
+      font-semibold text-white no-underline transition-colors duration-150 hover:bg-indigo-dark sm:w-auto;
   }
   .btn-volunteer {
-    @apply bg-leaf shadow-leaf/20 hover:bg-leaf-dark;
+    @apply bg-leaf hover:bg-leaf-dark;
   }
   .btn-coral {
-    @apply bg-full-tag shadow-full-tag/20 hover:bg-[#7f1717];
+    @apply bg-full-tag hover:bg-[#7f1717];
   }
   /* the one secondary button: white, a dark grey edge, dark words. btn-outline is the same button
      (the name is kept so older pages still work). */
   .btn-plain,
   .btn-outline {
-    @apply inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-md border-2 border-gray-500 bg-white px-7 py-3
-      text-center text-[1.05rem] font-semibold text-ink no-underline transition hover:border-ink hover:bg-surface sm:w-auto;
+    @apply inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-5 py-2
+      text-center text-[1.05rem] font-semibold text-ink no-underline transition-colors duration-150 hover:border-ink hover:bg-surface sm:w-auto;
   }
   .btn:active,
   .btn-volunteer:active,
@@ -151,7 +150,7 @@
   }
   .btn[disabled],
   .btn-volunteer[disabled] {
-    @apply cursor-not-allowed bg-gray-400 shadow-none hover:bg-gray-400;
+    @apply cursor-not-allowed bg-gray-400 hover:bg-gray-400;
   }
 
   /* ---------- surfaces ---------- */
@@ -159,19 +158,19 @@
     @apply rounded-card bg-mist p-6;
   }
   .card {
-    @apply rounded-card bg-surface p-6;
+    @apply rounded-card bg-white p-6 shadow-md shadow-slate-900/5;
   }
   /* a white card with a thin border and the soft shadow: event cards */
   .card-outline {
-    @apply rounded-card border border-gray-200 bg-white p-4;
+    @apply rounded-card border border-slate-100 bg-white p-4 shadow-md shadow-slate-900/5;
   }
   /* a white box with a soft outline, for forms and lists */
   .sheet {
-    @apply rounded-card border-2 border-gray-100 bg-white p-5 md:p-7;
+    @apply rounded-card border border-slate-100 bg-white p-5 shadow-md shadow-slate-900/5 md:p-7;
   }
   /* a tappable row: icon, text, arrow */
   .list-row {
-    @apply flex items-center gap-4 rounded-card bg-surface p-4 text-ink no-underline transition hover:ring-2 hover:ring-indigo;
+    @apply flex items-center gap-4 rounded-card bg-white p-4 text-ink no-underline shadow-sm ring-1 ring-slate-200 transition-colors hover:ring-2 hover:ring-indigo;
   }
   /* a round icon in brand colours */
   .icon-dot {
@@ -182,7 +181,7 @@
   }
   /* nothing here yet */
   .empty-state {
-    @apply rounded-card bg-surface px-6 py-10 text-center;
+    @apply rounded-card bg-white px-6 py-10 text-center shadow-md shadow-slate-900/5 ring-1 ring-slate-100;
   }
 
   /* ---------- forms ---------- */
@@ -203,8 +202,8 @@
   .field input[type="datetime-local"],
   .field select,
   .field textarea {
-    @apply block min-h-14 w-full rounded-2xl border-2 border-gray-300 bg-white px-4 py-3 text-[1.05rem] text-ink
-      transition focus:border-indigo focus:ring-4 focus:ring-indigo/15 focus:outline-none;
+    @apply block min-h-14 w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-[1.05rem] text-ink
+      transition focus:border-indigo focus:bg-white focus:ring-4 focus:ring-indigo/15 focus:outline-none;
   }
   .field .hint {
     @apply mt-1.5 block text-[0.95rem] text-gray-700;
@@ -220,22 +219,22 @@
   }
 
   /* ---------- chat bubbles (also built by public/js/chat.js) ---------- */
-  .bubble { @apply max-w-[85%] px-4 py-3 text-[1.05rem] sm:max-w-[70%]; }
-  .bubble-mine { @apply rounded-card rounded-br-md bg-indigo text-white; }
-  .bubble-theirs { @apply rounded-card rounded-bl-md bg-surface text-ink; }
-  .bubble-time { @apply mt-1 text-[0.85rem] opacity-80; }
+  .bubble { @apply max-w-[82%] px-4 py-2.5 text-[1.05rem] leading-snug sm:max-w-[68%]; }
+  .bubble-mine { @apply rounded-[1.25rem] rounded-br-[0.35rem] bg-indigo text-white; }
+  .bubble-theirs { @apply rounded-[1.25rem] rounded-bl-[0.35rem] bg-white text-ink shadow-sm ring-1 ring-slate-200/70; }
+  .bubble-time { @apply mt-1 flex items-center justify-end gap-2 text-[0.8rem] opacity-75; }
 
   /* ---------- filter chips (Find events) ---------- */
   .filter-chip {
-    @apply inline-flex min-h-12 items-center gap-2 whitespace-nowrap rounded-md border-2 px-4 text-[0.95rem] font-semibold no-underline transition;
+    @apply inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full border-2 px-3.5 text-[0.95rem] font-semibold no-underline transition duration-200 md:min-h-10;
   }
-  .filter-chip-off { @apply border-transparent bg-surface text-ink hover:bg-mist; }
+  .filter-chip-off { @apply border-slate-200 bg-white text-ink shadow-sm hover:border-indigo hover:text-indigo; }
   /* the chosen one: purple, a thick dark edge and a tick, so it isn't shown by colour alone */
-  .filter-chip-on { @apply border-ink bg-indigo text-white; }
+  .filter-chip-on { @apply border-indigo bg-indigo text-white; }
 
   /* ---------- "23 slots left" ---------- */
   .slots {
-    @apply inline-flex w-fit items-center gap-2 rounded-md px-3.5 py-1.5 text-[0.95rem] font-semibold;
+    @apply inline-flex w-fit items-center gap-2 rounded-full px-3.5 py-1.5 text-[0.95rem] font-semibold;
   }
   .slots[hidden] { display: none; }
   .slots-ok { @apply bg-emerald-50 text-leaf-dark; }
@@ -246,7 +245,11 @@
   .tag-full,
   .tag-mine,
   .tag-leaf {
-    @apply inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[0.9rem] font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.9rem] font-semibold;
+  }
+  /* an outlined purple pill: the kind of event, the price */
+  .tag-outline {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-indigo px-3.5 py-1 text-[0.95rem] font-medium text-indigo;
   }
   .tag-amber { @apply bg-amber-bg text-amber-tag; }
   .tag-full { @apply bg-full-bg text-full-tag; }
@@ -497,4 +500,63 @@
 
   .dots-drift { animation: drift 12s linear infinite; }
   
+}
+
+/* The Lucide stylesheet sets every icon to "font-size: inherit" outside any layer, which beats the
+   text-size classes put on an icon. This hands the size back to those classes; with none, the icon
+   still takes the size of the text around it. */
+[class^="icon-"], [class*=" icon-"] {
+  font-size: revert-layer;
+}
+
+/* online / offline badge: a filled green dot for online, an empty grey ring for offline,
+   so the two differ by shape as well as colour */
+.presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.presence[hidden] { display: none; }
+.presence-dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+}
+.presence[data-status="online"] { color: #15803d; }
+.presence[data-status="online"] .presence-dot { background: currentColor; }
+.presence[data-status="offline"] { color: #4b5563; }
+
+/* ---------- messages: a chat app layout ----------
+   Phones: the chat fills the screen (no site header or bottom bar), the top of the chat stays put,
+   the messages scroll, and the box to write in stays at the bottom.
+   Wider screens: the list of people on the left, the chat on the right, inside the page. */
+.chat-shell { height: 100dvh; }
+/* the list of people keeps the site header and the bottom bar on phones */
+.chat-shell-nav { height: calc(100dvh - 3.9rem - 5rem); } /* 5rem: the room the page keeps for the bottom bar */
+@media (min-width: 768px) {
+  .chat-shell { height: calc(100dvh - 3.9rem - 3.7rem - 2rem - env(safe-area-inset-bottom)); }
+}
+@media (min-width: 1280px) {
+  .chat-shell { height: calc(100dvh - 3.9rem - 2rem); }
+}
+/* the small green dot on a picture in the list of people; shown only while they are online */
+.presence-corner {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  gap: 0;
+  padding: 0;
+}
+.presence-corner .presence-dot { width: 1rem; height: 1rem; border: 3px solid #fff; }
+.presence-corner[data-status="offline"], .presence-corner[data-status=""] { display: none; }
+
+/* the online / offline badge on a photo (Find seniors): a white chip, so it reads on any picture */
+.presence-chip .presence {
+  background: #fff;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
 }

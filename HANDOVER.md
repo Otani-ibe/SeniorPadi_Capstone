@@ -34,6 +34,7 @@ The code lives on **GitHub**. Render takes it from there.
 | `ADMIN_PHONE` | Your phone number. You'll log in with this |
 | `ADMIN_PASSWORD` | A password of 8 or more characters |
 | `SUPPORT_PHONE` | The number seniors should call for help |
+| `CLOUDFLARE_TURN_KEY_ID`, `CLOUDFLARE_TURN_API_TOKEN` | Cloudflare dashboard, Realtime, TURN Server: lets seniors voice call each other over mobile networks |
 | `BREVO_API_KEY` | In Brevo: SMTP & API, then API Keys, then Generate |
 | `BREVO_SENDER_EMAIL` | An email address you've verified in Brevo |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Shown on the Cloudinary dashboard |

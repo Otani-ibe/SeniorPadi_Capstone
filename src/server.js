@@ -32,6 +32,9 @@ async function start() {
     warnings.push('There is no admin account yet. Set ADMIN_NAME, ADMIN_PHONE and ADMIN_PASSWORD (8+ characters), then restart.');
   }
 
+  const sample = await startup.ensureSampleEvents(models);
+  if (sample) startup.line('Added ' + sample + ' Ibadan events to the empty event list');
+
   const css = startup.ensureCss();
   if (css === 'built') startup.line('Built the stylesheet');
   if (css === 'failed') warnings.push('The stylesheet is missing and could not be built. Pages will look unstyled.');

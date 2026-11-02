@@ -19,7 +19,7 @@ test('a senior can sign up with a plain form (no JavaScript)', async () => {
     _csrf: csrfFrom(page.text),
     fullName: 'Mama Tolu',
     phone: '0805 123 4567',
-    ageDeclared: 'yes'
+    lga: 'ibadan-north', ageDeclared: 'yes'
   });
   expect(res.status).toBe(302);
   // no password: a code is texted and the next page asks for it
@@ -30,7 +30,7 @@ test('the sign-up form only asks for name, phone number and password', async () 
   const page = await request(app).get('/signup');
   expect(page.text).toContain('name="fullName"');
   expect(page.text).toContain('name="phone"');
-  for (const gone of ['name="password"', 'name="email"', 'name="passwordConfirm"', 'name="lga"', 'name="gender"']) {
+  for (const gone of ['name="password"', 'name="email"', 'name="passwordConfirm"', 'name="gender"']) {
     expect(page.text).not.toContain(gone);
   }
 });

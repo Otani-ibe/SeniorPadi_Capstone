@@ -10,7 +10,7 @@ afterAll(() => sequelize.close());
 
 const form = (extra = {}) => ({
   childName: 'Tunde Adeyemi', childPhone: '0805 111 2222',
-  parentName: 'Mama Tolu Adeyemi', parentPhone: '0805 333 4444', ageDeclared: 'yes', ...extra
+  parentName: 'Mama Tolu Adeyemi', parentPhone: '0805 333 4444', lga: 'ibadan-north', ageDeclared: 'yes', ...extra
 });
 
 async function sendForm(agent, extra) {
@@ -75,8 +75,8 @@ test('when the code is confirmed the child is told, the account is the parent\'s
 });
 
 test('the three texts say what they should', () => {
-  const toParentCode = t('parent.code.sms', 'en', { child: 'Tunde', code: '123456', minutes: 10 });
-  expect(toParentCode).toContain('Tunde is creating an account for you');
+  const toParentCode = t('parent.code.sms', 'en', { name: 'Mama Tolu', child: 'Tunde', code: '123456', minutes: 10 });
+  expect(toParentCode).toContain('A new account is being created for Mama Tolu by Tunde');
   expect(toParentCode).toContain('123456');
   expect(t('parent.created_child.sms', 'en', { parent: 'Mama Tolu' })).toBe('SeniorPadi: you have successfully created an account for Mama Tolu.');
   expect(t('parent.created_parent.sms', 'en', { name: 'Tolu', child: 'Tunde' })).toContain('your child Tunde has created an account for you');
@@ -121,4 +121,19 @@ test('the form refuses the same number twice, a missing tick, or a parent who al
 test('without starting the form there is no code page', async () => {
   const res = await request(app).get('/signup/parent/code');
   expect(res.headers.location).toBe('/signup/parent');
+});
+
+test('a child must say where their parent lives, and it is saved on the parent\'s account', async () => {
+  const page = await request(app).get('/signup/parent');
+  expect(page.text).toContain('name="lga"');
+
+  const agent = request.agent(app);
+  const missing = await sendForm(agent, { lga: '' });
+  expect(missing.status).toBe(400);
+  expect(missing.text).toContain('Please choose your local government area.');
+
+  const ok = await sendForm(agent, { lga: 'lagelu', area: 'Akobo' });
+  expect(ok.headers.location).toBe('/signup/parent/code');
+  const parent = await User.findOne({ where: { fullName: 'Mama Tolu Adeyemi' } });
+  expect([parent.lga, parent.area]).toEqual(['lagelu', 'Akobo']);
 });

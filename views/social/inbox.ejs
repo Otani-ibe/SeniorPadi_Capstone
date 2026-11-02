@@ -1,32 +1,13 @@
 <%- include('../partials/header') %>
 
-<div class="page-head"><h1><%= t('messages.title') %></h1></div>
-
-<% if (conversations.length === 0) { %>
-  <div class="empty-state">
-    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-messages-square" aria-hidden="true"></i></span>
-    <p class="mt-4 text-[1.15rem]"><%= t('messages.none') %></p>
-    <a href="/find-seniors" class="btn mt-5"><%= t('nav.find') %><i class="icon-arrow-right" aria-hidden="true"></i></a>
-  </div>
-<% } %>
-
-<ul class="space-y-3">
-  <% conversations.forEach(function (c) { const unread = unreadIds.has(c.person.id); %>
-    <li>
-      <a href="/messages/<%= c.person.id %>" class="list-row <%= unread ? 'bg-mist ring-2 ring-indigo/30' : '' %>">
-        <%- include('../partials/avatar', { person: c.person, cls: 'h-16 w-16 shrink-0' }) %>
-        <span class="min-w-0 flex-1">
-          <span class="flex items-center gap-2">
-            <span class="text-[1.15rem] font-semibold"><%= c.person.firstName() %></span>
-            <% if (unread) { %><span class="tag-mine"><%= t('messages.new') %></span><% } %>
-            <span class="ml-auto text-[0.9rem] text-gray-700"><%= shortDate(c.last.createdAt) %></span>
-          </span>
-          <span class="block truncate text-gray-700"><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %></span>
-        </span>
-        <i class="icon-chevron-right text-indigo" aria-hidden="true"></i>
-      </a>
-    </li>
-  <% }) %>
-</ul>
+<%# a chat app: the people on the left; on a wide screen a note on the right until someone is chosen %>
+<div class="chat-shell chat-shell-nav mx-auto flex w-full max-w-6xl overflow-hidden bg-white md:my-4 md:rounded-[1.5rem] md:shadow-md md:shadow-slate-900/5 md:ring-1 md:ring-slate-200">
+  <%- include('../partials/chatList', { activeId: null }) %>
+  <section class="hidden min-w-0 flex-1 flex-col items-center justify-center bg-slate-50 p-8 text-center md:flex">
+    <span class="icon-dot-soft h-20 w-20 text-[2rem]"><i class="icon-messages-square" aria-hidden="true"></i></span>
+    <h2 class="mt-5 text-[1.5rem]"><%= t('messages.pick') %></h2>
+    <p class="mt-2 text-gray-700"><%= t('messages.pick_hint') %></p>
+  </section>
+</div>
 
 <%- include('../partials/footer') %>

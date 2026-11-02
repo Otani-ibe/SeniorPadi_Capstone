@@ -5,7 +5,7 @@
     { href: '/', label: t('nav.home'), icon: 'icon-house', active: path === '/' || path === '/call' },
     { href: '/events', label: t('nav.find_events'), short: t('nav.events'), icon: 'icon-calendar-days', active: path.startsWith('/events') || path.startsWith('/registrations') },
     { href: '/find-seniors', label: t('nav.find_seniors'), short: t('nav.seniors'), icon: 'icon-users', active: path.startsWith('/find-seniors') || path.startsWith('/report') || path.startsWith('/block') },
-    { href: '/messages', label: t('nav.messages'), icon: 'icon-messages-square', active: path.startsWith('/messages') },
+    { href: '/messages', label: t('nav.messages'), icon: 'icon-messages-square', badge: unreadMessages, active: path.startsWith('/messages') },
     { href: '/about', label: t('about.title'), icon: 'icon-info', topOnly: true, active: path === '/about' },
     // in the top menu, My account is the photo button at the right of the header instead
     { href: '/account', label: t('nav.account'), icon: 'icon-circle-user', badge: unreadCount, bottomOnly: Boolean(currentUser), active: ['/account', '/history', '/settings', '/notifications', '/change-password', '/verify'].some((p) => path.startsWith(p)) }
@@ -40,7 +40,7 @@
     <% shown.forEach(function (item) { %>
       <li>
         <a href="<%= item.href %>" <%= item.active ? 'aria-current=page' : '' %>
-           class="relative inline-flex min-h-12 items-center gap-2 rounded-md px-4 py-2 text-[0.95rem] no-underline transition
+           class="relative inline-flex min-h-11 items-center gap-2 rounded-md px-3 py-1.5 text-[0.95rem] no-underline transition
                   <%= item.active ? 'bg-mist font-semibold text-indigo' : 'font-medium text-gray-700 hover:bg-surface hover:text-ink' %>">
           <%= item.label %>
           <% if (item.badge > 0) { %>

@@ -100,6 +100,16 @@ async function ensureDefaultContent(models) {
   return added;
 }
 
+// 3b. the Ibadan events list, but only when the database has no events at all (a new site). Staff are free to add, edit
+// or cancel events after that: this never runs again once there is any event, and never changes or removes one.
+async function ensureSampleEvents(models) {
+  if (process.env.NODE_ENV === 'test') return 0;
+  if ((await models.Event.count()) > 0) return 0;
+  const { addSampleEvents } = require('./sampleEvents');
+  const result = await addSampleEvents(models);
+  return result.events;
+}
+
 // 4. the first staff account, from ADMIN_NAME / ADMIN_PHONE / ADMIN_PASSWORD
 async function ensureFirstAdmin(models) {
   const adminCount = await models.User.count({ where: { role: 'admin' } });
@@ -141,4 +151,4 @@ function ensureCss() {
   }
 }
 
-module.exports = { prepareEnvironment, waitForDatabase, ensureDefaultContent, ensureFirstAdmin, ensureCss, line };
+module.exports = { prepareEnvironment, waitForDatabase, ensureDefaultContent, ensureSampleEvents, ensureFirstAdmin, ensureCss, line };

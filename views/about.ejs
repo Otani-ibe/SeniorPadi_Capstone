@@ -13,7 +13,7 @@
   </a>
 <% } %>
 <% function secondaryButton(href, label, onDark) { %>
-  <a href="<%= href %>" class="<%= onDark ? 'inline-flex min-h-14 items-center justify-center gap-2 rounded-md border-2 border-white/70 px-7 font-semibold text-white no-underline transition hover:bg-white/10' : 'btn-plain' %>">
+  <a href="<%= href %>" class="<%= onDark ? 'inline-flex min-h-12 items-center justify-center gap-2 rounded-md border-2 border-white/70 px-5 font-semibold text-white no-underline transition hover:bg-white/10' : 'btn-plain' %>">
     <%= label %>
   </a>
 <% } %>
@@ -55,13 +55,13 @@
 </section>
 
 <%# ================= 3. MISSION AND VISION ================= %>
-<section class="mt-16 grid grid-cols-1 gap-4 md:mt-28 md:grid-cols-2">
-  <% [['icon-target', 'about.mission_title', 'about.mission_text', 'bg-indigo text-white', 'bg-white/15', 'text-white/90'],
-      ['icon-eye', 'about.vision_title', 'about.vision_text', 'bg-mist text-ink', 'bg-white text-indigo', 'text-gray-700']].forEach(function (c) { %>
-    <div class="rounded-card p-6 md:p-9 <%= c[3] %>">
-      <span class="flex h-12 w-12 items-center justify-center rounded-full text-[1.2rem] <%= c[4] %>"><i class="<%= c[0] %>" aria-hidden="true"></i></span>
-      <h2 class="mt-4 text-[1.6rem]"><%= t(c[1]) %></h2>
-      <p class="mt-2 text-[1.15rem] leading-relaxed <%= c[5] %>"><%= t(c[2]) %></p>
+<section class="mt-16 grid grid-cols-1 gap-10 md:mt-28 md:grid-cols-2 md:gap-14">
+  <% [['icon-target', 'about.mission_title', 'about.mission_text'],
+      ['icon-eye', 'about.vision_title', 'about.vision_text']].forEach(function (c) { %>
+    <div class="border-t-2 border-gray-200 pt-6">
+      <i class="<%= c[0] %> text-[1.8rem] text-ink" aria-hidden="true"></i>
+      <h2 class="mt-3 text-[1.6rem]"><%= t(c[1]) %></h2>
+      <p class="mt-2 text-[1.15rem] leading-relaxed text-gray-700"><%= t(c[2]) %></p>
     </div>
   <% }) %>
 </section>
@@ -74,7 +74,7 @@
     <% [['icon-calendar-days', 'about.do1_title', 'about.do1_text'], ['icon-handshake', 'about.do2_title', 'about.do2_text'],
         ['icon-users', 'about.do3_title', 'about.do3_text'], ['icon-hand-heart', 'about.do4_title', 'about.do4_text']].forEach(function (f) { %>
       <li class="flex flex-col gap-3 min-[480px]:flex-row min-[480px]:gap-4">
-        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo text-[1.2rem] text-white"><i class="<%= f[0] %>" aria-hidden="true"></i></span>
+        <span class="flex w-8 shrink-0 pt-0.5 text-[1.6rem] text-ink"><i class="<%= f[0] %>" aria-hidden="true"></i></span>
         <span class="min-w-0">
           <h3 class="text-[1.25rem]"><%= t(f[1]) %></h3>
           <p class="mt-1 text-gray-700"><%= t(f[2]) %></p>
@@ -122,7 +122,7 @@
       <% [['icon-church', 'about.cat_faith'], ['icon-school', 'about.cat_schools'], ['icon-dumbbell', 'about.cat_fitness'],
           ['icon-store', 'about.cat_business'], ['icon-house-plus', 'about.cat_ngo'], ['icon-hand-heart', 'about.cat_volunteers']].forEach(function (p) { %>
         <li class="flex min-w-0 items-center gap-3 py-1 font-medium leading-snug [overflow-wrap:anywhere]">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-indigo"><i class="<%= p[0] %>" aria-hidden="true"></i></span>
+          <span class="flex w-7 shrink-0 justify-center text-[1.4rem] text-gray-700"><i class="<%= p[0] %>" aria-hidden="true"></i></span>
           <%= t(p[1]) %>
         </li>
       <% }) %>
@@ -151,7 +151,7 @@
     <h2 class="text-[1.9rem] leading-tight md:text-[2.5rem]"><%= t('about.final_title') %></h2>
     <p class="mt-4 text-[1.15rem] leading-relaxed text-white/90"><%= t('about.final_text') %></p>
     <div class="mt-7 flex flex-col gap-3 sm:flex-row">
-      <a href="/events" class="inline-flex min-h-14 items-center justify-center gap-2 rounded-md bg-white px-7 font-semibold text-indigo no-underline transition hover:bg-mist">
+      <a href="/events" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-white px-5 font-semibold text-indigo no-underline transition hover:bg-mist">
         <%= t('about.cta_explore') %><i class="icon-arrow-right" aria-hidden="true"></i>
       </a>
       <% secondaryButton(PARTNER_HREF, t('about.cta_touch'), true) %>

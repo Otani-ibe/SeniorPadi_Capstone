@@ -61,7 +61,17 @@ router.get('/', async (req, res) => {
     }
   }
 
-  res.render('home', { title: 'SeniorPadi', fullWidth: true, recommended, justRegistered });
+  // faces for the middle of the circle: the demo seniors' pictures, men and women taking turns
+  const withPhoto = require('../scripts/data/seniors').filter((s) => s.photo);
+  const women = withPhoto.filter((s) => s.gender === 'female');
+  const men = withPhoto.filter((s) => s.gender === 'male');
+  const seniorFaces = [];
+  for (let i = 0; i < Math.max(women.length, men.length); i++) {
+    if (women[i]) seniorFaces.push('/images/seniors/' + women[i].photo + '.jpg');
+    if (men[i]) seniorFaces.push('/images/seniors/' + men[i].photo + '.jpg');
+  }
+
+  res.render('home', { title: 'SeniorPadi', fullWidth: true, recommended, justRegistered, seniorFaces });
 });
 
 router.get('/about', (req, res) => {
@@ -164,12 +174,15 @@ router.post('/signup', signupLimiter, async (req, res) => {
   const values = {
     fullName: (req.body.fullName || '').trim(),
     phone: (req.body.phone || '').trim(),
+    lga: Event.AREAS.includes(req.body.lga) ? req.body.lga : '',
+    area: (req.body.area || '').trim().slice(0, 255),
     ageDeclared: req.body.ageDeclared === 'yes'
   };
   const errors = {};
 
   const phone = normalizePhone(values.phone);
   if (values.fullName.length < 2) errors.fullName = req.t('signup.error_name');
+  if (!values.lga) errors.lga = req.t('signup.error_lga');
   if (!phone) errors.phone = req.t('phone.' + (phoneProblem(values.phone) || 'start'));
   if (!values.ageDeclared) errors.ageDeclared = req.t('signup.error_age');
 
@@ -184,10 +197,12 @@ router.post('/signup', signupLimiter, async (req, res) => {
 
   // no password to choose: the column is filled with a random one nobody knows
   const user = reusable
-    ? await existing.update({ fullName: values.fullName, preferredLanguage: req.lang })
+    ? await existing.update({ fullName: values.fullName, lga: values.lga, area: values.area || null, preferredLanguage: req.lang })
     : await User.create({
       fullName: values.fullName,
       phone,
+      lga: values.lga,
+      area: values.area || null,
       passwordHash: await bcrypt.hash(crypto.randomBytes(24).toString('hex'), BCRYPT_COST),
       ageDeclared: true,
       preferredLanguage: req.lang
@@ -288,6 +303,8 @@ router.post('/signup/parent', signupLimiter, async (req, res) => {
     childPhone: (req.body.childPhone || '').trim(),
     parentName: (req.body.parentName || '').trim(),
     parentPhone: (req.body.parentPhone || '').trim(),
+    lga: Event.AREAS.includes(req.body.lga) ? req.body.lga : '',
+    area: (req.body.area || '').trim().slice(0, 255),
     ageDeclared: req.body.ageDeclared === 'yes'
   };
   const errors = {};
@@ -300,6 +317,7 @@ router.post('/signup/parent', signupLimiter, async (req, res) => {
   if (values.parentName.length < 2) errors.parentName = req.t('signup.error_name');
   if (!parentPhone) errors.parentPhone = phoneError(values.parentPhone);
   if (childPhone && parentPhone && childPhone === parentPhone) errors.parentPhone = req.t('parent.error_same');
+  if (!values.lga) errors.lga = req.t('signup.error_lga');
   if (!values.ageDeclared) errors.ageDeclared = req.t('parent.error_age');
 
   // a number that already has a confirmed account is not made again; one that never typed its code can be
@@ -311,7 +329,7 @@ router.post('/signup/parent', signupLimiter, async (req, res) => {
     return res.status(400).render('auth/parent', { title: req.t('parent.page_title'), errors, values });
   }
 
-  const details = { fullName: values.parentName, preferredLanguage: req.lang, createdByName: values.childName, createdByPhone: childPhone };
+  const details = { fullName: values.parentName, lga: values.lga, area: values.area || null, preferredLanguage: req.lang, createdByName: values.childName, createdByPhone: childPhone };
   const parent = reusable
     ? await existing.update(details)
     : await User.create({

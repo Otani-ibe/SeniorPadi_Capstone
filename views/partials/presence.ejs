@@ -1,0 +1,8 @@
+<%# The online/offline badge beside a person's name. The words are there as well as the dot, so it never
+    depends on colour alone. Hidden when that person chose not to show their status.
+    public/js/presence.js keeps it up to date while the page is open. Needs: person. %>
+<% const st = presenceOf(person); %>
+<span class="presence <%= typeof corner !== 'undefined' && corner ? 'presence-corner' : '' %>" data-presence="<%= person.id %>" data-status="<%= st || '' %>" <%= st ? '' : 'hidden' %>
+      data-online="<%= t('presence.online') %>" data-offline="<%= t('presence.offline') %>">
+  <span class="presence-dot" aria-hidden="true"></span><span data-presence-text <%- typeof corner !== 'undefined' && corner ? 'class="sr-only"' : '' %>><%= st === 'online' ? t('presence.online') : t('presence.offline') %></span>
+</span>
