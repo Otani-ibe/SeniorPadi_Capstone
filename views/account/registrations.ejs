@@ -9,11 +9,42 @@
   <a href="/history" class="btn-plain"><i class="icon-history" aria-hidden="true"></i><%= t('registrations.see_past') %></a>
 </div>
 
-<% if (registrations.length === 0) { %>
+<% if (total > 0) { %>
+  <form action="/registrations" method="get" role="search" class="mb-5">
+    <label for="q" class="sr-only"><%= t('registrations.search_label') %></label>
+    <div class="flex gap-2">
+      <span class="relative block flex-1">
+        <i class="icon-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-indigo" aria-hidden="true"></i>
+        <input type="search" id="q" name="q" value="<%= q %>" placeholder="<%= t('registrations.search_placeholder') %>" enterkeyhint="search"
+               class="min-h-12 w-full rounded-full border-0 bg-white py-2 pl-11 pr-4 text-[1.05rem] text-ink shadow-sm ring-1 ring-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-4 focus:ring-indigo/25">
+      </span>
+      <button class="btn w-auto shrink-0 px-5"><%= t('events.search_button') %></button>
+    </div>
+    <% if (q) { %>
+      <p class="mt-2 text-gray-700"><%= t('registrations.search_showing', { q }) %> <a href="/registrations" class="font-semibold text-indigo"><%= t('registrations.search_clear') %></a></p>
+      <%# emptying the box (or tapping its little ×) shows everything again %>
+      <script>
+        (function () {
+          var box = document.getElementById('q');
+          ['input', 'search'].forEach(function (e) {
+            box.addEventListener(e, function () { if (!box.value.trim()) location.href = '/registrations'; });
+          });
+        })();
+      </script>
+    <% } %>
+  </form>
+<% } %>
+
+<% if (total === 0) { %>
   <div class="empty-state">
     <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-ticket" aria-hidden="true"></i></span>
     <p class="mt-4 text-[1.15rem]"><%= t('registrations.none') %></p>
     <a href="/events" class="btn mt-5"><%= t('nav.find_events') %><i class="icon-arrow-right" aria-hidden="true"></i></a>
+  </div>
+<% } else if (registrations.length === 0) { %>
+  <div class="empty-state">
+    <p class="text-[1.15rem]"><%= t('registrations.search_none', { q }) %></p>
+    <a href="/registrations" class="btn-plain mt-5"><%= t('registrations.search_clear') %></a>
   </div>
 <% } %>
 

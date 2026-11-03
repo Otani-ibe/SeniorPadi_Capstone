@@ -34,8 +34,15 @@ router.get('/registrations', requireAuth, async (req, res) => {
     include: [{ model: Event, where: { endsAt: { [Op.gt]: new Date() } }, include: [Organization] }],
     order: [[Event, 'startsAt', 'ASC']]
   });
-  for (const reg of registrations) reg.qr = await qrSvg(reg.qrToken);
-  res.render('account/registrations', { title: req.t('stack.my_tickets'), wide: true, registrations });
+  // search by event name, place, host or ticket number
+  const q = String(req.query.q || '').trim().slice(0, 80);
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const shown = words.length === 0 ? registrations : registrations.filter((reg) => {
+    const text = [reg.Event.title, reg.Event.locationText, reg.Event.Organization && reg.Event.Organization.name, reg.ticketNumber].join(' ').toLowerCase();
+    return words.every((w) => text.includes(w));
+  });
+  for (const reg of shown) reg.qr = await qrSvg(reg.qrToken);
+  res.render('account/registrations', { title: req.t('stack.my_tickets'), wide: true, registrations: shown, total: registrations.length, q });
 });
 
 router.post('/registrations/:id/cancel', requireAuth, async (req, res) => {
