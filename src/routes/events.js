@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const { Event, Organization, Registration, EventInterest } = require('../models');
 const capacity = require('../services/capacity');
 const { registerAndNotify } = require('../services/registration');
+const { personalFirst } = require('../services/recommendations');
 const { translateEvents } = require('../services/translate');
 const { needsContactCheck } = require('./verify');
 const { requireAuth } = require('../middleware/auth');
@@ -87,7 +88,8 @@ router.get('/events', async (req, res) => {
     where[Op.or] = [{ title: like }, { description: like }, { locationText: like }, { '$Organization.name$': like }];
   }
 
-  const events = await Event.findAll({ where, include: [Organization], order: [['startsAt', 'ASC']] });
+  // events marked "show first" lead, then everything else soonest first
+  const events = await Event.findAll({ where, include: [Organization], order: [['featured', 'DESC'], ['startsAt', 'ASC']] });
   const counts = await seatCounts(events.map((e) => e.id));
 
   // events this senior already has a place at
@@ -118,6 +120,13 @@ router.get('/events', async (req, res) => {
   const showSkipped = req.query.skipped === '1';
   if (showSkipped && later.length === 0) return res.redirect(eventsUrl(filters));
   let deck = showSkipped ? later : fresh;
+
+  // a signed-in senior sees what is near them and what is picked for them before anything else
+  if (req.user && !showSkipped) {
+    deck = await personalFirst(req.user, deck);
+    // ...but events marked "show first" still come before those (the deck was already in that order)
+    deck = deck.filter((e) => e.featured).concat(deck.filter((e) => !e.featured));
+  }
 
   // a guest tapped Register: that event goes on top and the sign-up pop-up opens
   const loginFor = !req.user && /^\d+$/.test(req.query.login || '') ? Number(req.query.login) : null;

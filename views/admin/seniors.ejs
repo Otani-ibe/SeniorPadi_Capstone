@@ -1,6 +1,6 @@
 <%- include('../partials/header') %>
 <% const filtered = filters.q || filters.lga || filters.id;
-   const idLabel = { unverified: ['Not sent', 'chip-grey'], pending: ['Waiting for check', 'chip-amber'], approved: ['Verified', 'chip-green'], rejected: ['Sent back', 'chip-red'], social_removed: ['Removed from social', 'chip-red'] }; %>
+   const idLabel = { unverified: ['Not verified', 'chip-grey'], pending: ['NIN waiting for check', 'chip-amber'], approved: ['Verified', 'chip-green'], not_eligible: ['Under 50', 'chip-red'], rejected: ['NIN not accepted', 'chip-red'], social_removed: ['Removed from social', 'chip-red'] }; %>
 
 <div class="admin-head">
   <div>
@@ -20,9 +20,9 @@
     <option value="">All LGAs</option>
     <% areas.forEach(function (a) { %><option value="<%= a %>" <%= filters.lga === a ? 'selected' : '' %>><%= t('area.' + a) %></option><% }) %>
   </select>
-  <label for="id" class="sr-only">ID check</label>
+  <label for="id" class="sr-only">Identity check</label>
   <select id="id" name="id" class="admin-input">
-    <option value="">Any ID status</option>
+    <option value="">Any verification status</option>
     <% idStatuses.forEach(function (s) { %><option value="<%= s %>" <%= filters.id === s ? 'selected' : '' %>><%= idLabel[s][0] %></option><% }) %>
   </select>
   <button class="admin-plain">Search</button>
@@ -36,7 +36,7 @@
 <% } else { %>
   <div class="admin-box overflow-x-auto">
     <table class="admin-table min-w-[48rem] [&_td]:align-middle">
-      <thead><tr><th>Senior</th><th>Phone</th><th>LGA</th><th>Joined</th><th>ID check</th><th><span class="sr-only">Open</span></th></tr></thead>
+      <thead><tr><th>Senior</th><th>Phone</th><th>LGA</th><th>Joined</th><th>Identity</th><th><span class="sr-only">Open</span></th></tr></thead>
       <tbody>
         <% seniors.forEach(function (s) { %>
           <tr class="hover:bg-surface">

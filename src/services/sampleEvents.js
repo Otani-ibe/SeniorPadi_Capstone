@@ -8,7 +8,13 @@
 //
 // Used by the server at start-up (only when the database has no events at all), and by `npm run events:add` / `events:remove`.
 const { Op } = require('sequelize');
-const data = require('../scripts/data/ibadanEvents');
+// the lists it can add. The Ibadan list is the default; the December list is SeniorPadi's own first events (no flyers yet).
+const LISTS = {
+  ibadan: require('../scripts/data/ibadanEvents'),
+  december: require('../scripts/data/decemberEvents')
+};
+const ALL = Object.keys(LISTS);
+const listFor = (include) => include.flatMap((name) => LISTS[name] || []);
 
 // the same church is already in the admin page under another spelling: use it, don't add a second one
 const ORG_ALIASES = {
@@ -20,7 +26,7 @@ const norm = (s) => String(s).toLowerCase().replace(/[’'`.,()]/g, '').replace(
 const sameDay = (a, b) => new Date(a).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' }) === new Date(b).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
 
 // models: the app's models. Returns { events, orgs, filled, skipped: [text] }.
-async function addSampleEvents(models, { dry = false, log = () => {} } = {}) {
+async function addSampleEvents(models, { dry = false, log = () => {}, include = ['ibadan'] } = {}) {
   const { User, Organization, Event } = models;
   const orgs = await Organization.findAll();
   const orgByName = new Map(orgs.map((o) => [norm(o.name), o]));
@@ -33,12 +39,13 @@ async function addSampleEvents(models, { dry = false, log = () => {} } = {}) {
   let filled = 0;
   const skipped = [];
 
-  for (const e of data) {
+  for (const e of listFor(include)) {
     let org = findOrg(e.org);
 
     // already there? same title on the same day, or the same host on the same day
     const duplicate = existing.find((x) =>
-      sameDay(x.startsAt, e.startsAt) && (norm(x.title) === norm(e.title) || (org && x.organizationId === org.id))
+      // (our own events share one host, so for them only the same title counts)
+      sameDay(x.startsAt, e.startsAt) && (norm(x.title) === norm(e.title) || (org && !e.featured && x.organizationId === org.id))
     );
     if (duplicate) {
       const sameEvent = norm(duplicate.title) === norm(e.title) && duplicate.startsAt.getTime() === e.startsAt.getTime();
@@ -86,6 +93,9 @@ async function addSampleEvents(models, { dry = false, log = () => {} } = {}) {
         area: e.area,
         capacity: e.capacity,
         imageUrl: e.imageUrl,
+        featured: Boolean(e.featured),
+        volunteerEnabled: Boolean(e.volunteerCapacity),
+        volunteerCapacity: e.volunteerCapacity || null,
         category: e.category,
         organizationId: org.id,
         // registration closes the evening before, the same as the other events
@@ -104,15 +114,15 @@ async function addSampleEvents(models, { dry = false, log = () => {} } = {}) {
 }
 
 // models: the app's models. Returns { events, orgs }.
-async function removeSampleEvents(models, { dry = false, log = () => {} } = {}) {
+async function removeSampleEvents(models, { dry = false, log = () => {}, include = ['ibadan'] } = {}) {
   const { Organization, Event, Registration } = models;
   const orgs = await Organization.findAll();
   const orgByName = new Map(orgs.map((o) => [norm(o.name), o]));
   const findOrg = (name) => orgByName.get(norm(ORG_ALIASES[name] || name));
-  return removeThem(findOrg, { dry, log, Event, Registration });
+  return removeThem(findOrg, { dry, log, Event, Registration, data: listFor(include) });
 }
 
-async function removeThem(findOrg, { dry, log, Event, Registration }) {
+async function removeThem(findOrg, { dry, log, Event, Registration, data }) {
   let events = 0;
   for (const e of data) {
     const org = findOrg(e.org);
@@ -144,4 +154,4 @@ async function removeThem(findOrg, { dry, log, Event, Registration }) {
 }
 
 
-module.exports = { addSampleEvents, removeSampleEvents };
+module.exports = { addSampleEvents, removeSampleEvents, ALL };

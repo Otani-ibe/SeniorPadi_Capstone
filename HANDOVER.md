@@ -33,7 +33,7 @@ The code lives on **GitHub**. Render takes it from there.
 | `ADMIN_NAME` | Your full name |
 | `ADMIN_PHONE` | Your phone number. You'll log in with this |
 | `ADMIN_PASSWORD` | A password of 8 or more characters |
-| `SUPPORT_PHONE` | The number seniors should call for help |
+| `SUPPORT_PHONE`, `SUPPORT_WHATSAPP_URL` | The number seniors should call, and the WhatsApp link they should message (already set to SeniorPadi's own) |
 | `CLOUDFLARE_TURN_KEY_ID`, `CLOUDFLARE_TURN_API_TOKEN` | Cloudflare dashboard, Realtime, TURN Server: lets seniors voice call each other over mobile networks |
 | `BREVO_API_KEY` | In Brevo: SMTP & API, then API Keys, then Generate |
 | `BREVO_SENDER_EMAIL` | An email address you've verified in Brevo |
@@ -42,9 +42,9 @@ The code lives on **GitHub**. Render takes it from there.
 4. Click **Apply** and wait about 5 minutes.
 5. Open the web address Render gives you (for example `https://seniorpadi.onrender.com`), then add `/login` to the end.
 6. Log in with the admin phone and password you chose.
-7. Go to **System** in the menu. Everything should be green.
+7. Run `npm run services:check` in the terminal. It says whether texts, emails and uploads are set up.
 
-You can leave Brevo and Cloudinary empty at first. The site still works, but texts and uploads stay off until you add them. The System page shows what's missing.
+You can leave Brevo and Cloudinary empty at first. The site still works, but texts and uploads stay off until you add them. `npm run services:check` shows what's missing.
 
 ---
 
@@ -80,7 +80,6 @@ Log in at your web address with `/login` on the end. The menu at the top has:
 - **Reports:** read the conversation, then warn the person, remove them from Find Seniors, or dismiss the report.
 - **Welcome video:** upload the welcome video for English and Yorùbá, and edit the written version.
 - **Staff:** add or remove people who can use this admin area.
-- **System:** check that everything is working.
 
 **Attendance on the day:**
 1. Open the event's **Attendance** page and print it.
@@ -112,7 +111,7 @@ When the developer changes the code on GitHub, Render updates the site automatic
 | The site takes a long time to open | It was asleep. Wait a minute. Set up section 3 so it stays awake |
 | "Could not connect to the database" in the Render logs | In Neon, check the project still exists. Copy the connection string again into `DATABASE_URL` on Render |
 | "The database password is wrong" | The Neon password changed. Copy the connection string again from Neon |
-| System says **Texts and emails: Not set up** or **Test mode** | Add `BREVO_API_KEY` in Render. Remove `NOTIFY_DRY_RUN` if it's there |
+| Texts and emails do not arrive | Run `npm run services:check`. Add `BREVO_API_KEY` in Render, and remove `NOTIFY_DRY_RUN` if it's there |
 | Texts stopped arriving | Log in to Brevo and check you still have SMS credits |
 | Pictures won't upload | Check the three Cloudinary settings on Render |
 | Everyone got logged out | Normal after an update. If it happens a lot, check `SESSION_SECRET` is set on Render |

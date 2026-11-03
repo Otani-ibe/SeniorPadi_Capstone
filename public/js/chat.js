@@ -54,6 +54,49 @@
 
     var li = document.createElement('li');
     li.id = 'msg-' + msg.id;
+
+    // an answered call: who called and for how long, a line in the middle
+    if (msg.kind === 'call') {
+      li.className = 'flex justify-center py-1';
+      var line = document.createElement('p');
+      line.className = 'inline-flex flex-wrap items-center justify-center gap-x-2 rounded-full bg-white px-4 py-2 text-[0.95rem] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200';
+      var lineIcon = document.createElement('i');
+      lineIcon.className = (mine ? 'icon-phone-outgoing' : 'icon-phone-incoming') + ' text-[1.1rem] text-indigo';
+      lineIcon.setAttribute('aria-hidden', 'true');
+      var who = document.createElement('span');
+      who.textContent = thread.getAttribute(mine ? 'data-call-you' : 'data-call-them');
+      var secs = Math.max(0, Math.round(Number(msg.body) || 0));
+      var unit = secs >= 3600 ? 'hour' : secs >= 60 ? 'min' : 'sec';
+      var length = document.createElement('span');
+      length.className = 'font-bold text-ink';
+      length.textContent = thread.getAttribute('data-len-' + unit)
+        .replace('{h}', Math.floor(secs / 3600))
+        .replace('{m}', unit === 'hour' ? Math.floor((secs % 3600) / 60) : Math.floor(secs / 60))
+        .replace('{s}', unit === 'sec' ? secs : secs % 60);
+      line.appendChild(lineIcon); line.appendChild(who); line.appendChild(length);
+      li.appendChild(line);
+      thread.appendChild(li);
+      toBottom();
+      return;
+    }
+
+    // a call that rang out: a line in the middle, not a bubble
+    if (msg.kind === 'missed_call') {
+      li.className = 'flex justify-center py-1';
+      var note = document.createElement('p');
+      note.className = 'inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[0.95rem] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200';
+      var noteIcon = document.createElement('i');
+      noteIcon.className = 'icon-phone-missed text-[1.1rem] text-full-tag';
+      noteIcon.setAttribute('aria-hidden', 'true');
+      var noteText = document.createElement('span');
+      noteText.textContent = thread.getAttribute(mine ? 'data-call-unanswered' : 'data-call-missed');
+      note.appendChild(noteIcon);
+      note.appendChild(noteText);
+      li.appendChild(note);
+      thread.appendChild(li);
+      toBottom();
+      return;
+    }
     li.className = 'flex ' + (mine ? 'justify-end' : 'justify-start');
 
     var bubble = document.createElement('div');
@@ -105,6 +148,8 @@
   }
 
   socket.on('message:new', addMessage);
+  // a line made by this page itself (a missed call to someone offline): shown at once, and never twice
+  document.addEventListener('sp:message', function (e) { addMessage(e.detail); });
 
   // they opened the conversation: my newest message is now read
   socket.on('messages:read', function (data) {

@@ -1,14 +1,14 @@
 <%- include('../partials/header') %>
 <%
   const s = senior;
-  const idLabel = { unverified: ['Not sent', 'chip-grey'], pending: ['Waiting for check', 'chip-amber'], approved: ['Verified', 'chip-green'], rejected: ['Sent back', 'chip-red'], social_removed: ['Removed from social', 'chip-red'] }[s.verificationStatus];
+  const idLabel = { unverified: ['Not verified', 'chip-grey'], pending: ['NIN waiting for check', 'chip-amber'], approved: ['Verified', 'chip-green'], not_eligible: ['Under 50', 'chip-red'], rejected: ['NIN not accepted', 'chip-red'], social_removed: ['Removed from social', 'chip-red'] }[s.verificationStatus];
   const regLabel = { registered: ['Registered', 'chip-indigo'], attended: ['Came', 'chip-green'], no_show: ['Missed', 'chip-amber'], cancelled: ['Cancelled', 'chip-grey'] };
   const safeName = s.fullName.replace(/'/g, '');
   const info = [
     ['icon-phone', 'Phone', s.localPhone(), s.phoneVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']],
     ['icon-mail', 'Email', s.email || 'Not given', s.email ? (s.emailVerifiedAt ? ['Confirmed', 'chip-green'] : ['Not confirmed', 'chip-amber']) : null],
     ['icon-map-pin', 'Lives in', placeOf(s) || 'Not given', null],
-    ['icon-id-card', 'ID check', null, idLabel],
+    ['icon-id-card', 'Identity (NIN)', null, idLabel],
     ['icon-languages', 'Language', s.preferredLanguage === 'yo' ? 'Yorùbá' : 'English', null],
     ['icon-bell', 'Reminders', s.remindersEnabled ? s.reminderDaysBefore + ' day(s) before each event' : 'Turned off', null],
     ['icon-calendar-plus', 'Joined', formatDate(s.createdAt), null]

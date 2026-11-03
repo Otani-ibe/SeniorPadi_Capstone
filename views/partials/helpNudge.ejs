@@ -6,11 +6,10 @@
     Script: public/js/help.js %>
 <% const NUDGE_SECONDS = 90;
    if (!currentUser && !bookingFor && !/^\/(signup\/parent|book-for-parent|login|admin)/.test(currentPath)) {
-     const waBase = whatsappUrl ? whatsappUrl.split('?')[0] : '';
      const options = [
        { href: '/signup/parent', title: t('help.family_title'), text: t('help.family_text'), action: t('help.family_action'), main: true },
        { href: supportTel ? 'tel:' + supportTel : '/call', title: t('call.title'), text: t('help.call_text'), action: t('help.call_action') },
-       supportTel ? { href: waBase + '?text=' + encodeURIComponent(t('whatsapp.msg_2')), external: true, title: t('whatsapp.text_us'), text: t('help.wa_text'), action: t('help.wa_action') } : null
+       supportTel ? { href: whatsappLink(t('whatsapp.msg_2')), external: true, title: t('whatsapp.text_us'), text: t('help.wa_text'), action: t('help.wa_action') } : null
      ].filter(Boolean); %>
   <div data-help-nudge data-wait="<%= NUDGE_SECONDS %>" hidden>
     <div class="fixed inset-0 z-40 bg-ink/60" data-help-close aria-hidden="true"></div>

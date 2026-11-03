@@ -18,6 +18,14 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Only the superadmin: the one staff account that may open a NIN. Used after requireAdmin.
+function requireSuperAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'admin' || !req.user.isSuperAdmin) {
+    return res.status(403).render('error', { title: req.t('error.title'), message: req.t('error.not_allowed') });
+  }
+  next();
+}
+
 // After an admin resets a password, the senior has to pick a new one first
 function requirePasswordChanged(req, res, next) {
   if (req.user && req.user.mustChangePassword && req.path !== '/change-password' && req.path !== '/logout') {
@@ -26,14 +34,20 @@ function requirePasswordChanged(req, res, next) {
   next();
 }
 
-// Find Seniors and messages are only for seniors whose ID was approved.
-// Checked on the server every time, never trusted from the page.
+// Find Seniors, senior profiles, messages and calls are only for seniors whose identity was verified (by NIN,
+// see services/identity.js). Checked on the server every time, never trusted from the page. Anyone else who
+// types one of these addresses is sent to the verification page.
 function requireVerified(req, res, next) {
-  if (!req.user) return res.redirect('/login');
-  if (req.user.role !== 'senior' || req.user.verificationStatus !== 'approved') {
-    return res.redirect('/find-seniors');
+  if (!req.user) {
+    req.session.returnTo = req.originalUrl;
+    return res.redirect('/login');
+  }
+  if (req.user.role === 'admin') return res.redirect('/admin');
+  if (req.user.verificationStatus !== 'approved') {
+    if (req.user.verificationStatus === 'social_removed') return res.redirect('/find-seniors'); // told why, there
+    return res.redirect('/identity');
   }
   next();
 }
 
-module.exports = { requireAuth, requireAdmin, requirePasswordChanged, requireVerified };
+module.exports = { requireAuth, requireAdmin, requireSuperAdmin, requirePasswordChanged, requireVerified };

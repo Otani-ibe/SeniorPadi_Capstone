@@ -23,6 +23,12 @@ const Attendance = require('./attendance')(sequelize);
 const PhoneExchange = require('./phoneExchange')(sequelize);
 const VerificationCode = require('./verificationCode')(sequelize);
 const Translation = require('./translation')(sequelize);
+const IdentityVerification = require('./identityVerification')(sequelize);
+
+// keep coordinates in step with the address words (see geoHooks.js)
+const installGeoHooks = require('./geoHooks');
+installGeoHooks(User, 'user', ['area', 'lga']);
+installGeoHooks(Event, 'event', ['locationText', 'area']);
 
 // associations
 Organization.hasMany(Event, { foreignKey: 'organizationId' });
@@ -58,6 +64,8 @@ PhoneExchange.belongsTo(User, { foreignKey: 'requesterId', as: 'requester' });
 PhoneExchange.belongsTo(User, { foreignKey: 'recipientId', as: 'recipient' });
 
 VerificationCode.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(IdentityVerification, { foreignKey: 'userId' });
+IdentityVerification.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = {
   sequelize,
@@ -79,5 +87,6 @@ module.exports = {
   Attendance,
   PhoneExchange,
   VerificationCode,
-  Translation
+  Translation,
+  IdentityVerification
 };

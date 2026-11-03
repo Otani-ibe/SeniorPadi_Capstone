@@ -37,7 +37,9 @@ function rankEvents(candidates, history) {
   const score = (e) => 3 * (byCategory[e.category] || 0)
     + 2 * (byHost[e.organizationId] || 0);
 
-  return candidates.slice().sort((a, b) => score(b) - score(a) || new Date(a.startsAt) - new Date(b.startsAt));
+  // events marked "show first" always lead, then the best match, then the soonest
+  const lead = (e) => (e.featured ? 1 : 0);
+  return candidates.slice().sort((a, b) => lead(b) - lead(a) || score(b) - score(a) || new Date(a.startsAt) - new Date(b.startsAt));
 }
 
 // returns up to `limit` events (soonest first for a visitor), each with .slotsLeft (null when there is no limit)
@@ -46,7 +48,7 @@ async function recommendedEvents(user, limit = 4) {
   let pool = await Event.findAll({
     where: { status: 'published', startsAt: { [Op.gt]: now }, registrationDeadline: { [Op.gt]: now } },
     include: [Organization],
-    order: [['startsAt', 'ASC']],
+    order: [['featured', 'DESC'], ['startsAt', 'ASC']], // "show first" events lead
     limit: POOL_SIZE
   });
 
@@ -70,4 +72,4 @@ async function recommendedEvents(user, limit = 4) {
   return rankEvents(fresh, pastEvents).slice(0, limit);
 }
 
-module.exports = { recommendedEvents, rankEvents };
+module.exports = { recommendedEvents, rankEvents, placesLeftFor };

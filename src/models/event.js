@@ -39,6 +39,7 @@ module.exports = (sequelize) => {
     volunteerEnabled: { type: DataTypes.BOOLEAN, defaultValue: false },
     volunteerCapacity: DataTypes.INTEGER,
     hostedBySenior: { type: DataTypes.BOOLEAN, defaultValue: false },
+    featured: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }, // "show first": ahead of every other event on the Events and home pages
     registrationDeadline: { type: DataTypes.DATE, allowNull: false },
     status: {
       type: DataTypes.ENUM('published', 'cancelled', 'completed'),
@@ -46,8 +47,18 @@ module.exports = (sequelize) => {
     },
     createdByAdminId: DataTypes.INTEGER,
     checkinToken: { type: DataTypes.STRING(64), unique: true }, // the host organization's check-in link; empty = none
-    checkinTokenAt: DataTypes.DATE
+    checkinTokenAt: DataTypes.DATE,
+    // where it is, in degrees. Both or neither. Found from the address by services/geocode.js
+    latitude: { type: DataTypes.DOUBLE, validate: { min: -90, max: 90 } },
+    longitude: { type: DataTypes.DOUBLE, validate: { min: -180, max: 180 } },
+    geoSource: DataTypes.STRING(12), // 'geocoded', or 'area' = the middle of their local government area
+    geocodedAt: DataTypes.DATE
   }, {
+    validate: {
+      coordinatesComplete() {
+        if ((this.latitude == null) !== (this.longitude == null)) throw new Error('Latitude and longitude must be given together.');
+      }
+    },
     indexes: [{ fields: ['startsAt', 'status'] }]
   });
 

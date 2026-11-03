@@ -2,8 +2,11 @@
     On a phone the picture is on top; on a wide screen it is on the left.
     The picture is shown at its own shape, so the card fits any flyer exactly (landscape, square or portrait).
     In the Find events deck it needs: event, pos (0 = on top, 1 and 2 = peeking behind, 3 = hidden), number, total, filters.
-    Without pos (e.g. the "you're registered" pop-up) it's a plain card with no counter or buttons. %>
+    Without pos (e.g. the "you're registered" pop-up) it's a plain card with no counter or buttons.
+    In the deck a signed-in senior's first cards can carry a small note (event.deckNotes: 'near', 'recommended') saying why
+    they are first. %>
 <% const inDeck = typeof pos !== 'undefined';
+   const notes = Array.isArray(event.deckNotes) ? event.deckNotes : [];
    const alt = event.tImageAlt || event.imageAlt || t('event.image_alt', { title: event.tTitle || event.title }); %>
 <article class="<%= inDeck ? 'deck-card' : '' %> flex flex-col gap-3 rounded-[1.75rem] bg-white p-2.5 shadow-md shadow-slate-900/5 ring-1 ring-slate-100 md:flex-row md:gap-5 md:p-3"
   <% if (inDeck) { %>
@@ -33,6 +36,14 @@
   <div class="contents md:flex md:min-w-0 md:flex-1 md:flex-col">
   <div class="flex min-w-0 flex-col px-1.5 pb-1.5 md:py-1.5 md:pr-1.5">
     <% if (inDeck) { %><p class="mb-1 text-[0.95rem] font-medium text-slate-500"><%= t('stack.counter', { n: number, total: total }) %></p><% } %>
+    <%# why this one is first: close to them, and/or picked for them %>
+    <% if (notes.length > 0) { %>
+      <p class="mb-1.5 flex flex-wrap gap-1.5">
+        <% notes.forEach(function (note) { %>
+          <span data-deck-note="<%= note %>" class="inline-flex items-center gap-1.5 rounded-full bg-mist px-3 py-1 text-[0.9rem] font-semibold text-indigo"><i class="<%= note === 'near' ? 'icon-navigation' : 'icon-sparkles' %>" aria-hidden="true"></i><%= t(note === 'near' ? 'deck.near' : 'deck.recommended') %></span>
+        <% }) %>
+      </p>
+    <% } %>
     <h2 class="text-[1.45rem] font-extrabold leading-tight tracking-tight text-slate-900 md:line-clamp-2 md:text-[1.6rem]"><%= event.tTitle || event.title %></h2>
     <% if (event.Organization) { %>
       <p class="mt-1 text-slate-600"><%= t('stack.hosted_by', { org: event.Organization.name }) %></p>

@@ -1,50 +1,54 @@
 <%- include('../partials/header') %>
 <%
   const statCards = [
-    { key: 'events', label: 'Events listed', icon: 'calendar', note: 'Not counting cancelled ones', href: '/admin/events' },
-    { key: 'registrations', label: 'Registrations', icon: 'ticket', note: 'Places booked, not cancelled', href: '/admin/events' },
-    { key: 'attendees', label: 'Attendees', icon: 'user-check', note: 'Checked in at an event', href: '/admin/events' },
-    { key: 'seniors', label: 'Seniors signed up', icon: 'users', note: 'Accounts created', href: '/admin/seniors' }
+    { key: 'events', label: 'Events', icon: 'calendar', tint: '', note: 'Listed, not cancelled', href: '/admin/events' },
+    { key: 'registrations', label: 'Registrations', icon: 'ticket', tint: 'admin-icon-green', note: 'Places booked', href: '/admin/events' },
+    { key: 'attendees', label: 'Attendees', icon: 'user-check', tint: 'admin-icon-amber', note: 'Checked in at an event', href: '/admin/events' },
+    { key: 'seniors', label: 'Seniors', icon: 'users', tint: 'admin-icon-sky', note: 'Accounts created', href: '/admin/seniors' }
   ];
   const todo = [
-    { href: '/admin/ids', icon: 'id-card', label: 'ID checks waiting', count: pendingIds },
+    ...(currentUser.isSuperAdmin ? [{ href: '/admin/ids', icon: 'id-card', label: 'Identity checks', count: pendingIds }] : []),
     { href: '/admin/reports', icon: 'flag', label: 'Open reports', count: openReports },
-    { href: needsAttendance.length ? '/admin/events/' + needsAttendance[0].id + '/attendance' : '/admin/events', icon: 'clipboard', label: 'Events with attendance to enter', count: needsAttendance.length }
+    { href: needsAttendance.length ? '/admin/events/' + needsAttendance[0].id + '/attendance' : '/admin/events', icon: 'clipboard', label: 'Attendance to enter', count: needsAttendance.length }
   ];
   const maxDay = Math.max(1, ...stats.days.map((d) => d.total));
   const maxCat = Math.max(1, ...stats.categories.map((c) => c.total));
-  const startupWarnings = typeof systemWarnings !== 'undefined' ? systemWarnings : [];
   const icon = (name, cls) => include('../partials/icon', { name, cls });
 %>
 
 <div class="admin-head">
   <div>
-    <h1>Dashboard</h1>
-    <p class="count">Welcome back, <%= currentUser.firstName() %>. Here's what's happening.</p>
+    <h1>Hello, <%= currentUser.firstName() %></h1>
+    <p class="count"><%= formatDate(new Date()) %></p>
   </div>
   <div class="flex flex-wrap gap-2">
-    <a href="/admin/organizations/new" class="admin-plain"><%- icon('plus', 'h-4 w-4') %>Add organization</a>
-    <a href="/admin/events/new" class="admin-add"><%- icon('plus', 'h-4 w-4') %>Add event</a>
+    <a href="/admin/organizations/new" class="abtn-soft"><%- icon('plus', 'h-4 w-4') %>Organization</a>
+    <a href="/admin/events/new" class="abtn"><%- icon('plus', 'h-4 w-4') %>Event</a>
   </div>
 </div>
 
-<% if (startupWarnings.length > 0) { %>
-  <a href="/admin/system" class="mb-5 flex items-center gap-3 rounded-card border border-amber-tag/20 bg-amber-bg px-4 py-3 text-amber-tag no-underline hover:underline">
-    <%- icon('alert') %>
-    <span><strong><%= startupWarnings.length %> setting(s)</strong> need attention. Open System to see which.</span>
-  </a>
-<% } %>
-
-<%# ---------- the big numbers (refresh themselves every 20 seconds) ---------- %>
-<div id="live-stats" class="mb-5 grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 xl:grid-cols-4" aria-live="polite">
-  <% statCards.forEach(function (card) { %>
-    <a href="<%= card.href %>" class="admin-box block p-5 text-ink no-underline transition hover:border-gray-400">
-      <span class="flex items-center justify-between gap-3">
-        <span class="text-[0.9rem] font-medium text-gray-600"><%= card.label %></span>
-        <span class="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-700"><%- icon(card.icon, 'h-[1.1rem] w-[1.1rem]') %></span>
+<%# ---------- what needs doing ---------- %>
+<div class="mb-5 grid gap-3 <%= todo.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2' %>">
+  <% todo.forEach(function (item) { %>
+    <a href="<%= item.href %>" class="admin-box flex items-center gap-4 p-4 text-ink no-underline transition hover:border-slate-300">
+      <span class="admin-icon <%= item.count > 0 ? 'admin-icon-amber' : '' %>"><%- icon(item.icon, 'h-[1.15rem] w-[1.15rem]') %></span>
+      <span class="min-w-0 flex-1">
+        <span class="block font-semibold leading-tight"><%= item.label %></span>
+        <span class="block text-[0.85rem] text-slate-500"><%= item.count > 0 ? item.count + ' waiting' : 'All clear' %></span>
       </span>
-      <span class="mt-3 block text-[2rem] font-semibold leading-none tracking-tight tabular-nums" data-stat="<%= card.key %>"><%= stats.totals[card.key] %></span>
-      <span class="mt-2 block text-[0.85rem] text-gray-500"><%= card.note %></span>
+      <% if (item.count > 0) { %><span class="chip chip-amber tabular-nums"><%= item.count %></span><% } else { %><%- icon('check', 'h-4 w-4 text-leaf') %><% } %>
+    </a>
+  <% }) %>
+</div>
+
+<%# ---------- the numbers (refresh themselves every 20 seconds) ---------- %>
+<div id="live-stats" class="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4" aria-live="polite">
+  <% statCards.forEach(function (card) { %>
+    <a href="<%= card.href %>" class="admin-box block p-4 text-ink no-underline transition hover:border-slate-300 md:p-5">
+      <span class="admin-icon <%= card.tint %>"><%- icon(card.icon, 'h-[1.15rem] w-[1.15rem]') %></span>
+      <span class="mt-4 block text-[1.9rem] font-extrabold leading-none tracking-tight tabular-nums md:text-[2.2rem]" data-stat="<%= card.key %>"><%= stats.totals[card.key] %></span>
+      <span class="mt-1.5 block font-medium"><%= card.label %></span>
+      <span class="block text-[0.82rem] text-slate-500"><%= card.note %></span>
     </a>
   <% }) %>
 </div>
@@ -55,27 +59,24 @@
     <div class="mb-6 flex flex-wrap items-start justify-between gap-2">
       <div>
         <h2 class="text-[1.05rem]">Registrations</h2>
-        <p class="text-[0.85rem] text-gray-500">Last 14 days</p>
+        <p class="text-[0.85rem] text-slate-500">Last 14 days</p>
       </div>
-      <span class="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-2 py-0.5 text-[0.8rem] text-gray-600">
-        <span class="h-1.5 w-1.5 rounded-full bg-leaf" aria-hidden="true"></span><span id="stats-updated">Live</span>
-      </span>
+      <span class="chip chip-grey"><span class="h-1.5 w-1.5 rounded-full bg-leaf" aria-hidden="true"></span><span id="stats-updated">Live</span></span>
     </div>
     <div class="relative">
-      <%# faint guide lines behind the bars %>
       <div class="pointer-events-none absolute inset-x-0 top-0 bottom-0 flex flex-col justify-between" aria-hidden="true">
-        <span class="border-t border-dashed border-gray-200"></span><span class="border-t border-dashed border-gray-200"></span><span class="border-t border-dashed border-gray-200"></span><span class="border-t border-gray-200"></span>
+        <span class="border-t border-dashed border-slate-200"></span><span class="border-t border-dashed border-slate-200"></span><span class="border-t border-dashed border-slate-200"></span><span class="border-t border-slate-200"></span>
       </div>
-      <div id="day-chart" class="relative flex h-48 lg:h-60 items-end gap-1.5" role="img" aria-label="Registrations per day for the last 14 days">
+      <div id="day-chart" class="relative flex h-48 items-end gap-1.5 lg:h-60" role="img" aria-label="Registrations per day for the last 14 days">
         <% stats.days.forEach(function (d) { %>
           <div class="flex h-full flex-1 flex-col items-center justify-end gap-1" title="<%= d.label %>: <%= d.total %>">
-            <span class="text-[0.75rem] text-gray-500 tabular-nums" data-day-total="<%= d.key %>"><%= d.total || '' %></span>
-            <div class="w-full max-w-8 rounded-t-sm bg-indigo transition-all duration-500" data-day-bar="<%= d.key %>" style="height: <%= Math.max(4, Math.round((d.total / maxDay) * 100)) %>%"></div>
+            <span class="text-[0.72rem] text-slate-500 tabular-nums" data-day-total="<%= d.key %>"><%= d.total || '' %></span>
+            <div class="w-full max-w-8 rounded-t-lg bg-indigo transition-all duration-500" data-day-bar="<%= d.key %>" style="height: <%= Math.max(4, Math.round((d.total / maxDay) * 100)) %>%"></div>
           </div>
         <% }) %>
       </div>
     </div>
-    <div class="mt-2 flex justify-between text-[0.75rem] text-gray-500">
+    <div class="mt-2 flex justify-between text-[0.75rem] text-slate-500">
       <span><%= stats.days[0].label %></span><span>Today</span>
     </div>
   </section>
@@ -83,76 +84,35 @@
   <%# ---------- attendance rate + by type ---------- %>
   <section class="admin-box p-5 md:p-6">
     <h2 class="text-[1.05rem]">Attendance</h2>
-    <p class="text-[0.85rem] text-gray-500">People registered for past events who came</p>
+    <p class="text-[0.85rem] text-slate-500">Registered for past events, and came</p>
     <div class="mt-5 flex items-center gap-4">
       <div class="relative h-20 w-20 shrink-0 rounded-full" id="rate-ring"
            style="background: conic-gradient(var(--color-indigo) <%= stats.totals.attendanceRate %>%, var(--color-gray-100) 0)">
-        <div class="absolute inset-2 flex items-center justify-center rounded-full bg-white text-[1.15rem] font-semibold tabular-nums" data-stat="attendanceRate-label"><%= stats.totals.attendanceRate %>%</div>
+        <div class="absolute inset-2 flex items-center justify-center rounded-full bg-white text-[1.15rem] font-bold tabular-nums" data-stat="attendanceRate-label"><%= stats.totals.attendanceRate %>%</div>
       </div>
-      <p class="text-[0.9rem] text-gray-600"><span class="font-semibold text-ink"><%= stats.totals.attendees %></span> attended so far.</p>
+      <p class="text-[0.9rem] text-slate-600"><span class="font-semibold text-ink"><%= stats.totals.attendees %></span> attended so far.</p>
     </div>
-    <h3 class="mt-6 mb-3 text-[0.8rem] font-semibold uppercase tracking-[0.08em] text-gray-500">Registrations by type</h3>
+    <h3 class="mb-3 mt-6 text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-slate-400">By type</h3>
     <ul class="space-y-3">
       <% stats.categories.forEach(function (c) { %>
         <li>
-          <div class="mb-1 flex justify-between text-[0.9rem]"><span><%= t('category.' + c.category) %></span><span class="text-gray-600 tabular-nums"><%= c.total %></span></div>
-          <div class="h-1.5 rounded-full bg-gray-100"><div class="h-1.5 rounded-full bg-indigo" style="width: <%= Math.round((c.total / maxCat) * 100) %>%"></div></div>
+          <div class="mb-1 flex justify-between text-[0.9rem]"><span><%= t('category.' + c.category) %></span><span class="text-slate-500 tabular-nums"><%= c.total %></span></div>
+          <div class="h-1.5 rounded-full bg-slate-100"><div class="h-1.5 rounded-full bg-indigo" style="width: <%= Math.round((c.total / maxCat) * 100) %>%"></div></div>
         </li>
       <% }) %>
-      <% if (stats.categories.length === 0) { %><li class="text-gray-600">No registrations yet.</li><% } %>
+      <% if (stats.categories.length === 0) { %><li class="text-slate-500">No registrations yet.</li><% } %>
     </ul>
-  </section>
-</div>
-
-<div class="mb-5 grid gap-5 lg:grid-cols-2">
-  <%# ---------- things to do ---------- %>
-  <section class="admin-box">
-    <h2 class="border-b border-gray-200 px-5 py-4 text-[1.05rem]">Needs attention</h2>
-    <ul class="divide-y divide-gray-100">
-      <% todo.forEach(function (item) { %>
-        <li>
-          <a href="<%= item.href %>" class="flex items-center gap-4 px-5 py-3.5 text-ink no-underline transition hover:bg-surface">
-            <span class="flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-700"><%- icon(item.icon, 'h-[1.1rem] w-[1.1rem]') %></span>
-            <span class="flex-1"><%= item.label %></span>
-            <span class="chip <%= item.count > 0 ? 'chip-amber' : 'chip-grey' %> tabular-nums"><%= item.count %></span>
-            <%- icon('chevron-right', 'h-4 w-4 text-gray-400') %>
-          </a>
-        </li>
-      <% }) %>
-    </ul>
-  </section>
-
-  <%# ---------- alerts for this staff member ---------- %>
-  <section class="admin-box">
-    <div class="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
-      <h2 class="flex items-center gap-2 text-[1.05rem]">Alerts<% if (alerts.length > 0) { %><span class="chip chip-indigo tabular-nums"><%= alerts.length %></span><% } %></h2>
-      <% if (alerts.length > 0) { %>
-        <form action="/admin/alerts/read" method="post">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button class="text-[0.9rem] font-medium text-indigo hover:underline">Mark all as seen</button>
-        </form>
-      <% } %>
-    </div>
-    <% if (alerts.length === 0) { %>
-      <p class="flex items-center gap-2 px-5 py-6 text-gray-600"><%- icon('bell', 'h-4 w-4 text-gray-400') %>No new alerts.</p>
-    <% } else { %>
-      <ul class="max-h-72 divide-y divide-gray-100 overflow-y-auto">
-        <% alerts.forEach(function (a) { %>
-          <li class="flex items-start justify-between gap-3 px-5 py-3 text-[0.95rem]"><span><%= t('notification.' + a.type, a.payload) %></span><% if (a.link) { %><a href="<%= a.link %>" class="shrink-0">Open</a><% } %></li>
-        <% }) %>
-      </ul>
-    <% } %>
   </section>
 </div>
 
 <%# ---------- next two weeks ---------- %>
 <section class="admin-box mb-5">
-  <div class="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+  <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
     <h2 class="text-[1.05rem]">Next 14 days</h2>
-    <a href="/admin/events" class="text-[0.9rem]">All events</a>
+    <a href="/admin/events" class="abtn-soft abtn-sm">All events</a>
   </div>
   <% if (upcoming.length === 0) { %>
-    <p class="px-5 py-6 text-gray-600">No events in the next two weeks. <a href="/admin/events/new">Add one</a></p>
+    <p class="px-5 py-6 text-slate-500">No events in the next two weeks. <a href="/admin/events/new" class="font-semibold">Add one</a></p>
   <% } else { %>
     <div class="overflow-x-auto">
       <table class="admin-table min-w-[40rem] [&_td]:align-middle">
@@ -160,14 +120,14 @@
         <tbody>
           <% upcoming.forEach(function (event) { const pct = event.capacity ? Math.min(100, Math.round((event.taken / event.capacity) * 100)) : 0; %>
             <tr>
-              <td><a href="/admin/events/<%= event.id %>/edit" class="font-semibold text-ink no-underline hover:underline"><%= event.title %></a><br><span class="text-[0.85rem] text-gray-600"><%= event.Organization.name %></span></td>
-              <td class="whitespace-nowrap"><%= formatDate(event.startsAt) %><br><span class="text-[0.85rem] text-gray-600"><%= formatTime(event.startsAt) %></span></td>
+              <td><a href="/admin/events/<%= event.id %>/edit" class="font-semibold text-ink no-underline hover:underline"><%= event.title %></a><br><span class="text-[0.85rem] text-slate-500"><%= event.Organization.name %></span></td>
+              <td class="whitespace-nowrap"><%= formatDate(event.startsAt) %><br><span class="text-[0.85rem] text-slate-500"><%= formatTime(event.startsAt) %></span></td>
               <td class="min-w-[9rem]">
                 <span class="text-[0.9rem] tabular-nums"><%= event.taken %><%= event.capacity ? ' / ' + event.capacity : ' (no limit)' %></span>
-                <% if (event.capacity) { %><div class="mt-1.5 h-1.5 rounded-full bg-gray-100"><div class="h-1.5 rounded-full <%= pct >= 90 ? 'bg-amber-500' : 'bg-indigo' %>" style="width: <%= pct %>%"></div></div><% } %>
+                <% if (event.capacity) { %><div class="mt-1.5 h-1.5 rounded-full bg-slate-100"><div class="h-1.5 rounded-full <%= pct >= 90 ? 'bg-amber-500' : 'bg-indigo' %>" style="width: <%= pct %>%"></div></div><% } %>
               </td>
               <td class="tabular-nums"><%= event.volunteerEnabled ? event.volunteersTaken + ' / ' + event.volunteerCapacity : '–' %></td>
-              <td class="text-right"><a href="/admin/events/<%= event.id %>/attendance" class="admin-plain min-h-9 whitespace-nowrap px-3 text-[0.9rem]"><%- icon('clipboard', 'h-4 w-4') %>Attendance</a></td>
+              <td class="text-right"><a href="/admin/events/<%= event.id %>/attendance" class="abtn-soft abtn-sm whitespace-nowrap"><%- icon('clipboard', 'h-4 w-4') %>Attendance</a></td>
             </tr>
           <% }) %>
         </tbody>
@@ -176,19 +136,19 @@
   <% } %>
 </section>
 
-<div class="grid gap-5 lg:grid-cols-2">
+<div class="mb-5 grid gap-5 lg:grid-cols-2">
   <section class="admin-box">
-    <h2 class="border-b border-gray-200 px-5 py-4 text-[1.05rem]">Attendance still to enter</h2>
+    <h2 class="border-b border-slate-100 px-5 py-4 text-[1.05rem]">Attendance still to enter</h2>
     <% if (needsAttendance.length === 0) { %>
-      <p class="flex items-center gap-2 px-5 py-6 text-gray-600"><%- icon('check', 'h-4 w-4 text-leaf') %>All caught up.</p>
+      <p class="flex items-center gap-2 px-5 py-6 text-slate-500"><%- icon('check', 'h-4 w-4 text-leaf') %>All caught up.</p>
     <% } else { %>
-      <ul class="divide-y divide-gray-100">
+      <ul class="divide-y divide-slate-100">
         <% needsAttendance.forEach(function (event) { %>
           <li>
-            <a href="/admin/events/<%= event.id %>/attendance" class="flex items-center gap-3 px-5 py-3 text-ink no-underline hover:bg-surface">
-              <span class="min-w-0 flex-1"><span class="block font-semibold"><%= event.title %></span><span class="text-[0.85rem] text-gray-600"><%= formatDate(event.startsAt) %></span></span>
+            <a href="/admin/events/<%= event.id %>/attendance" class="flex items-center gap-3 px-5 py-3.5 text-ink no-underline transition hover:bg-slate-50">
+              <span class="min-w-0 flex-1"><span class="block font-semibold"><%= event.title %></span><span class="text-[0.85rem] text-slate-500"><%= formatDate(event.startsAt) %></span></span>
               <span class="chip chip-amber whitespace-nowrap"><%= event.Registrations.length %> not marked</span>
-              <%- icon('chevron-right', 'h-4 w-4 text-gray-400') %>
+              <%- icon('chevron-right', 'h-4 w-4 text-slate-300') %>
             </a>
           </li>
         <% }) %>
@@ -196,31 +156,53 @@
     <% } %>
   </section>
 
+  <%# ---------- alerts for this staff member ---------- %>
   <section class="admin-box">
-    <div class="border-b border-gray-200 px-5 py-4">
-      <h2 class="text-[1.05rem]">Missed events</h2>
-      <p class="text-[0.85rem] text-gray-500">For a friendly follow-up call. Nothing happens automatically.</p>
+    <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+      <h2 class="flex items-center gap-2 text-[1.05rem]">Alerts<% if (alerts.length > 0) { %><span class="chip chip-indigo tabular-nums"><%= alerts.length %></span><% } %></h2>
+      <% if (alerts.length > 0) { %>
+        <form action="/admin/alerts/read" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="abtn-soft abtn-sm">Mark all as seen</button>
+        </form>
+      <% } %>
     </div>
-    <% if (noShows.length === 0) { %>
-      <p class="px-5 py-6 text-gray-600">No no-shows recorded.</p>
+    <% if (alerts.length === 0) { %>
+      <p class="flex items-center gap-2 px-5 py-6 text-slate-500"><%- icon('bell', 'h-4 w-4 text-slate-300') %>No new alerts.</p>
     <% } else { %>
-      <div class="overflow-x-auto">
-        <table class="admin-table [&_td]:align-middle">
-          <thead><tr><th>Name</th><th>Phone</th><th>Missed</th></tr></thead>
-          <tbody>
-            <% noShows.forEach(function (row) { %>
-              <tr>
-                <td><% if (row.senior) { %><a href="/admin/seniors/<%= row.seniorId %>" class="font-semibold text-ink no-underline hover:underline"><%= row.senior.fullName %></a><% } else { %>(deleted)<% } %></td>
-                <td class="whitespace-nowrap"><%= row.senior ? row.senior.phone : '' %></td>
-                <td class="tabular-nums"><%= row.get('total') %></td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
+      <ul class="max-h-72 divide-y divide-slate-100 overflow-y-auto">
+        <% alerts.forEach(function (a) { %>
+          <li class="flex items-start justify-between gap-3 px-5 py-3 text-[0.95rem]"><span><%= t('notification.' + a.type, a.payload) %></span><% if (a.link) { %><a href="<%= a.link %>" class="shrink-0 font-semibold">Open</a><% } %></li>
+        <% }) %>
+      </ul>
     <% } %>
   </section>
 </div>
+
+<section class="admin-box">
+  <div class="border-b border-slate-100 px-5 py-4">
+    <h2 class="text-[1.05rem]">Missed events</h2>
+    <p class="text-[0.85rem] text-slate-500">For a friendly follow-up call. Nothing happens automatically.</p>
+  </div>
+  <% if (noShows.length === 0) { %>
+    <p class="px-5 py-6 text-slate-500">No no-shows recorded.</p>
+  <% } else { %>
+    <div class="overflow-x-auto">
+      <table class="admin-table [&_td]:align-middle">
+        <thead><tr><th>Name</th><th>Phone</th><th>Missed</th></tr></thead>
+        <tbody>
+          <% noShows.forEach(function (row) { %>
+            <tr>
+              <td><% if (row.senior) { %><a href="/admin/seniors/<%= row.seniorId %>" class="font-semibold text-ink no-underline hover:underline"><%= row.senior.fullName %></a><% } else { %>(deleted)<% } %></td>
+              <td class="whitespace-nowrap"><%= row.senior ? row.senior.phone : '' %></td>
+              <td class="tabular-nums"><%= row.get('total') %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
 
 <script src="/js/dashboard.js" defer></script>
 <%- include('../partials/footer') %>

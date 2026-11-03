@@ -1,0 +1,56 @@
+<%- include('../partials/header') %>
+
+<a href="/admin/ids" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i>Identity checks</a>
+<div class="admin-head">
+  <div>
+    <h1><%= senior.fullName %></h1>
+    <p class="count"><%= senior.phone %></p>
+  </div>
+</div>
+
+<% if (nin) { %>
+  <section class="admin-box mb-5 p-5">
+    <p class="text-[0.8rem] font-semibold uppercase tracking-wide text-slate-400">NIN</p>
+    <p class="my-2 select-all font-mono text-[1.9rem] font-bold tracking-[0.15em]"><%= nin %></p>
+    <p class="text-slate-600">Check it on the NIMC website. The name and phone number should match, and they must be 50 or older.</p>
+  </section>
+<% } else if (problem === 'unreadable') { %>
+  <p class="admin-box mb-5 bg-amber-bg p-4 text-amber-tag">This NIN can no longer be read. Decline it and ask them to send it again.</p>
+<% } else { %>
+  <p class="admin-box mb-5 bg-amber-bg p-4 text-amber-tag">This check is no longer waiting.</p>
+<% } %>
+
+<% if (duplicate) { %>
+  <p class="admin-box mb-5 bg-amber-bg p-4 text-amber-tag">This NIN is already verified on another account (<%= duplicate.fullName %>). It cannot be verified a second time.</p>
+<% } %>
+
+<% if (nin || problem === 'unreadable') { %>
+  <form action="/admin/ids/<%= senior.id %>/decide" method="post" class="admin-box p-5">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label for="reason" class="mb-1 block text-[0.9rem] font-medium text-slate-600">Reason (only needed to decline)</label>
+    <input type="text" id="reason" name="reason" maxlength="300" class="admin-input mb-4" placeholder="e.g. The name does not match">
+    <div class="grid gap-2 sm:grid-cols-3">
+      <% if (nin && !duplicate) { %>
+        <button name="outcome" value="verified" data-decision="verified" class="abtn"><i class="icon-circle-check" aria-hidden="true"></i>Verify</button>
+        <button name="outcome" value="not_eligible" data-decision="not_eligible" class="abtn-soft">Under 50</button>
+      <% } %>
+      <button name="outcome" value="rejected" data-decision="rejected" class="abtn-danger <%= nin && !duplicate ? '' : 'sm:col-span-3' %>">Decline</button>
+    </div>
+  </form>
+<% } %>
+
+<script>
+  // Decline needs a reason: ask for it here instead of sending them back to the list
+  (function () {
+    var decline = document.querySelector('[data-decision="rejected"]');
+    var reason = document.getElementById('reason');
+    if (!decline || !reason) return;
+    decline.addEventListener('click', function (event) {
+      if (reason.value.trim()) return;
+      event.preventDefault();
+      reason.setAttribute('aria-invalid', 'true');
+      reason.focus();
+    });
+  })();
+</script>
+<%- include('../partials/footer') %>

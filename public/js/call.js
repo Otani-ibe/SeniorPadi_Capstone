@@ -40,7 +40,19 @@
       // offline: say so right away, without asking for the microphone
       if (b.getAttribute('data-online') === 'false') {
         if (call) return;
+        var toId = Number(b.getAttribute('data-call-to'));
         showScreen(name, T('offline', name), avatar);
+        // the server is told as well, so a missed call waits for them in the chat (it replies "offline" and writes the line)
+        socket.emit('call:invite', { toId: toId }, function (reply) {
+          // the missed call goes into the open chat at once
+          if (reply && reply.line) document.dispatchEvent(new CustomEvent('sp:message', { detail: reply.line }));
+          // they had in fact just come online: make it a real call instead
+          if (reply && reply.ok) {
+            socket.emit('call:end', { callId: reply.callId });
+            hideScreen();
+            startCall(toId, name, avatar);
+          }
+        });
         setTimeout(function () { if (!call) hideScreen(); }, 2500);
         return;
       }
@@ -178,6 +190,7 @@
         if (call !== mine) return;
         if (!reply || !reply.ok) {
           var why = reply && reply.reason;
+          if (reply && reply.line) document.dispatchEvent(new CustomEvent('sp:message', { detail: reply.line }));
           cleanup(why === 'offline' ? T('offline', name) : why === 'busy' ? T('busy', name) : T('unavailable'));
           return;
         }
@@ -269,32 +282,10 @@
     }
   });
 
-  // ---------- a call nobody answered: a notice you can tap to open the chat; it also stays in Notifications ----------
-  function showMissed(info) {
-    var box = document.createElement('a');
-    box.href = '/messages/' + info.fromId;
-    box.setAttribute('role', 'status');
-    box.className = 'fixed inset-x-4 top-4 z-[80] mx-auto flex max-w-md items-center gap-3 rounded-card bg-white p-4 font-semibold text-ink no-underline shadow-xl ring-1 ring-slate-200';
-    var icon = document.createElement('i');
-    icon.className = 'icon-phone-missed text-[1.6rem] text-full-tag';
-    icon.setAttribute('aria-hidden', 'true');
-    var text = document.createElement('span');
-    text.className = 'flex-1';
-    text.textContent = T('missed-toast', info.name);
-    var open = document.createElement('span');
-    open.className = 'text-indigo';
-    open.textContent = ui.getAttribute('data-text-open');
-    box.appendChild(icon); box.appendChild(text); box.appendChild(open);
-    document.body.appendChild(box);
-    setTimeout(function () { box.remove(); }, 10000);
-  }
-
   // ---------- the call ended ----------
   socket.on('call:ended', function (data) {
     if (incoming && incoming.id === data.callId) {
-      var missedFrom = incoming;
-      closeIncoming();
-      if (data.reason === 'missed') showMissed(missedFrom);
+      closeIncoming(); // a call nobody answered is written into the chat by the server
       return;
     }
     if (!call || (call.id && call.id !== data.callId)) return;

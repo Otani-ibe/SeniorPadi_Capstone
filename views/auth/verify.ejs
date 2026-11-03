@@ -26,6 +26,7 @@
             <form action="/verify/check" method="post" class="mt-4">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <input type="hidden" name="channel" value="<%= step.channel %>">
+              <%- include('../partials/demoCode', { code: typeof demoCodes === 'undefined' ? null : demoCodes[step.channel] }) %>
               <div class="field mb-3">
                 <label for="code-<%= step.channel %>"><%= t('verify.enter_code', { minutes: minutes }) %></label>
                 <input type="text" id="code-<%= step.channel %>" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required

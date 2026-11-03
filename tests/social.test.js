@@ -29,11 +29,11 @@ test('unverified seniors cannot open or send messages', async () => {
   const agent = await loggedInAgent(me.phone);
 
   const page = await agent.get('/messages/' + other.id);
-  expect(page.headers.location).toBe('/find-seniors');
+  expect(page.headers.location).toBe('/identity');
 
   const home = await agent.get('/events');
   const send = await agent.post('/messages/' + other.id).type('form').send({ _csrf: csrfFrom(home.text), body: 'hi' });
-  expect(send.headers.location).toBe('/find-seniors');
+  expect(send.headers.location).toBe('/identity');
   expect(await Message.count()).toBe(0);
 });
 
@@ -173,38 +173,3 @@ test('deleting an account cancels only upcoming registrations', async () => {
   expect(await User.findByPk(senior.id, { paranoid: false })).not.toBeNull(); // row still there
 });
 
-test('ID documents can only be opened by admins, through a short-lived signed link', async () => {
-  const senior = await makeUser({ verificationStatus: 'pending', idDocumentPublicId: 'seniorpadi/private/ids/abc', idDocumentFormat: 'jpg' });
-  const admin = await makeUser({ role: 'admin' });
-
-  const seniorAgent = await loggedInAgent(senior.phone);
-  expect((await seniorAgent.get('/admin/ids/' + senior.id + '/view')).status).toBe(403);
-
-  const adminAgent = await loggedInAgent(admin.phone);
-  const res = await adminAgent.get('/admin/ids/' + senior.id + '/view');
-  expect(res.status).toBe(302);
-  expect(res.headers.location).toMatch(/api\.cloudinary\.com/);
-  expect(res.headers.location).toMatch(/expires_at=/);
-  expect(res.headers['cache-control']).toBe('no-store');
-
-  // the ID link never appears on senior pages
-  const settings = await seniorAgent.get('/find-seniors');
-  expect(settings.text).not.toMatch(/private\/ids/);
-});
-
-test('rejecting an ID keeps event access', async () => {
-  const senior = await makeUser({ verificationStatus: 'pending', idDocumentPublicId: 'x', idDocumentFormat: 'jpg' });
-  const admin = await makeUser({ role: 'admin' });
-  const event = await makeEvent();
-  const agent = await loggedInAgent(admin.phone);
-
-  const page = await agent.get('/admin/ids');
-  await agent.post('/admin/ids/' + senior.id + '/reject').type('form').send({ _csrf: csrfFrom(page.text), reason: 'Blurry photo' });
-  await senior.reload();
-  expect(senior.verificationStatus).toBe('rejected');
-
-  const seniorAgent = await loggedInAgent(senior.phone);
-  const eventPage = await seniorAgent.get('/events/' + event.id);
-  const reg = await seniorAgent.post('/events/' + event.id + '/register').type('form').send({ _csrf: csrfFrom(eventPage.text) });
-  expect(reg.headers.location).toMatch(/registered/);
-});

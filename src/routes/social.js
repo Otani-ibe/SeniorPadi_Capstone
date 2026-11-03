@@ -8,7 +8,6 @@ const exchange = require('../services/phoneExchange');
 const { translateTexts } = require('../services/translate');
 const cloud = require('../services/cloudinary');
 const { requireAuth, requireVerified } = require('../middleware/auth');
-const { idUpload } = require('../middleware/upload');
 const { uploadLimiter, messageLimiter } = require('../middleware/rateLimit');
 const numericId = require('../middleware/numericId');
 
@@ -35,6 +34,8 @@ router.get('/find-seniors', async (req, res) => {
     });
   }
   if (req.user.role === 'admin') return res.redirect('/admin');
+  // not verified yet: the NIN check comes first (someone removed from Find seniors is told so on this page)
+  if (req.user.verificationStatus !== 'approved' && req.user.verificationStatus !== 'social_removed') return res.redirect('/identity');
 
   let next = null;
   let after = [];
@@ -48,37 +49,6 @@ router.get('/find-seniors', async (req, res) => {
     if (next && next.bio) next.tBio = (await translateTexts([next.bio], req.lang))[0];
   }
   res.render('social/find', { title: req.t('find.title'), wide: true, next, after, skippedCount });
-});
-
-router.post('/find-seniors/id', requireAuth, uploadLimiter, idUpload('idDocument'), async (req, res) => {
-  const user = req.user;
-  if (!['unverified', 'rejected'].includes(user.verificationStatus)) return res.redirect('/find-seniors');
-
-  if (req.uploadError) {
-    req.flash('error', req.uploadError);
-    return res.redirect('/find-seniors');
-  }
-  if (!req.file) {
-    req.flash('error', req.t('upload.no_file_id'));
-    return res.redirect('/find-seniors');
-  }
-  try {
-    const uploaded = await cloud.uploadBuffer(req.file.buffer, 'id', req.file.mimetype);
-    const oldPublicId = user.idDocumentPublicId;
-    await user.update({
-      idDocumentPublicId: uploaded.publicId,
-      idDocumentFormat: uploaded.format,
-      verificationStatus: 'pending',
-      verificationRejectionReason: null
-    });
-    await cloud.deleteFile(oldPublicId, 'private');
-    await social.notifyAdmins('admin.id_submitted', { name: user.fullName }, '/admin/ids');
-    req.flash('success', req.t('find.id_sent'));
-  } catch (err) {
-    console.error('ID upload failed:', err.message);
-    req.flash('error', req.t('upload.failed_id'));
-  }
-  res.redirect('/find-seniors');
 });
 
 router.post('/find-seniors/:id/skip', requireVerified, async (req, res) => {
@@ -151,7 +121,7 @@ router.post('/report/:seniorId', requireVerified, async (req, res) => {
   });
   const snapshot = messages.reverse().map((m) => ({
     from: m.senderId === req.user.id ? 'reporter' : 'reported',
-    body: m.body,
+    body: m.kind === 'missed_call' ? '[Missed call]' : m.kind === 'call' ? '[Call, ' + m.body + ' seconds]' : m.body,
     at: m.createdAt
   }));
 
@@ -188,7 +158,7 @@ router.post('/block/:seniorId', requireVerified, async (req, res) => {
 
 // ---------- messages ----------
 
-// every conversation, newest first, with who has unread messages (shown in the list beside a chat)
+// every conversation, newest first, with what is waiting in each (shown in the list beside a chat)
 async function loadConversations(me) {
   const recent = await Message.findAll({
     where: { [Op.or]: [{ senderId: me }, { recipientId: me }] },
@@ -203,15 +173,21 @@ async function loadConversations(me) {
     if (!latest.has(otherId)) latest.set(otherId, m);
   }
 
-  const people = await User.findAll({ where: { id: Array.from(latest.keys()) } });
+  // what is waiting: new messages, missed calls, swap-number requests and answers. Someone who only sent a swap
+  // request (no message yet) is in the list too, so nothing waiting is hidden.
+  const alerts = await social.unreadAlerts(me);
+  const ids = Array.from(new Set([...latest.keys(), ...alerts.keys()]));
+
+  const people = await User.findAll({ where: { id: ids } });
   const conversations = [];
   for (const person of people) {
     if (await social.isBlockedOrHidden(me, person.id)) continue;
-    conversations.push({ person, last: latest.get(person.id) });
+    conversations.push({ person, last: latest.get(person.id) || null, alerts: alerts.get(person.id) || null });
   }
-  conversations.sort((a, b) => b.last.createdAt - a.last.createdAt);
+  const when = (c) => (c.last ? c.last.createdAt : new Date(0));
+  conversations.sort((a, b) => when(b) - when(a));
 
-  return { conversations, unreadIds: await social.unreadSenderIds(me) };
+  return { conversations, unreadIds: new Set(conversations.filter((c) => c.alerts).map((c) => c.person.id)) };
 }
 
 // the chat screens fill the whole screen, so they use the full width and have no footer on phones
@@ -244,10 +220,7 @@ router.get('/messages/:seniorId', requireVerified, requireContactVerified, async
   const messages = page.slice(0, PAGE_SIZE).reverse();
 
   // mark this conversation's message notifications as read, and their messages, so they see "Read"
-  await Notification.update(
-    { readAt: new Date() },
-    { where: { userId: req.user.id, type: 'message.new', readAt: null, payload: { senderId: other.id } } }
-  );
+  await social.markConversationRead(req.user.id, other.id);
   await markRead(req.app.get('io'), req.user.id, other.id);
   res.locals.unreadMessages = (await social.unreadSenderIds(req.user.id)).size; // the badge was counted before this was read
 
@@ -309,14 +282,14 @@ router.post('/messages/:seniorId/exchange/:answer', requireVerified, requireCont
 // ---------- notifications ----------
 router.get('/notifications', requireAuth, async (req, res) => {
   const notifications = await Notification.findAll({
-    where: { userId: req.user.id, type: { [Op.ne]: 'message.new' } },
+    where: { userId: req.user.id, type: { [Op.notIn]: social.MESSAGE_NOTIFICATION_TYPES } },
     order: [['createdAt', 'DESC']],
     limit: 50
   });
-  // new messages are shown under Messages, not here; opening the page counts as reading the rest
+  // anything to do with a conversation is shown under Messages, not here; opening the page counts as reading the rest
   await Notification.update(
     { readAt: new Date() },
-    { where: { userId: req.user.id, readAt: null, type: { [Op.ne]: 'message.new' } } }
+    { where: { userId: req.user.id, readAt: null, type: { [Op.notIn]: social.MESSAGE_NOTIFICATION_TYPES } } }
   );
   res.render('social/notifications', { title: req.t('notifications.title'), notifications });
 });

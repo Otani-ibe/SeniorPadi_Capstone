@@ -22,7 +22,7 @@
     text.style.opacity = '0';
     setTimeout(function () {
       text.textContent = messages[current];
-      link.setAttribute('href', base + '?text=' + encodeURIComponent(messages[current]));
+      if (base) link.setAttribute('href', base + '?text=' + encodeURIComponent(messages[current])); // a wa.link short link has its own message
       text.style.opacity = '1';
     }, 300);
   }, 4000);

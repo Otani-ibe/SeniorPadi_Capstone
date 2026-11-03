@@ -10,7 +10,7 @@
 // change the database layout: the live database is brought up to date when the app starts, so deploy the app first.
 require('dotenv').config({ quiet: true });
 const { sequelize } = require('../models');
-const { addSampleEvents, removeSampleEvents } = require('../services/sampleEvents');
+const { addSampleEvents, removeSampleEvents, ALL } = require('../services/sampleEvents');
 
 const dry = process.argv.includes('--dry');
 const remove = process.argv.includes('--remove');
@@ -21,12 +21,12 @@ async function main() {
   log((dry ? 'DRY RUN on ' : remove ? 'Removing from ' : 'Adding to ') + getDatabaseSettings().host + ' ...');
 
   if (remove) {
-    const result = await removeSampleEvents(require('../models'), { dry, log });
+    const result = await removeSampleEvents(require('../models'), { dry, log, include: ALL });
     log('\nRemoved ' + result.events + ' event(s) and ' + result.orgs + ' organization(s).');
     return;
   }
 
-  const result = await addSampleEvents(require('../models'), { dry, log });
+  const result = await addSampleEvents(require('../models'), { dry, log, include: ALL });
   log('\n' + (dry ? 'Would add ' : 'Added ') + result.events + ' event(s) and ' + result.orgs + ' organization(s).');
   if (result.filled) log((dry ? 'Would fill' : 'Filled') + ' in the places, area or flyer on ' + result.filled + ' event(s) that were already there.');
   if (result.skipped.length) {

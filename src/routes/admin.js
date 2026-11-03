@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { sequelize, User, Organization, Event, Registration, EventInterest, Report, Notification, Attendance } = require('../models');
+const identity = require('../services/identity');
+const eventUpdates = require('../services/eventUpdates');
 const {
   markAttended, attendanceList, attendanceCounts, setStatus, checkInByTicket, markRestMissed,
   newCheckinToken, checkinWindow, checkinLinkState
@@ -14,7 +16,7 @@ const cloud = require('../services/cloudinary');
 const { notify } = require('../services/notify');
 const { audit } = require('../services/audit');
 const { shortDate, fromLocalInput, toLocalInput, DAY_MS } = require('../services/dates');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, requireSuperAdmin } = require('../middleware/auth');
 const { imageUpload } = require('../middleware/upload');
 const { removeFromSocial, deleteAccount } = require('../services/removal');
 const { addNotification } = require('../services/social');
@@ -123,7 +125,8 @@ router.get('/', async (req, res) => {
 
   const stats = await dashboardStats();
 
-  const pendingIds = await User.count({ where: { role: 'senior', verificationStatus: 'pending' } });
+  // only the superadmin can act on these, so only the superadmin is shown the count
+  const pendingIds = req.user.isSuperAdmin ? await User.count({ where: { role: 'senior', verificationStatus: 'pending' } }) : 0;
   const openReports = await Report.count({ where: { status: 'pending' } });
   const alerts = await Notification.findAll({
     where: { userId: req.user.id, readAt: null },
@@ -132,8 +135,7 @@ router.get('/', async (req, res) => {
   });
 
   res.render('admin/dashboard', {
-    title: 'Admin', stats, totals: stats.totals, upcoming, needsAttendance, seniorCount, noShows, pendingIds, openReports, alerts,
-    systemWarnings: req.app.get('startupWarnings') || []
+    title: 'Admin', stats, totals: stats.totals, upcoming, needsAttendance, seniorCount, noShows, pendingIds, openReports, alerts
   });
 });
 
@@ -237,6 +239,7 @@ function readEventForm(body) {
     volunteerEnabled: body.volunteerEnabled === 'yes',
     volunteerCapacity: parseInt(body.volunteerCapacity, 10) || null,
     hostedBySenior: body.hostedBySenior === 'yes',
+    featured: body.featured === 'yes',
     imageAlt: (body.imageAlt || '').trim().slice(0, 600) || null
   };
 
@@ -276,7 +279,10 @@ function formValues(values) {
 
 async function renderEventForm(res, status, options) {
   const organizations = await Organization.findAll({ order: [['name', 'ASC']] });
+  // when editing: how many registered seniors could be told about the change
+  const registeredCount = options.event ? await eventUpdates.countRegisteredSeniors(options.event.id) : 0;
   res.status(status).render('admin/event-form', {
+    registeredCount,
     title: options.event ? 'Edit event' : 'New event',
     organizations,
     categories: Event.CATEGORIES,
@@ -392,12 +398,26 @@ router.post('/events/:id/edit', imageUpload('image', 3), async (req, res) => {
     return renderEventForm(res, 400, { event, values: formValues(values), errors });
   }
 
+  const before = eventUpdates.snapshot(event);
   await event.update(values);
   await audit(req.user.id, 'event.edit', 'Event', event.id);
 
+  // a new date means any reminder already sent was for the old one
+  const changed = eventUpdates.whatChanged(before, event);
+  if (changed.when) await eventUpdates.resetReminders(event.id);
+
+  // the admin chose "Save and notify registered seniors" (yes) or "Save without notifying" (no)
+  let told = '';
+  if (req.body.notify === 'yes') {
+    const result = await eventUpdates.notifyRegistered(req.user.id, event, before);
+    told = !result.changed ? ' Nothing a senior would notice had changed (name, date and time, place or price), so nobody was told.'
+      : result.sent === 0 ? ' Nobody is registered yet, so nobody was told.'
+        : ' ' + result.sent + ' registered senior' + (result.sent === 1 ? ' was' : 's were') + ' told what is new.';
+  }
+
   const imageError = await handleEventImage(req, event);
   if (imageError) req.flash('error', imageError);
-  else req.flash('success', 'Changes saved.');
+  else req.flash('success', 'Changes saved.' + told);
   res.redirect('/admin/events');
 });
 
@@ -521,7 +541,7 @@ router.post('/events/:id/checkin-link/off', async (req, res) => {
 });
 
 // ---------- seniors ----------
-const ID_STATUSES = ['unverified', 'pending', 'approved', 'rejected', 'social_removed'];
+const ID_STATUSES = ['unverified', 'pending', 'approved', 'not_eligible', 'rejected', 'social_removed'];
 
 router.get('/seniors', async (req, res) => {
   const filters = {
@@ -577,60 +597,55 @@ router.post('/seniors/:id/delete', async (req, res) => {
   res.redirect('/admin/seniors');
 });
 
-// ---------- ID checks ----------
-router.get('/ids', async (req, res) => {
-  const pending = await User.findAll({
-    where: { role: 'senior', verificationStatus: 'pending' },
-    order: [['updatedAt', 'ASC']]
-  });
-  res.render('admin/ids', { title: 'ID checks', pending });
-});
-
-// never shows the Cloudinary link on a page. Makes a 5-minute signed link and redirects.
-router.get('/ids/:userId/view', async (req, res) => {
-  const senior = await User.findOne({ where: { id: req.params.userId, role: 'senior' } });
-  if (!senior || !senior.idDocumentPublicId) return res.redirect('/admin/ids');
-
-  await audit(req.user.id, 'id.view', 'User', senior.id);
-  res.set('Cache-Control', 'no-store');
-
-  // saved on this computer (no Cloudinary): send the file straight to the admin
-  const local = cloud.localPath(senior.idDocumentPublicId);
-  if (local) return res.sendFile(local);
-
-  res.redirect(cloud.signedIdUrl(senior.idDocumentPublicId, senior.idDocumentFormat || 'jpg'));
-});
-
-router.post('/ids/:userId/approve', async (req, res) => {
-  const senior = await User.findOne({ where: { id: req.params.userId, role: 'senior', verificationStatus: 'pending' } });
-  if (!senior) return res.redirect('/admin/ids');
-
-  await senior.update({ verificationStatus: 'approved', verificationRejectionReason: null });
-  await audit(req.user.id, 'id.approve', 'User', senior.id);
-  notify(senior, 'id.approved', { name: senior.firstName() });
-  await addNotification(senior.id, 'id.approved', {}, '/find-seniors');
-
-  req.flash('success', senior.fullName + ' is verified. They can now use Find seniors.');
-  res.redirect('/admin/ids');
-});
-
-router.post('/ids/:userId/reject', async (req, res) => {
-  const senior = await User.findOne({ where: { id: req.params.userId, role: 'senior', verificationStatus: 'pending' } });
-  if (!senior) return res.redirect('/admin/ids');
-
-  const reason = (req.body.reason || '').trim();
-  if (!reason) {
-    req.flash('error', 'Please write a short reason so ' + senior.firstName() + ' knows what to fix.');
-    return res.redirect('/admin/ids');
+// ---------- identity checks (superadmin only) ----------
+// A senior typed their NIN. It waits here, encrypted, until the superadmin opens it, checks it on the official NIMC
+// website against the account's name, phone number and date of birth, and decides. Other admins cannot see this at all.
+// Opening a NIN is written to the audit log; deciding erases it.
+router.get('/ids', requireSuperAdmin, async (req, res) => {
+  const people = await User.findAll({ where: { role: 'senior', verificationStatus: 'pending' }, order: [['updatedAt', 'ASC']] });
+  const pending = [];
+  for (const senior of people) {
+    const row = await identity.waitingFor(senior);
+    pending.push({ senior, row, duplicate: row ? await identity.duplicateOf(row) : null });
   }
+  res.render('admin/ids', { title: 'Identity checks', pending });
+});
 
-  // rejecting never touches event access
-  await senior.update({ verificationStatus: 'rejected', verificationRejectionReason: reason });
-  await audit(req.user.id, 'id.reject', 'User', senior.id, { reason });
-  notify(senior, 'id.rejected', { name: senior.firstName(), reason });
-  await addNotification(senior.id, 'id.rejected', { reason }, '/find-seniors');
+// "Show NIN" is a button (a POST), so the number is never in an address or in browser history
+router.post('/ids/:userId/show', requireSuperAdmin, async (req, res) => {
+  const senior = await User.findOne({ where: { id: req.params.userId, role: 'senior', verificationStatus: 'pending' } });
+  if (!senior) return res.redirect('/admin/ids');
 
-  req.flash('success', 'ID sent back to ' + senior.fullName + ' with your reason.');
+  const result = await identity.revealNin(req.user.id, senior);
+  const row = await identity.waitingFor(senior);
+  res.set('Cache-Control', 'no-store');
+  res.render('admin/id-review', {
+    title: 'Check ' + senior.fullName, senior, nin: result.ok ? result.nin : null, problem: result.ok ? null : result.reason,
+    duplicate: row ? await identity.duplicateOf(row) : null
+  });
+});
+
+const DECISION_MESSAGES = {
+  verified: (s) => s.fullName + ' is verified. They can now use Find seniors.',
+  not_eligible: (s) => s.fullName + ' was marked as under 50. Their events still work.',
+  rejected: (s) => 'Declined, and ' + s.fullName + ' was told why. Their events still work.'
+};
+
+router.post('/ids/:userId/decide', requireSuperAdmin, async (req, res) => {
+  const senior = await User.findOne({ where: { id: req.params.userId, role: 'senior', verificationStatus: 'pending' } });
+  if (!senior) return res.redirect('/admin/ids');
+
+  const outcome = req.body.outcome;
+  const result = await identity.decide(req.user.id, senior, outcome, req.body.reason);
+  if (result.ok) req.flash('success', DECISION_MESSAGES[outcome](senior));
+  else {
+    req.flash('error', {
+      duplicate: 'This NIN is already verified on another account, so ' + senior.fullName + ' cannot be verified with it. Decline it with a reason instead.',
+      no_note: 'Please write a short reason so ' + senior.firstName() + ' knows why.',
+      not_waiting: 'This check is no longer waiting.',
+      bad_outcome: 'Please choose what to do.'
+    }[result.reason] || 'Something went wrong.');
+  }
   res.redirect('/admin/ids');
 });
 
@@ -798,42 +813,6 @@ router.post('/staff/:id/remove', async (req, res) => {
   await audit(req.user.id, 'staff.remove', 'User', member.id);
   req.flash('success', member.fullName + ' no longer has staff access.');
   res.redirect('/admin/staff');
-});
-
-// ---------- system status ----------
-router.get('/system', async (req, res) => {
-  const { migrationStatus } = require('../services/migrate');
-  const { lastRuns } = require('../services/cron');
-
-  let dbOk = true;
-  let migrations = { executed: [], pending: [] };
-  try {
-    await sequelize.authenticate();
-    migrations = await migrationStatus(sequelize);
-  } catch (err) {
-    dbOk = false;
-  }
-
-  const brevo = !process.env.BREVO_API_KEY ? 'off' : (process.env.NOTIFY_DRY_RUN === 'true' ? 'test' : 'on');
-  const counts = {
-    seniors: await User.count({ where: { role: 'senior' } }),
-    upcomingEvents: await Event.count({ where: { status: 'published', startsAt: { [Op.gt]: new Date() } } }),
-    registrations: await Registration.count({ where: { status: 'registered' } })
-  };
-
-  res.render('admin/system', {
-    title: 'System',
-    dbOk,
-    dbHost: sequelize.config.host,
-    migrations,
-    brevo,
-    cloudinary: cloud.isConfigured(),
-    appUrl: process.env.APP_URL,
-    startedAt: req.app.get('startedAt'),
-    warnings: req.app.get('startupWarnings') || [],
-    lastRuns,
-    counts
-  });
 });
 
 module.exports = router;

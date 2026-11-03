@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { User, Event, Registration } = require('../models');
 const capacity = require('../services/capacity');
-const { sendCode, checkCode, CODE_MINUTES } = require('../services/verification');
+const { sendCode, checkCode, demoCodeFor, CODE_MINUTES } = require('../services/verification');
 const { sendSms } = require('../services/notify');
 const { audit } = require('../services/audit');
 const { recommendedEvents } = require('../services/recommend');
@@ -236,7 +236,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 router.get('/login/code', async (req, res) => {
   const current = await pendingSignIn(req);
   if (!current || current.user.role === 'admin') return res.redirect('/login');
-  res.render('auth/code', { title: req.t('login.code_title'), phone: current.user.localPhone(), minutes: CODE_MINUTES });
+  res.render('auth/code', { title: req.t('login.code_title'), phone: current.user.localPhone(), minutes: CODE_MINUTES, demoCode: demoCodeFor(current.user) });
 });
 
 router.post('/login/code', loginLimiter, async (req, res) => {
@@ -347,7 +347,7 @@ router.post('/signup/parent', signupLimiter, async (req, res) => {
 router.get('/signup/parent/code', async (req, res) => {
   const current = await pendingParent(req);
   if (!current) return res.redirect('/signup/parent');
-  res.render('auth/parent-code', { title: req.t('parent.code_title'), phone: current.parent.localPhone(), name: current.parent.firstName(), minutes: CODE_MINUTES });
+  res.render('auth/parent-code', { title: req.t('parent.code_title'), phone: current.parent.localPhone(), name: current.parent.firstName(), minutes: CODE_MINUTES, demoCode: demoCodeFor(current.parent) });
 });
 
 router.post('/signup/parent/code', loginLimiter, async (req, res) => {

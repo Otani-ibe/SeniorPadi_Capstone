@@ -33,12 +33,22 @@
           <span class="min-w-0 flex-1">
             <span class="flex items-baseline gap-2">
               <span class="truncate text-[1.1rem] <%= unread ? 'font-bold' : 'font-semibold' %> text-ink"><%= c.person.firstName() %></span>
-              <span class="ml-auto shrink-0 text-[0.9rem] <%= unread ? 'font-semibold text-indigo' : 'text-slate-500' %>"><%= shortDate(c.last.createdAt) %></span>
+              <% if (c.last) { %><span class="ml-auto shrink-0 text-[0.9rem] <%= unread ? 'font-semibold text-indigo' : 'text-slate-500' %>"><%= shortDate(c.last.createdAt) %></span><% } %>
             </span>
+            <% if (c.last) { %>
             <span class="flex items-center gap-2">
-              <span class="block min-w-0 flex-1 truncate text-[1rem] <%= unread ? 'font-semibold text-ink' : 'text-slate-600' %>"><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %></span>
-              <% if (unread) { %><span class="tag-mine shrink-0"><%= t('messages.new') %></span><% } %>
+              <span class="block min-w-0 flex-1 truncate text-[1rem] <%= unread ? 'font-semibold text-ink' : 'text-slate-600' %>"><% if (c.last.kind === 'call') { %><i class="icon-phone mr-1" aria-hidden="true"></i><%= t('messages.call_short', { length: callLength(c.last.body) }) %><% } else if (c.last.kind === 'missed_call') { %><i class="icon-phone-missed mr-1" aria-hidden="true"></i><%= c.last.senderId === currentUser.id ? t('messages.call_unanswered_short') : t('messages.call_missed') %><% } else { %><%= c.last.senderId === currentUser.id ? t('messages.you') + ' ' : '' %><%= c.last.body %><% } %></span>
             </span>
+            <% } %>
+            <%# what is waiting in this conversation %>
+            <% if (c.alerts) { %>
+              <span class="mt-1 flex flex-wrap items-center gap-1.5" data-chat-alerts>
+                <% if (c.alerts.messages > 0) { %><span class="tag-mine shrink-0"><%= c.alerts.messages > 1 ? t('messages.new_count', { n: c.alerts.messages }) : t('messages.new') %></span><% } %>
+                <% if (c.alerts.swapRequest) { %><span class="tag-amber shrink-0"><i class="icon-arrow-left-right" aria-hidden="true"></i><%= t('messages.alert_swap_request') %></span><% } %>
+                <% if (c.alerts.swapAccepted) { %><span class="tag-leaf shrink-0"><i class="icon-circle-check" aria-hidden="true"></i><%= t('messages.alert_swap_accepted') %></span><% } %>
+                <% if (c.alerts.swapDeclined) { %><span class="tag-outline shrink-0"><%= t('messages.alert_swap_declined') %></span><% } %>
+              </span>
+            <% } %>
           </span>
         </a>
       </li>

@@ -32,6 +32,9 @@ async function start() {
     warnings.push('There is no admin account yet. Set ADMIN_NAME, ADMIN_PHONE and ADMIN_PASSWORD (8+ characters), then restart.');
   }
 
+  const shownCodes = require('./services/demoCodes').warning();
+  if (shownCodes) warnings.push(shownCodes);
+
   const sample = await startup.ensureSampleEvents(models);
   if (sample) startup.line('Added ' + sample + ' Ibadan events to the empty event list');
 

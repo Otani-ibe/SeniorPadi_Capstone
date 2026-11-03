@@ -9,6 +9,7 @@
 
 <form action="/book-for-parent/code" method="post">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <%- include('../partials/demoCode', { code: typeof demoCode === 'undefined' ? null : demoCode }) %>
   <div class="field mb-3">
     <label for="code"><%= t('parent.enter_code', { minutes: minutes }) %></label>
     <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required autofocus

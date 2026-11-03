@@ -18,7 +18,12 @@ if (isProduction) app.set('trust proxy', 1);
 
 // gzip pages, CSS and JS so they load quickly on slow phone connections
 app.use(compression());
-app.use(express.static(path.join(__dirname, '../public'), { maxAge: isProduction ? '7d' : 0 }));
+app.use(express.static(path.join(__dirname, '../public'), {
+  maxAge: isProduction ? '7d' : 0,
+  // the scripts are not versioned like the stylesheet, so a phone must check for a newer one every time (a 304 when
+  // nothing changed). Otherwise it can keep running an old copy after an update.
+  setHeaders: (res, filePath) => { if (filePath.endsWith('.js')) res.setHeader('Cache-Control', 'no-cache'); }
+}));
 app.use(express.urlencoded({ extended: false }));
 
 app.use(sessionMiddleware);
@@ -34,6 +39,7 @@ app.use('/', require('./routes/verify'));
 app.use('/', require('./routes/events'));
 app.use('/', require('./routes/bookForParent'));
 app.use('/', require('./routes/account'));
+app.use('/', require('./routes/identity'));
 app.use('/', require('./routes/social'));
 app.use('/', require('./routes/calls'));
 app.use('/', require('./routes/onboarding'));

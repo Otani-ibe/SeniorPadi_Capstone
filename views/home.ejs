@@ -205,8 +205,8 @@
       (public/js/home-whatsapp.js). WhatsApp opens with the message that is showing. %>
   <% if (supportTel) {
        const waMessages = [1, 2, 3, 4].map((n) => t('whatsapp.msg_' + n));
-       const waBase = whatsappUrl.split('?')[0]; %>
-    <a href="<%= waBase %>?text=<%= encodeURIComponent(waMessages[0]) %>" target="_blank" rel="noopener" data-wa data-wa-base="<%= waBase %>" data-wa-messages="<%= JSON.stringify(waMessages) %>"
+       const waBase = whatsappTextable ? whatsappLink('').split('?')[0] : ''; %>
+    <a href="<%= whatsappLink(waMessages[0]) %>" target="_blank" rel="noopener" data-wa data-wa-base="<%= waBase %>" data-wa-messages="<%= JSON.stringify(waMessages) %>"
        class="group mt-3 flex items-center gap-3 rounded-[1.25rem] bg-white py-4 pl-6 pr-4 text-ink no-underline shadow-md shadow-slate-900/5 ring-1 ring-slate-100 transition-colors hover:ring-2 hover:ring-leaf sm:gap-4">
       <span class="min-w-0 flex-1 leading-snug">
         <span class="block font-semibold"><%= t('whatsapp.text_us') %></span>

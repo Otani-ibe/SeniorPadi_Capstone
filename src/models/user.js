@@ -11,7 +11,9 @@ module.exports = (sequelize) => {
     preferredLanguage: { type: DataTypes.ENUM('en', 'yo'), defaultValue: 'en' },
     role: { type: DataTypes.ENUM('senior', 'admin'), defaultValue: 'senior' },
     verificationStatus: {
-      type: DataTypes.ENUM('unverified', 'pending', 'approved', 'rejected', 'social_removed'),
+      // 'approved' = identity verified through their NIN (see services/identity.js). 'pending' = a check is running;
+      // 'manual_review' = a person must look; 'not_eligible' = the NIN shows they are under 50.
+      type: DataTypes.ENUM('unverified', 'pending', 'approved', 'rejected', 'social_removed', 'not_eligible', 'manual_review'),
       defaultValue: 'unverified'
     },
     verificationRejectionReason: DataTypes.TEXT,
@@ -21,17 +23,27 @@ module.exports = (sequelize) => {
     gender: DataTypes.STRING(10), // 'female', 'male' or empty
     profilePictureUrl: DataTypes.STRING,
     profilePicturePublicId: DataTypes.STRING,
-    idDocumentPublicId: DataTypes.STRING,
-    idDocumentFormat: DataTypes.STRING,
     reminderDaysBefore: { type: DataTypes.INTEGER, defaultValue: 2 },
     remindersEnabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+    // the one staff account that may open a NIN (see services/identity.js). Other admins cannot.
+    isSuperAdmin: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     showOnlineStatus: { type: DataTypes.BOOLEAN, defaultValue: true },
     phoneVerifiedAt: DataTypes.DATE,
     emailVerifiedAt: DataTypes.DATE,
     onboardingSeenAt: DataTypes.DATE,
     createdByName: DataTypes.STRING, // set when a son or daughter signed this senior up
-    createdByPhone: DataTypes.STRING
+    createdByPhone: DataTypes.STRING,
+    // where it is, in degrees. Both or neither. Found from the address by services/geocode.js
+    latitude: { type: DataTypes.DOUBLE, validate: { min: -90, max: 90 } },
+    longitude: { type: DataTypes.DOUBLE, validate: { min: -180, max: 180 } },
+    geoSource: DataTypes.STRING(12), // 'geocoded', or 'area' = the middle of their local government area
+    geocodedAt: DataTypes.DATE
   }, {
+    validate: {
+      coordinatesComplete() {
+        if ((this.latitude == null) !== (this.longitude == null)) throw new Error('Latitude and longitude must be given together.');
+      }
+    },
     paranoid: true // never hard delete users
   });
 

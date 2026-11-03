@@ -164,6 +164,13 @@
   </div>
 
   <div class="field">
+    <label class="flex items-start gap-3 font-normal">
+      <input type="checkbox" name="featured" value="yes" class="mt-1 h-6 w-6 shrink-0 accent-indigo" <%= values.featured ? 'checked' : '' %>>
+      <span><strong>Show this event first</strong><br><span class="text-[0.9rem] text-slate-500">It comes ahead of the other events on the Events page and the home page.</span></span>
+    </label>
+  </div>
+
+  <div class="field">
     <label for="imageAlt">Describe the picture (for blind seniors)</label>
     <textarea id="imageAlt" name="imageAlt" rows="3" maxlength="600"><%= values.imageAlt || '' %></textarea>
     <span class="hint">Screen readers read this out instead of showing the picture. Say what it shows and copy any words on the flyer, e.g. "Flyer: seniors doing light exercise in a park. Text says Free fitness morning, Saturday 9am, Agodi Gardens." If you leave it empty, they hear "Flyer for" and the event title.</span>
@@ -180,7 +187,53 @@
     });
   </script>
 
-  <button class="btn" data-uploading-text="Saving…"><i class="icon-save" aria-hidden="true"></i><%= event ? 'Save changes' : 'Publish event' %></button>
+  <% if (event && registeredCount > 0) { %>
+    <%# editing an event seniors are registered for: the admin chooses whether to tell them %>
+    <section class="mb-4 rounded-card bg-mist p-5" data-notify-box>
+      <h2 class="mb-1 text-[1.2rem]">Tell the registered seniors?</h2>
+      <p class="mb-3">
+        <%= registeredCount %> senior<%= registeredCount === 1 ? ' is' : 's are' %> registered for this event. If you choose to tell them, they get a text and a notice saying what is new
+        (the name, the date and time, the place or the price, only what you changed), in their own language.
+      </p>
+      <p class="mb-3 rounded-2xl bg-amber-bg p-3 font-semibold text-amber-tag" data-change-hint hidden>
+        You changed <span data-change-list></span>. The registered seniors should be told.
+      </p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <button name="notify" value="yes" class="btn" data-notify-yes><i class="icon-send" aria-hidden="true"></i>Save and notify <%= registeredCount %> registered senior<%= registeredCount === 1 ? '' : 's' %></button>
+        <button name="notify" value="no" class="btn-plain"><i class="icon-save" aria-hidden="true"></i>Save without notifying</button>
+      </div>
+    </section>
+    <script>
+      // point out what was changed, so it is clear whether the seniors need telling
+      (function () {
+        var form = document.querySelector('form[data-upload]');
+        var watched = { title: 'the name', startsAt: 'the date and time', endsAt: 'the date and time', locationText: 'the place', area: 'the place' };
+        var start = {};
+        Object.keys(watched).forEach(function (id) { start[id] = document.getElementById(id).value; });
+        var pricing = function () { var on = form.querySelector('input[name="pricing"]:checked'); return (on ? on.value : '') + '|' + (document.getElementById('price') ? document.getElementById('price').value : ''); };
+        var startPrice = pricing();
+        function check() {
+          var names = [];
+          Object.keys(watched).forEach(function (id) {
+            if (document.getElementById(id).value !== start[id] && names.indexOf(watched[id]) === -1) names.push(watched[id]);
+          });
+          if (pricing() !== startPrice) names.push('the price');
+          var hint = document.querySelector('[data-change-hint]');
+          document.querySelector('[data-change-list]').textContent = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : (names[0] || '');
+          hint.hidden = names.length === 0;
+          document.querySelector('[data-notify-yes]').classList.toggle('ring-4', names.length > 0);
+          document.querySelector('[data-notify-yes]').classList.toggle('ring-amber-300', names.length > 0);
+        }
+        form.addEventListener('input', check);
+        form.addEventListener('change', check);
+        form.addEventListener('submit', function (e) {
+          if (e.submitter) e.submitter.setAttribute('aria-disabled', 'true');
+        });
+      })();
+    </script>
+  <% } else { %>
+    <button class="btn" data-uploading-text="Saving…"><i class="icon-save" aria-hidden="true"></i><%= event ? 'Save changes' : 'Publish event' %></button>
+  <% } %>
 </form>
 
 <script src="/js/upload.js" defer></script>

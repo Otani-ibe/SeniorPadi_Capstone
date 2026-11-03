@@ -54,12 +54,26 @@
       <ol id="thread" class="space-y-1.5" aria-label="<%= t('messages.title') %>" aria-live="polite"
           data-me="<%= currentUser.id %>" data-other="<%= other.id %>" data-other-name="<%= other.firstName() %>"
           data-you="<%= t('messages.you') %>" data-just-now="<%= t('messages.just_now') %>"
-          data-sent="<%= t('messages.sent') %>" data-read="<%= t('messages.read') %>">
+          data-sent="<%= t('messages.sent') %>" data-read="<%= t('messages.read') %>"
+          data-call-missed="<%= t('messages.call_missed') %>" data-call-unanswered="<%= t('messages.call_unanswered', { name: other.firstName() }) %>"
+          data-call-you="<%= t('messages.call_you') %>" data-call-them="<%= t('messages.call_them', { name: other.firstName() }) %>"
+          data-len-sec="<%= t('messages.call_len_sec', { s: '{s}' }) %>" data-len-min="<%= t('messages.call_len_min', { m: '{m}', s: '{s}' }) %>" data-len-hour="<%= t('messages.call_len_hour', { h: '{h}', m: '{m}' }) %>">
         <% let lastDay = ''; %>
         <% messages.forEach(function (m) { const mine = m.senderId === currentUser.id; const day = new Date(m.createdAt).toDateString(); %>
           <% if (day !== lastDay) { lastDay = day; %>
             <li class="pb-1 pt-4 text-center text-[0.9rem] font-semibold text-slate-500"><%= formatDate(m.createdAt) %></li>
           <% } %>
+          <% if (m.kind === 'call') { %>
+            <%# an answered call: who called, and for how long %>
+            <li id="msg-<%= m.id %>" class="flex justify-center py-1">
+              <p class="inline-flex flex-wrap items-center justify-center gap-x-2 rounded-full bg-white px-4 py-2 text-[0.95rem] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200"><i class="<%= mine ? 'icon-phone-outgoing' : 'icon-phone-incoming' %> text-[1.1rem] text-indigo" aria-hidden="true"></i><span><%= mine ? t('messages.call_you') : t('messages.call_them', { name: other.firstName() }) %></span><span class="font-bold text-ink"><%= callLength(m.body) %></span><span class="font-normal text-slate-500"><%= formatTime(m.createdAt) %></span></p>
+            </li>
+          <% } else if (m.kind === 'missed_call') { %>
+            <%# a call that rang out: a line in the chat, in the middle, for both people %>
+            <li id="msg-<%= m.id %>" class="flex justify-center py-1">
+              <p class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[0.95rem] font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200"><i class="icon-phone-missed text-[1.1rem] text-full-tag" aria-hidden="true"></i><span><%= mine ? t('messages.call_unanswered', { name: other.firstName() }) : t('messages.call_missed') %></span><span class="font-normal text-slate-500"><%= formatTime(m.createdAt) %></span></p>
+            </li>
+          <% } else { %>
           <li id="msg-<%= m.id %>" class="flex <%= mine ? 'justify-end' : 'justify-start' %>">
             <div class="bubble <%= mine ? 'bubble-mine' : 'bubble-theirs' %>">
               <p class="sr-only"><%= mine ? t('messages.you') : other.firstName() + ':' %></p>
@@ -68,6 +82,7 @@
               <p class="bubble-time"><span><%= formatTime(m.createdAt) %></span><% if (m.id === lastMineId) { %><span class="font-semibold" data-read-status><%- include('../partials/readStatus', { read: Boolean(m.readAt) }) %></span><% } %></p>
             </div>
           </li>
+          <% } %>
         <% }) %>
       </ol>
     </div>

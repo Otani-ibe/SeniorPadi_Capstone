@@ -4,11 +4,13 @@ const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { VerificationCode } = require('../models');
 const { sendSms, sendEmail } = require('./notify');
+const demo = require('./demoCodes');
 
 const CODE_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
 const WAIT_SECONDS = process.env.NODE_ENV === 'test' ? 0 : 60; // between "send me a code" taps
 const lastCodes = {}; // test runs only: the newest plain code for each user
+const shownCodes = new Map(); // presentations only (see demoCodes.js): 'userId:channel' -> { code, at }
 
 function hash(code) {
   return crypto.createHash('sha256').update(String(code)).digest('hex');
@@ -35,6 +37,8 @@ async function sendCode(user, channel, options = {}) {
   const vars = { name: user.firstName(), code, minutes: CODE_MINUTES, ...(options.vars || {}) };
   if (channel === 'phone') await sendSms(user, options.smsKey || 'verify.code', vars);
   else await sendEmail(user, 'verify.code', vars);
+  // for a presentation: the page can show this code, but only for an account that is allowed to, and only while that is on
+  if (demo.allowedFor(user)) shownCodes.set(user.id + ':' + channel, { code, at: Date.now() });
   // the automated tests need the code; it's never returned anywhere else
   if (process.env.NODE_ENV === 'test') lastCodes[user.id] = code;
   return process.env.NODE_ENV === 'test' ? { ok: true, code } : { ok: true };
@@ -55,12 +59,22 @@ async function checkCode(user, channel, code) {
   }
 
   await latest.update({ usedAt: new Date() });
+  shownCodes.delete(user.id + ':' + channel);
   await user.update(channel === 'phone' ? { phoneVerifiedAt: new Date() } : { emailVerifiedAt: new Date() });
   return { ok: true };
+}
+
+// the code to show on the page, or null. Null unless presentation mode is on and allows this account, and only for the
+// ten minutes the code works.
+function demoCodeFor(user, channel = 'phone') {
+  if (!demo.allowedFor(user)) return null;
+  const shown = shownCodes.get(user.id + ':' + channel);
+  if (!shown || Date.now() - shown.at > CODE_MINUTES * 60 * 1000) return null;
+  return shown.code;
 }
 
 function lastCodeForTests(userId) {
   return process.env.NODE_ENV === 'test' ? lastCodes[userId] : undefined;
 }
 
-module.exports = { sendCode, checkCode, CODE_MINUTES, lastCodeForTests };
+module.exports = { sendCode, checkCode, demoCodeFor, CODE_MINUTES, lastCodeForTests };

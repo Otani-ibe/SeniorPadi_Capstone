@@ -20,7 +20,7 @@
     <% if (placeOf(u)) { %><p class="text-gray-700"><i class="icon-map-pin mr-1.5 text-indigo" aria-hidden="true"></i><%= placeOf(u) %></p><% } %>
     <div class="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
       <span class="<%= u.phoneVerifiedAt ? 'tag-leaf' : 'tag-amber' %>"><i class="<%= u.phoneVerifiedAt ? 'icon-circle-check' : 'icon-circle-alert' %>" aria-hidden="true"></i><%= u.phoneVerifiedAt ? t('verify.phone_ok') : t('verify.phone_not') %></span>
-      <% if (u.verificationStatus === 'approved') { %><span class="tag-leaf"><i class="icon-id-card" aria-hidden="true"></i><%= t('find.verified') %></span><% } %>
+      <% if (u.verificationStatus === 'approved') { %><span class="tag-leaf"><i class="icon-id-card" aria-hidden="true"></i><%= t('find.verified') %></span><% } else if (u.verificationStatus !== 'social_removed') { %><a href="/identity/status" class="tag-amber no-underline"><i class="icon-id-card" aria-hidden="true"></i><%= t('identity.title') %></a><% } %>
     </div>
   </div>
   <a href="/settings" class="btn-plain shrink-0"><i class="icon-camera" aria-hidden="true"></i><%= t('account.edit_profile') %></a>

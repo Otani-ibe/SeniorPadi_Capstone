@@ -1,0 +1,52 @@
+<%# Verify with a NIN. Shown when someone who is not verified tries to use Find seniors.
+    The NIN is never put back in this page: after a mistake they type it again. %>
+<%- include('../partials/header') %>
+
+<div class="mx-auto max-w-xl">
+  <a href="/events" class="back-link"><i class="icon-arrow-left" aria-hidden="true"></i><%= t('nav.find_events') %></a>
+
+  <div class="mb-6 text-center">
+    <span class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-mist text-[2rem] text-indigo"><i class="icon-shield-check" aria-hidden="true"></i></span>
+    <h1 class="mt-4 text-[2rem] font-extrabold leading-tight tracking-tight"><%= t('identity.title') %></h1>
+    <p class="mx-auto mt-2 max-w-md text-[1.1rem] text-slate-700"><%= t('identity.why') %></p>
+  </div>
+
+  <% if (reason) { %>
+    <div role="alert" class="mb-5 rounded-card bg-full-bg p-4">
+      <p class="font-semibold"><%= t('identity.rejected_banner') %></p>
+      <p><%= reason %></p>
+    </div>
+  <% } %>
+  <% if (errors.form) { %><div role="alert" class="mb-5 rounded-card bg-full-bg p-4 font-semibold"><%= errors.form %></div><% } %>
+
+  <form action="/identity" method="post" class="sheet" novalidate autocomplete="off">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="field">
+      <label for="nin"><%= t('identity.nin_label') %></label>
+      <%# numbers only, and no more than 11: it cannot be typed or pasted in any other way (public/js/nin-input.js) %>
+      <input type="text" id="nin" name="nin" inputmode="numeric" pattern="[0-9]{11}" minlength="11" maxlength="11" autocomplete="off" autocapitalize="off" spellcheck="false" required
+             data-nin data-count-text="<%= t('identity.count', { n: '{n}' }) %>" aria-describedby="nin-hint nin-count <%= errors.nin ? 'nin-error' : '' %>"
+             <%= errors.nin ? 'aria-invalid=true' : '' %> class="text-center !text-[1.5rem] font-semibold tracking-[0.2em]">
+      <span id="nin-hint" class="hint"><%= t('identity.nin_hint') %> <span id="nin-count" data-nin-count class="font-semibold"></span></span>
+      <% if (errors.nin) { %><span id="nin-error" class="error"><%= errors.nin %></span><% } %>
+    </div>
+
+    <p class="mb-4 flex items-start gap-3 text-slate-600"><i class="icon-lock mt-1 text-indigo" aria-hidden="true"></i><span><%= t('identity.privacy') %></span></p>
+
+    <div class="field">
+      <label class="flex items-start gap-3 font-normal">
+        <input type="checkbox" name="consent" value="yes" class="mt-1 h-7 w-7 shrink-0" required>
+        <span><%= t('identity.consent') %></span>
+      </label>
+      <% if (errors.consent) { %><span class="error"><%= errors.consent %></span><% } %>
+    </div>
+
+    <button class="btn w-full sm:w-full"><i class="icon-shield-check" aria-hidden="true"></i><%= t('identity.submit') %></button>
+  </form>
+
+  <p class="mt-4 text-center text-slate-600"><%= t('find.events_unaffected') %></p>
+</div>
+
+<script src="/js/nin-input.js" defer></script>
+<%- include('../partials/footer') %>

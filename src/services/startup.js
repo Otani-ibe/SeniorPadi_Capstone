@@ -106,7 +106,8 @@ async function ensureSampleEvents(models) {
   if (process.env.NODE_ENV === 'test') return 0;
   if ((await models.Event.count()) > 0) return 0;
   const { addSampleEvents } = require('./sampleEvents');
-  const result = await addSampleEvents(models);
+  const { ALL } = require('./sampleEvents');
+  const result = await addSampleEvents(models, { include: ALL });
   return result.events;
 }
 

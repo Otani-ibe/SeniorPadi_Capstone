@@ -3,6 +3,7 @@
 const { User } = require('../models');
 const social = require('../services/social');
 const calls = require('../services/calls');
+const { addMissedCall, addCallRecord } = require('../services/messaging');
 
 const MAX_INVITES_PER_10_MIN = 10;
 const MAX_SIGNAL_BYTES = 20000;
@@ -17,11 +18,16 @@ function setupCalls(io, socket, loadVerifiedSenior) {
 
   // finishes a call and tells everyone involved (the other person, and this person's other tabs)
   function finish(call, reason, exceptSocketId) {
+    // a call that was answered is kept in the chat, with how long it lasted
+    const talked = call.state === 'active' && call.acceptedAt ? Math.round((Date.now() - call.acceptedAt) / 1000) : null;
     calls.end(call);
     for (const id of [call.callerId, call.calleeId]) {
       let target = io.to(userRoom(id));
       if (exceptSocketId) target = target.except(exceptSocketId);
       target.emit('call:ended', { callId: call.id, reason });
+    }
+    if (talked !== null) {
+      addCallRecord(io, call.callerId, call.calleeId, talked).catch((err) => console.error('Could not write the call into the chat:', err.message));
     }
   }
 
@@ -43,23 +49,34 @@ function setupCalls(io, socket, loadVerifiedSenior) {
         return reply({ ok: false, reason: 'unavailable' });
       }
       if (calls.isBusy(me.id)) return reply({ ok: false, reason: 'you_busy' });
-      if (!(await isOnline(other.id))) return reply({ ok: false, reason: 'offline' });
+      if (!(await isOnline(other.id))) {
+        // they are away: the caller is told, and a missed call waits for them in the chat, one line for every try.
+        // It counts toward the limit on calls (10 in 10 minutes), so it cannot be used to fill someone's chat.
+        // The line is handed straight back to the caller, so it shows at once whatever the connection does.
+        socket.data.inviteTimes.push(now);
+        let line = null;
+        try {
+          const saved = await addMissedCall(io, me, other);
+          line = { id: saved.id, senderId: me.id, body: '', kind: 'missed_call', createdAt: saved.createdAt, read: false };
+        } catch (err) {
+          console.error('Could not write the missed call into the chat:', err.message);
+        }
+        return reply({ ok: false, reason: 'offline', line });
+      }
       if (calls.isBusy(other.id)) return reply({ ok: false, reason: 'busy' });
 
       socket.data.inviteTimes.push(now);
       const call = calls.create(me.id, other.id, socket.id);
       io.to(userRoom(other.id)).emit('call:incoming', { callId: call.id, from: { id: me.id, name: me.firstName(), avatar: me.avatarUrl() } });
 
-      // nobody answered: a missed call, which they also see in their notifications
+      // nobody answered: a missed call, shown in their chat (and only there)
       call.timer = setTimeout(async () => {
         if (!calls.get(call.id) || call.state !== 'ringing') return;
         finish(call, 'missed');
         try {
-          await social.addNotification(other.id, 'call.missed', { name: me.firstName() }, '/messages/' + me.id);
-          // the caller sees it too, so both of them have a record
-          await social.addNotification(me.id, 'call.unanswered', { name: other.firstName() }, '/messages/' + other.id);
+          await addMissedCall(io, me, other);
         } catch (err) {
-          console.error('Missed call notification failed:', err.message);
+          console.error('Could not write the missed call into the chat:', err.message);
         }
       }, calls.RING_SECONDS * 1000);
 
@@ -77,6 +94,7 @@ function setupCalls(io, socket, loadVerifiedSenior) {
     if (!call || call.calleeId !== myId || call.state !== 'ringing') return reply({ ok: false });
     clearTimeout(call.timer);
     call.state = 'active';
+    call.acceptedAt = Date.now();
     call.calleeSocket = socket.id;
     // their other tabs and phones stop ringing
     socket.to(userRoom(myId)).emit('call:ended', { callId: call.id, reason: 'answered_elsewhere' });

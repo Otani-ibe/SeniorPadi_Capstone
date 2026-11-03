@@ -2,7 +2,7 @@
 // Needed before joining an event or messaging another senior.
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { sendCode, checkCode, CODE_MINUTES } = require('../services/verification');
+const { sendCode, checkCode, demoCodeFor, CODE_MINUTES } = require('../services/verification');
 const { registerAndNotify, safeNext } = require('../services/registration');
 const rateLimit = require('express-rate-limit');
 
@@ -50,6 +50,7 @@ router.get('/verify', requireAuth, async (req, res) => {
     title: req.t('verify.title'),
     sent,
     minutes: CODE_MINUTES,
+    demoCodes: { phone: demoCodeFor(req.user, 'phone'), email: demoCodeFor(req.user, 'email') },
     needsEmail: Boolean(req.user.email) && !req.user.emailVerifiedAt
   });
 });

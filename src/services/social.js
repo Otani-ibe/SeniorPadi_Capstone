@@ -111,10 +111,47 @@ async function notifyAdmins(type, payload, link) {
   for (const admin of admins) await addNotification(admin.id, type, payload, link);
 }
 
-// the ids of people whose messages this person hasn't opened yet (one id per person, however many messages)
-async function unreadSenderIds(userId) {
-  const rows = await Notification.findAll({ where: { userId, type: 'message.new', readAt: null }, attributes: ['payload'] });
-  return new Set(rows.map((n) => n.payload && n.payload.senderId).filter(Boolean));
+// Everything that has to do with a conversation lives in Messages, not in the Account notifications: a new message, a
+// missed call (written as a message), and a request to swap phone numbers or its answer. Each one links to /messages/<person>.
+const MESSAGE_NOTIFICATION_TYPES = ['message.new', 'exchange.request', 'exchange.accepted', 'exchange.declined', 'call.missed', 'call.unanswered'];
+
+// the person a message-type notification is about
+function personOfNotification(n) {
+  if (n.payload && n.payload.senderId) return Number(n.payload.senderId);
+  const match = String(n.link || '').match(/^\/messages\/(\d+)/);
+  return match ? Number(match[1]) : null;
 }
 
-module.exports = { upcomingSeniorsFor, unreadSenderIds, hiddenIdsFor, isBlockedOrHidden, canMessage, nextSeniorFor, skippedSeniorsFor, addNotification, notifyAdmins };
+// What is waiting for this person in Messages, for each person they talk to:
+// Map(personId -> { messages: 3, swapRequest: true, swapAccepted: false, swapDeclined: false })
+async function unreadAlerts(userId) {
+  const rows = await Notification.findAll({ where: { userId, type: MESSAGE_NOTIFICATION_TYPES, readAt: null }, attributes: ['type', 'payload', 'link'] });
+  const alerts = new Map();
+  for (const row of rows) {
+    const person = personOfNotification(row);
+    if (!person) continue;
+    const entry = alerts.get(person) || { messages: 0, swapRequest: false, swapAccepted: false, swapDeclined: false };
+    if (row.type === 'exchange.request') entry.swapRequest = true;
+    else if (row.type === 'exchange.accepted') entry.swapAccepted = true;
+    else if (row.type === 'exchange.declined') entry.swapDeclined = true;
+    else entry.messages++;
+    alerts.set(person, entry);
+  }
+  return alerts;
+}
+
+// the ids of people who have something waiting in Messages (one id per person, however many things). This is the number on
+// the Messages tab, and it goes down as each conversation is opened.
+async function unreadSenderIds(userId) {
+  return new Set((await unreadAlerts(userId)).keys());
+}
+
+// opening a conversation reads everything in it: messages, missed calls and swap-number notices
+function markConversationRead(userId, otherId) {
+  return Notification.update(
+    { readAt: new Date() },
+    { where: { userId, type: MESSAGE_NOTIFICATION_TYPES, readAt: null, link: '/messages/' + otherId } }
+  );
+}
+
+module.exports = { MESSAGE_NOTIFICATION_TYPES, unreadAlerts, markConversationRead, upcomingSeniorsFor, unreadSenderIds, hiddenIdsFor, isBlockedOrHidden, canMessage, nextSeniorFor, skippedSeniorsFor, addNotification, notifyAdmins };

@@ -5,7 +5,7 @@
 const express = require('express');
 const { User, Event } = require('../models');
 const { normalizePhone, phoneProblem } = require('../services/phone');
-const { sendCode, checkCode, CODE_MINUTES } = require('../services/verification');
+const { sendCode, checkCode, CODE_MINUTES, demoCodeFor } = require('../services/verification');
 const { registerAndNotify } = require('../services/registration');
 const { audit } = require('../services/audit');
 const { safeNext } = require('../services/registration');
@@ -78,7 +78,7 @@ async function pendingParent(req) {
 router.get('/book-for-parent/code', async (req, res) => {
   const current = await pendingParent(req);
   if (!current) return res.redirect('/book-for-parent');
-  res.render('book/code', { title: req.t('book.code_title'), name: current.parent.firstName(), phone: current.parent.localPhone(), minutes: CODE_MINUTES });
+  res.render('book/code', { title: req.t('book.code_title'), name: current.parent.firstName(), phone: current.parent.localPhone(), minutes: CODE_MINUTES, demoCode: demoCodeFor(current.parent) });
 });
 
 router.post('/book-for-parent/code', loginLimiter, async (req, res) => {

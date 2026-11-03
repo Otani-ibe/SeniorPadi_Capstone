@@ -74,6 +74,43 @@ This clears your local database and adds sample events and users. Every demo acc
 
 In `.env`, set `DB_TARGET=local` to use PostgreSQL on your computer, or `DB_TARGET=neon` to use Neon. Run `npm run db:check` to test the connection.
 
+## Events near a senior
+
+Every senior and every event has a `latitude` and `longitude` (degrees; latitude always first). They are found from the address
+in the background whenever a senior's area or an event's venue is saved (`src/services/geocode.js`, OpenStreetMap's free
+Nominatim service, one request a second). If the address is not found, or lands outside Ibadan, the middle of the local
+government area is used and marked `geoSource = 'area'`. `src/services/nearby.js` then ranks bookable events by straight-line
+distance, widening 5 → 10 → 25 → 50 km until there are enough; a senior with no place at all just gets the soonest events.
+Plain columns are used instead of PostGIS so it works on every database we run on (PostGIS is not on a typical local Postgres).
+
+`npm run geo:backfill` (or `:neon`) looks up places for the seniors and events that were there before; add `-- --dry` to only
+count them. Settings: `GEOCODING=off` turns lookups off, `GEOCODER_URL` / `GEOCODER_EMAIL` are optional.
+
+## Near you and recommended for you
+
+On **Find events**, a signed-in senior's deck starts with the events **near them** and the events **picked for them**, each
+with a small note ("Near you", "Recommended for you"), and then every other event in its usual order. It only reorders the
+deck: filters, skips and places left work as before. "Near you" means within 15 km (`NEAR_KM`); "Recommended" is only used for
+a type of event they have joined, booked or asked to hear about. The scoring is in `src/services/recommendationScoring.js`
+(pure, no database) and every weight is in `src/config/recommendation.js`: interest 40%, proximity 30%, interactions 15%,
+freshness 10%, diversity 5%. Change them there, or without editing code with
+`RECOMMEND_WEIGHTS={"interest":0.5,"proximity":0.2,"interactions":0.15,"freshness":0.1,"diversity":0.05}` in `.env`.
+Attending counts most, then booking, then a chosen interest, then page views (views are not recorded yet).
+
+## Identity verification (NIN)
+
+Find Seniors needs a verified identity: a senior types their NIN, it is saved **encrypted**, and the **superadmin** checks it
+on the official NIMC website and decides (verified, under 50, or declined with a reason). The NIN is erased the moment a
+decision is made, and no other admin can see it. The flow, what is kept, how to make yourself the superadmin
+(`npm run superadmin -- --phone ... --name ...`) and the setting `NIN_ENCRYPTION_KEY` are in `docs/nin-verification.md`.
+The old ID-photo upload is gone; `npm run ids:purge` deletes the photos it left behind.
+
+## Demo mode (code on screen)
+
+For a presentation where texts cannot be sent, `DEMO_SHOW_CODES=true` shows "Your code is ..." on the login code page. It
+stops by itself at `DEMO_SHOW_CODES_UNTIL` (required on the live site), never applies to staff, and can be limited to listed
+accounts with `DEMO_ACCOUNTS`. See `docs/demo-mode.md`.
+
 ## Settings (.env)
 
 | Setting | What it's for |
@@ -85,10 +122,10 @@ In `.env`, set `DB_TARGET=local` to use PostgreSQL on your computer, or `DB_TARG
 | `TEST_DATABASE_URL` | A separate database for tests (it gets wiped) |
 | `SESSION_SECRET` | Any long random text |
 | `ADMIN_NAME`, `ADMIN_PHONE`, `ADMIN_PASSWORD` | The first staff account |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Picture and ID uploads |
-| `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` | SMS and email |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Picture uploads (profile photos, event flyers) |
+| `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `BREVO_SMS_SENDER` | SMS and email (login codes, reminders). `npm run services:check` tests Cloudinary and Brevo |
 | `NOTIFY_DRY_RUN` | Set to `true` to print messages in the terminal instead of sending them |
-| `SUPPORT_PHONE` | The number seniors can call for help |
+| `SUPPORT_PHONE`, `SUPPORT_WHATSAPP_URL` | The number and WhatsApp link behind every Call and WhatsApp button (they default to SeniorPadi's own) |
 | `CLOUDFLARE_TURN_KEY_ID`, `CLOUDFLARE_TURN_API_TOKEN` | Voice calls between seniors. Cloudflare dashboard, Realtime, TURN Server. Calls still work for testing without them, but many phone networks need this relay |
 
 Never commit `.env`. It's already in `.gitignore`.

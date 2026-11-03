@@ -18,5 +18,6 @@ module.exports = {
   signupLimiter: limiter(5, 60),
   resetLimiter: limiter(5, 60),
   uploadLimiter: limiter(20, 60),
+  identityLimiter: limiter(6, 60), // each NIN check costs SeniorPadi money
   messageLimiter: limiter(60, 10)
 };

@@ -1,0 +1,4 @@
+<%# On a presentation (see services/demoCodes.js) the code is shown here. Needs: code (empty = nothing is shown). %>
+<% if (typeof code !== 'undefined' && code) { %>
+  <p class="mb-3 rounded-2xl bg-mist p-4 text-center text-[1.2rem]" data-shown-code><%= t('demo.your_code', { code: code }) %></p>
+<% } %>

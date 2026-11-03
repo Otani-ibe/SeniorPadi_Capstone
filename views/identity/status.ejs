@@ -1,0 +1,35 @@
+<%# Where a senior's identity check stands. Never shows a NIN. %>
+<%- include('../partials/header') %>
+<%
+  // icon, colours and wording for each state
+  let tone = 'bg-mist text-indigo';
+  let icon = 'icon-shield-check';
+  let key = 'not_started';
+  if (status === 'approved') { tone = 'bg-mist text-leaf'; icon = 'icon-circle-check'; key = 'verified'; }
+  else if (status === 'pending') { tone = 'bg-amber-bg text-amber-tag'; icon = 'icon-hourglass'; key = 'pending'; }
+  else if (status === 'not_eligible') { tone = 'bg-full-bg text-full-tag'; icon = 'icon-circle-alert'; key = 'not_eligible'; }
+  else if (status === 'rejected') { tone = 'bg-full-bg text-full-tag'; icon = 'icon-circle-alert'; key = 'review_rejected'; }
+  else if (status === 'social_removed') { tone = 'bg-full-bg text-full-tag'; icon = 'icon-circle-alert'; key = 'removed'; }
+%>
+
+<div class="mx-auto max-w-xl text-center">
+  <span class="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-[2rem] <%= tone %>"><i class="<%= icon %>" aria-hidden="true"></i></span>
+  <h1 class="mt-4 text-[2rem] font-extrabold leading-tight tracking-tight"><%= t('identity.status_title') %></h1>
+
+  <div class="mt-5 rounded-card bg-white p-6 text-left shadow-md shadow-slate-900/5 ring-1 ring-slate-100" role="status">
+    <p class="text-[1.25rem] font-semibold"><%= t('identity.state.' + key + '.title') %></p>
+    <p class="mt-2 text-slate-700"><%= t('identity.state.' + key + '.text', { reason: reason || '' }) %></p>
+  </div>
+
+  <div class="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+    <% if (status === 'approved') { %>
+      <a href="/find-seniors" class="btn min-h-12"><i class="icon-users" aria-hidden="true"></i><%= t('nav.find_seniors') %></a>
+    <% } else if (retry) { %>
+      <a href="/identity" class="btn min-h-12"><i class="icon-shield-check" aria-hidden="true"></i><%= status === 'rejected' ? t('identity.try_again') : t('identity.start') %></a>
+    <% } %>
+    <% if (status !== 'approved') { %><a href="/events" class="btn-plain min-h-12"><i class="icon-calendar-days" aria-hidden="true"></i><%= t('nav.find_events') %></a><% } %>
+  </div>
+  <% if (status === 'rejected' && !retry) { %><p class="mt-4 text-slate-700"><%= t('identity.contact_us') %></p><% } %>
+</div>
+
+<%- include('../partials/footer') %>

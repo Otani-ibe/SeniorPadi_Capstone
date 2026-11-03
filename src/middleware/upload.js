@@ -3,7 +3,6 @@
 const multer = require('multer');
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const ID_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 function fileUpload(fieldName, maxMb, allowedTypes, wrongTypeKey) {
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -35,9 +34,4 @@ function imageUpload(fieldName, maxMb) {
   return fileUpload(fieldName, maxMb, IMAGE_TYPES, 'upload.wrong_type');
 }
 
-// ID documents can also be a PDF
-function idUpload(fieldName) {
-  return fileUpload(fieldName, 5, ID_TYPES, 'upload.wrong_type_id');
-}
-
-module.exports = { imageUpload, idUpload };
+module.exports = { imageUpload };

@@ -40,12 +40,40 @@ async function sendMessage(io, sender, recipient, rawBody) {
       id: message.id,
       senderId: sender.id,
       body: message.body,
+      kind: 'text',
       createdAt: message.createdAt,
       read: watching
     });
   }
 
   return { ok: true, message };
+}
+
+// A call that rang out is written into the chat, as a line from the caller: "Missed call" for the person called,
+// "Call not answered" for the caller. It is not a notification and not a banner: the chat is where it lives.
+// It counts as an unread message for the person called, like any other message.
+async function addMissedCall(io, caller, callee) {
+  const room = roomName(caller.id, callee.id);
+  const watching = await recipientIsWatching(io, room, callee.id);
+  const message = await Message.create({ senderId: caller.id, recipientId: callee.id, body: '', kind: 'missed_call', readAt: watching ? new Date() : null });
+  if (!watching) {
+    await social.addNotification(callee.id, 'message.new', { senderId: caller.id, name: caller.firstName() }, '/messages/' + caller.id);
+  }
+  if (io) {
+    io.to(room).emit('message:new', { id: message.id, senderId: caller.id, body: '', kind: 'missed_call', createdAt: message.createdAt, read: watching });
+  }
+  return message;
+}
+
+// A call that was answered is written into the chat as a line saying who called and for how long (in seconds, kept in
+// the body). It is already read: a finished call is not news.
+async function addCallRecord(io, callerId, calleeId, seconds) {
+  const room = roomName(callerId, calleeId);
+  const message = await Message.create({ senderId: callerId, recipientId: calleeId, body: String(Math.max(0, Math.round(seconds))), kind: 'call', readAt: new Date() });
+  if (io) {
+    io.to(room).emit('message:new', { id: message.id, senderId: callerId, body: message.body, kind: 'call', createdAt: message.createdAt, read: true });
+  }
+  return message;
 }
 
 // the reader opened the conversation: their messages from the other person are now read.
@@ -55,4 +83,4 @@ async function markRead(io, readerId, senderId) {
   if (count > 0 && io) io.to(roomName(readerId, senderId)).emit('messages:read', { readerId });
 }
 
-module.exports = { MAX_MESSAGE, roomName, sendMessage, markRead };
+module.exports = { MAX_MESSAGE, roomName, sendMessage, addMissedCall, addCallRecord, markRead };
