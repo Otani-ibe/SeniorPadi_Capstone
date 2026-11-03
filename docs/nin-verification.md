@@ -69,13 +69,3 @@ check is only as strong as the superadmin's comparison on the NIMC page.
 - A submission cannot start twice at once (two taps or two tabs make one).
 - The database refuses an unknown status, a NIN kept after a decision, and the same NIN hash verified on two accounts.
 
-## Old ID photos
-
-The old "send a photo of your ID" check is gone. Photos already uploaded are no longer used. Delete them with
-`npm run ids:purge -- --dry` (count) and then `npm run ids:purge`. Seniors who were already `approved`, including the
-demo seniors, keep their access. Anyone whose ID photo was still waiting is back to "not verified".
-
-## Setting up
-
-Set `NIN_ENCRYPTION_KEY` (32+ random characters; `render.yaml` generates one for the live site). Then make yourself the
-superadmin with the command above.
