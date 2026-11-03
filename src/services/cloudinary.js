@@ -3,11 +3,9 @@ const path = require('path');
 const crypto = require('crypto');
 const cloudinary = require('cloudinary').v2;
 
-// Without Cloudinary keys, files are saved on this computer instead,
-// so uploads still work while developing. (On Render, use Cloudinary:
-// files saved on the server disappear when it restarts.)
+// No Cloudinary keys: files are saved locally (dev). On Render use Cloudinary, files saved on the server vanish on restart.
 const ROOT = path.join(__dirname, '../..');
-const LOCAL_PUBLIC = path.join(ROOT, 'public/uploads');   // pictures and video, served by the site
+const LOCAL_PUBLIC = path.join(ROOT, 'public/uploads');   // public pictures and video
 const LOCAL_PRIVATE = path.join(ROOT, 'storage/ids');     // ID documents, never served directly
 const EXTENSIONS = {
   'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
@@ -25,7 +23,7 @@ function isConfigured() {
   return Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_SECRET);
 }
 
-// Settings for each kind of upload
+// settings per upload kind
 const UPLOAD_TYPES = {
   profile: {
     folder: 'seniorpadi/public/profiles',
@@ -35,21 +33,21 @@ const UPLOAD_TYPES = {
   event: {
     folder: 'seniorpadi/public/events',
     type: 'upload',
-    // flyers are never cropped: only made smaller if they are bigger than 1200px. The best flyer is a square, 1080 x 1080.
+    // flyers are never cropped, only shrunk past 1200px. Best flyer is square, 1080 x 1080
     transformation: [{ width: 1200, height: 1200, crop: 'limit', quality: 'auto', fetch_format: 'auto' }]
   },
   video: {
     folder: 'seniorpadi/public/onboarding',
     type: 'upload'
   },
-  // Phase 2: ID documents are private and only viewed through signed links
+  // ID documents: private, viewed through signed links
   id: {
     folder: 'seniorpadi/private/ids',
     type: 'private'
   }
 };
 
-// Uploads a file buffer from multer (memory storage) straight to Cloudinary
+// uploads a multer memory buffer straight to Cloudinary
 function saveLocally(buffer, kind, mimetype) {
   const ext = EXTENSIONS[mimetype] || 'bin';
   const name = crypto.randomUUID() + '.' + ext;
@@ -64,8 +62,7 @@ function saveLocally(buffer, kind, mimetype) {
   return { url: '/uploads/' + kind + '/' + name, publicId: 'local:uploads/' + kind + '/' + name, format: ext };
 }
 
-// Uploads a file buffer from multer (memory storage) to Cloudinary,
-// or saves it locally if Cloudinary isn't set up.
+// uploads a multer memory buffer to Cloudinary, or saves locally without keys
 function uploadBuffer(buffer, kind, mimetype) {
   if (!isConfigured()) return Promise.resolve(saveLocally(buffer, kind, mimetype));
 
@@ -79,7 +76,7 @@ function uploadBuffer(buffer, kind, mimetype) {
   });
 }
 
-// where a locally saved file lives on disk (null for Cloudinary files)
+// local path of a saved file (null for Cloudinary)
 function localPath(publicId) {
   if (!publicId || !publicId.startsWith('local:')) return null;
   const rest = publicId.slice(6);
@@ -100,7 +97,7 @@ async function deleteFile(publicId, type = 'upload', resourceType = 'image') {
   }
 }
 
-// Short-lived link for an admin to look at an ID document. Expires in 5 minutes.
+// 5 minute link for an admin to view an ID document
 function signedIdUrl(publicId, format) {
   return cloudinary.utils.private_download_url(publicId, format, {
     resource_type: 'image',
@@ -109,7 +106,7 @@ function signedIdUrl(publicId, format) {
   });
 }
 
-// Onboarding video at 480p with low quality, so it plays on weak connections
+// onboarding video at 480p, low quality, for weak connections
 function videoUrl(publicId) {
   if (publicId.startsWith('local:')) return '/' + publicId.slice(6);
   return cloudinary.url(publicId, {

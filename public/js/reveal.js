@@ -1,5 +1,4 @@
-// Slides sections in as they scroll into view.
-// Anything with data-reveal starts hidden (only when JavaScript runs) and gets "revealed".
+// slides sections in on scroll. [data-reveal] starts hidden (only when JavaScript runs) and gets "revealed"
 (function () {
   var items = document.querySelectorAll('[data-reveal]');
   if (!('IntersectionObserver' in window)) {

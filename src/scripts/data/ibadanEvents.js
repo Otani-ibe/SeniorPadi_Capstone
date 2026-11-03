@@ -1,8 +1,5 @@
-// The Ibadan events list (3 December 2026 to 16 January 2027), from SeniorPadi_events_list.pdf.
-// Used by src/scripts/addEvents.js. Times are Lagos time (WAT, UTC+1).
-//
-// area: one of the 11 Ibadan local government areas, only where the venue's area is certain.
-// Where it is not, it is left empty (the card says "Area to be confirmed") so staff can set it in the admin page.
+// The Ibadan events list (3 December 2026 to 16 January 2027), from SeniorPadi_events_list.pdf. Used by src/scripts/addEvents.js. Lagos time (WAT, UTC+1).
+// area: one of the 11 Ibadan LGAs, only where the venue's area is certain. Otherwise empty (card says "Area to be confirmed") for staff to set in admin
 
 const ev = (title, category, date, from, to, description, org, location, area) => ({
   title, category, description, org, location, area: area || null,
@@ -59,8 +56,7 @@ const events = [
   ev('Guided Morning Walk at Agodi Gardens', 'fitness', '2026-12-19', '07:00', '09:00',
     'An easy guided walk on the garden paths, with benches every few minutes. A volunteer walks at the back so nobody is rushed. Water and a light breakfast after.',
     'Agodi Gardens', 'Agodi Gardens, Ibadan', 'ibadan-north'),
-  // This one is the same gathering as the Christmas hymns evening already listed at the Kudeti cathedral on 19 December,
-  // so addEvents.js skips it and says why.
+  // same gathering as the Christmas hymns evening already listed at the Kudeti cathedral on 19 December, addEvents.js skips it and says why
   ev('Christmas Carols and Old Hymns Sing-Along', 'faith', '2026-12-19', '16:00', '18:00',
     'An afternoon of Christmas carols and old hymns that elders grew up singing. Request a carol from the choir, then join in the chorus. Tea and cake in the parish hall afterwards. Hymn books provided.',
     'Cathedral Church of St. David, Kudeti', 'Cathedral Church of St. David, Kudeti, Ibadan'),
@@ -105,8 +101,7 @@ const events = [
     'Ibadan Golf Club', 'Ibadan Golf Club, Ibadan')
 ];
 
-// How many places each event has. Chosen by the kind of event and the venue: hands-on classes with kits or one-to-one help
-// are small; screenings, drives and hall gatherings are large. Staff can change any of them in the admin page.
+// places per event, by kind of event and venue: hands-on classes with kits or one-to-one help are small, screenings, drives and hall gatherings large. Staff can change any in admin
 const CAPACITY = {
   'Lunch for Retirees Hosted by Rotary': 40,
   'Phone Camera Class: Take Better Photos of Family': 15,
@@ -140,8 +135,7 @@ const CAPACITY = {
   'Beginner Golf Lesson for Ages 60 and Above': 12
 };
 
-// The area (local government area) where the list's venue was not certain. These are best guesses from where each
-// place is in Ibadan; staff can correct any of them in the admin page.
+// area where the list's venue was uncertain. Best guesses from where each place is in Ibadan, staff can correct in admin
 const AREA_GUESS = {
   'Phone Camera Class: Take Better Photos of Family': 'ibadan-north',
   'Christmas Carols and Old Hymns Sing-Along': 'ibadan-south-east', // the same church as the hymns evening already on the site
@@ -159,7 +153,7 @@ const AREA_GUESS = {
   'Beginner Golf Lesson for Ages 60 and Above': 'ibadan-south-west'
 };
 
-// The flyer for each event: public/images/events/ibadan/01.jpg ... 30.jpg, in the order of the list above.
+// flyer per event: public/images/events/ibadan/01.jpg ... 30.jpg, in list order
 module.exports = events.map((e, i) => ({
   ...e,
   imageUrl: '/images/events/ibadan/' + String(i + 1).padStart(2, '0') + '.jpg',

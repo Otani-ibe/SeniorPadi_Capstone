@@ -1,6 +1,6 @@
-<%# the guest list with door check-in, shared by staff (admin/attendance) and the host organization (host/checkin).
-    needs: event, registrations, counts, hasStarted, door ({ base: where the forms post, host: true on the organization's page })
-    Script: public/js/admin-door.js. Everything also works without it (each tap reloads the page). %>
+<%# guest list with door check-in, shared by admin/attendance and host/checkin.
+    needs: event, registrations, counts, hasStarted, door ({ base: where forms post, host: true on the organization's page })
+    public/js/admin-door.js, works without it (each tap reloads) %>
 <% const pct = counts.total ? Math.round((counts.came / counts.total) * 100) : 0; %>
 
 <%# the count at the top, kept up to date as people are ticked %>
@@ -21,8 +21,7 @@
     <p class="font-semibold">Nobody is registered for this event yet.</p>
   </div>
 <% } else { %>
-  <%# the box: searches the list as you type. Pressing Enter checks in the one match,
-      or, without JavaScript, checks in by ticket number %>
+  <%# searches as you type, Enter checks in the one match, without JavaScript it checks in by ticket number %>
   <form action="<%= door.base %>/checkin" method="post" role="search" class="admin-box sticky top-0 z-10 mb-3 p-2 print:hidden md:top-2" data-door-search>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <div class="flex gap-2">

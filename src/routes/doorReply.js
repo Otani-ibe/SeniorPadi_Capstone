@@ -1,6 +1,5 @@
-// The answer to a Came / Didn't come / Undo tap on an attendance list, for staff and for the host
-// organization alike. The page asks in the background (X-Requested-With) and swaps in the updated row;
-// without JavaScript the browser goes back to the list.
+// reply to a Came / Didn't come / Undo tap on an attendance list, for staff and the host organization.
+// the page asks in the background (X-Requested-With) and swaps in the new row, without JavaScript it goes back to the list
 const { attendanceCounts } = require('../services/attendance');
 
 function doorReply(req, res, { event, reg, back, door }) {

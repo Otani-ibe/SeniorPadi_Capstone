@@ -1,6 +1,6 @@
 const { AuditLog } = require('../models');
 
-// Writes one line to the audit log. Never throws, so it can't break a request.
+// writes one audit line, never throws
 async function audit(actorId, action, entityType, entityId, metadata = {}) {
   try {
     await AuditLog.create({ actorId, action, entityType, entityId, metadata });

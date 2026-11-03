@@ -109,7 +109,7 @@ describe('adding them to the database', () => {
   });
 });
 
-// the events with the dates moved forward, so these tests keep working after the real dates have passed
+// events with dates moved forward so the tests survive the real dates passing
 async function seedShifted() {
   const shift = Date.now() + 10 * DAY - december.reduce((first, e) => Math.min(first, e.startsAt.getTime()), Infinity);
   const org = await Organization.create({ name: 'SeniorPadi Community Events' });

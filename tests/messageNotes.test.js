@@ -1,5 +1,4 @@
-// Everything about a conversation (messages, missed calls, swap-number requests) is a notification in MESSAGES, not in the
-// Account notifications; and opening a conversation takes its notifications away.
+// everything about a conversation (messages, missed calls, swap requests) is a notification in MESSAGES, not Account notifications, and opening it clears them
 const request = require('supertest');
 const app = require('../src/app');
 const { Notification } = require('../src/models');

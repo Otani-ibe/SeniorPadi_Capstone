@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-// "Can we swap phone numbers?" between two verified seniors.
-// Numbers are only shown once the other person accepts.
+// "Can we swap phone numbers?" between two verified seniors. Numbers show only once the other person accepts
 module.exports = (sequelize) => {
   return sequelize.define('PhoneExchange', {
     requesterId: { type: DataTypes.INTEGER, allowNull: false },

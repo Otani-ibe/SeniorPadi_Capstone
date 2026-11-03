@@ -1,7 +1,6 @@
-<%# event picture: the uploaded photo, or an empty picture space until one is added.
-    natural: true shows the whole photo at its own shape (nothing cut off), for flyers;
-    the empty space is then 4:3.
-    Screen readers hear what staff wrote about the picture, or "Flyer for {title}". %>
+<%# event picture: uploaded photo, or an empty space until one is added.
+    natural: true shows the whole photo at its own shape (flyers), the empty space is then 4:3.
+    screen readers hear the staff text or "Flyer for {title}" %>
 <% const imgCls = typeof imgClass !== 'undefined' ? imgClass : 'aspect-video w-full rounded-2xl object-cover';
    const whole = typeof natural !== 'undefined' && natural;
    const alt = event.tImageAlt || event.imageAlt || t('event.image_alt', { title: event.tTitle || event.title }); %>

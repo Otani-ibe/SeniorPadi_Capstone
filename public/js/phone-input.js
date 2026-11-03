@@ -1,6 +1,4 @@
-// Phone number boxes: numbers only, exactly 11 digits.
-// Shows a red message straight away if something is wrong.
-// The server checks again, so this is only here to help people as they type.
+// Phone boxes: numbers only, exactly 11 digits, red message at once when wrong. The server checks again, this only helps while typing
 (function () {
   var PATTERN = /^0(70|71|80|81|90|91)\d{8}$/;
 

@@ -32,11 +32,10 @@
     // the logo plays its little hello once per visit, not on every page
     try { if (!sessionStorage.getItem('spLogo')) { document.documentElement.classList.add('logo-intro'); sessionStorage.setItem('spLogo', '1'); } } catch (e) {}
   </script>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.460.0/font/lucide.css">
+  <link rel="preload" href="/fonts/nunito-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/vendor/lucide/lucide.woff2?v=0.460.0" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/vendor/lucide/lucide.css">
   <link rel="stylesheet" href="/css/main.css?v=<%= cssVersion %>">
   <script src="/js/phone-input.js" defer></script>
   <script src="/js/show-password.js" defer></script>
@@ -77,8 +76,7 @@
           </button>
         </form>
         <% if (currentUser) { %>
-          <%# their photo and "My account". On narrow phones the words are left out to save room
-              (screen readers still hear them); the bar at the bottom has "My account" written out. %>
+          <%# photo and "My account". Narrow phones drop the words (screen readers still hear them), the bottom bar has "My account" written out %>
           <a href="/account" <%= ['/account', '/history', '/settings', '/notifications', '/change-password', '/verify'].some(function (p) { return currentPath.startsWith(p); }) ? 'aria-current=page' : '' %>
              class="relative inline-flex min-h-12 shrink-0 items-center gap-2 rounded-md p-0.5 text-[0.95rem] font-semibold text-ink no-underline transition hover:bg-surface sm:pr-3">
             <%- include('avatar', { person: currentUser, cls: 'h-11 w-11' }) %><span class="max-sm:sr-only"><%= t('nav.account') %></span>

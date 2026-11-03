@@ -5,9 +5,8 @@ const identity = require('../services/identity');
 
 const router = express.Router();
 
-// Identity verification by NIN. Only asked for when someone tries to use Find Seniors (never at signup).
-// The NIN is read from the form, passed to services/identity.js (which saves it encrypted) and forgotten: it is never put
-// back in a page, a redirect, a flash message or a log line.
+// NIN verification, only asked when someone tries Find Seniors (never at signup).
+// the NIN goes from the form to services/identity.js (saved encrypted) and is forgotten, never put back in a page, redirect, flash or log
 
 function seniorsOnly(req, res, next) {
   if (req.user.role === 'admin') return res.redirect('/admin');
@@ -41,7 +40,7 @@ const FORM_ERRORS = {
 };
 
 router.post('/identity', requireAuth, seniorsOnly, noStore, identityLimiter, async (req, res) => {
-  // their phone must be confirmed first (it is, after the login code), so the answer is texted to the right person
+  // phone must be confirmed first (it is, after the login code) so the answer is texted to the right person
   if (!req.user.phoneVerifiedAt) return res.redirect('/verify');
 
   const result = await identity.submitNin(req.user, req.body.nin, { consent: req.body.consent === 'yes' });
@@ -50,7 +49,7 @@ router.post('/identity', requireAuth, seniorsOnly, noStore, identityLimiter, asy
     const [field, key] = FORM_ERRORS[result.reason];
     return renderForm(req, res, 400, { [field]: req.t(key) });
   }
-  res.redirect('/identity/status'); // sent, or already sent / not something they can send now
+  res.redirect('/identity/status'); // sent, already sent, or not allowed now
 });
 
 // where things stand, in words that fit each state

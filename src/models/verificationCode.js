@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
 
-// 6-digit codes sent by SMS or email to confirm a phone number or email address.
-// Only a hash of the code is stored.
+// 6-digit codes sent by SMS or email to confirm a phone or email. Only a hash is stored
 module.exports = (sequelize) => {
   return sequelize.define('VerificationCode', {
     userId: { type: DataTypes.INTEGER, allowNull: false },

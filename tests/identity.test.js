@@ -1,5 +1,4 @@
-// NIN verification: a senior sends their NIN, it is saved encrypted, and only the superadmin can open it and decide.
-// No test calls the internet.
+// NIN verification: sent by a senior, saved encrypted, only the superadmin can open it and decide. No test calls the internet
 process.env.NIN_ENCRYPTION_KEY = 'test-only-key-0123456789-abcdefghijklmnopqrstuvwxyz';
 
 const http = require('http');

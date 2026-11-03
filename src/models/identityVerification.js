@@ -2,9 +2,8 @@ const { DataTypes } = require('sequelize');
 
 const STATUSES = ['submitted', 'verified', 'not_eligible', 'rejected'];
 
-// One row per NIN a senior sent. The NIN waits here ENCRYPTED until the superadmin has checked it on the official
-// NIMC website; the moment they decide, it is erased (the database refuses to keep it any longer than that).
-// See docs/nin-verification.md.
+// one row per NIN a senior sent. Waits here encrypted until the superadmin checks it on NIMC, erased the moment they decide
+// (the database refuses to keep it longer). See docs/nin-verification.md
 module.exports = (sequelize) => {
   const IdentityVerification = sequelize.define('IdentityVerification', {
     userId: { type: DataTypes.INTEGER, allowNull: false },

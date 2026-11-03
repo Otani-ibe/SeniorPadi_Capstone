@@ -1,5 +1,4 @@
-// Events get a local government area (so seniors can filter by where they live)
-// and two new categories: charity and creativity.
+// events get a local government area (filter by where seniors live) and two new categories: charity, creativity
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn('Events', 'area', { type: Sequelize.STRING(40), allowNull: true });

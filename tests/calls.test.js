@@ -170,7 +170,7 @@ test('a call that rings out is a line in the chat for both people, and nowhere e
     expect(lines).toHaveLength(1);
     expect(lines[0]).toMatchObject({ senderId: a.id, recipientId: b.id, readAt: null });
 
-    // no call notification for either person, so nothing on the Notifications page or the Account badge
+    // no call notification for either person, nothing on Notifications or the Account badge
     expect(await Notification.count({ where: { type: ['call.missed', 'call.unanswered'] } })).toBe(0);
     const agentB = request.agent(server);
     await signIn(agentB, b.phone);

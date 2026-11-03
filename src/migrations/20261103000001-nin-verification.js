@@ -1,15 +1,8 @@
-// Identity checks by NIN replace the photo-of-an-ID check. (This first version assumed an outside lookup service; it was
-// changed to review by a person in 20261104000001-nin-manual-review.js, which reshapes the table below.)
-//
-//  - Users.verificationStatus gets two more values: 'not_eligible' (the NIN says they are under 50) and
-//    'manual_review' (the details could not be matched, so a person looks). 'approved' keeps its name; it means "verified".
-//  - A senior whose old ID photo was still waiting ('pending') goes back to 'unverified' and verifies with their NIN.
-//    Everyone already 'approved' (including the demo seniors) keeps their access.
-//  - IdentityVerifications records each check: the result only. The NIN itself is never stored. The only value
-//    derived from it is a keyed hash (ninHash), used to spot one NIN on two accounts.
-//
-// The old ID photo columns (Users.idDocumentPublicId / idDocumentFormat) are left in place, unused, so no file is
-// orphaned by accident. `npm run ids:purge` deletes the stored photos and clears the columns.
+// NIN checks replace the photo-of-an-ID check. First version assumed an outside lookup service, changed to a person reviewing in 20261104000001-nin-manual-review.js, which reshapes the table below.
+//  - Users.verificationStatus gets 'not_eligible' (NIN says under 50) and 'manual_review' (could not be matched, a person looks). 'approved' keeps its name, it means verified.
+//  - a senior whose old ID photo was 'pending' goes back to 'unverified'. Everyone 'approved' (demo seniors too) keeps access.
+//  - IdentityVerifications records each check, result only. The NIN is never stored, only a keyed hash (ninHash) to spot one NIN on two accounts.
+// the old photo columns (Users.idDocumentPublicId / idDocumentFormat) stay, unused, so no file is orphaned. `npm run ids:purge` deletes the photos and clears them
 module.exports = {
   async up(queryInterface, Sequelize) {
     const sql = (text) => queryInterface.sequelize.query(text);

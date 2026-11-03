@@ -1,10 +1,8 @@
-<%# one event as a card: a rounded picture, the name, a few words, outlined tags, then Register (and Skip).
-    On a phone the picture is on top; on a wide screen it is on the left.
-    The picture is shown at its own shape, so the card fits any flyer exactly (landscape, square or portrait).
-    In the Find events deck it needs: event, pos (0 = on top, 1 and 2 = peeking behind, 3 = hidden), number, total, filters.
-    Without pos (e.g. the "you're registered" pop-up) it's a plain card with no counter or buttons.
-    In the deck a signed-in senior's first cards can carry a small note (event.deckNotes: 'near', 'recommended') saying why
-    they are first. %>
+<%# one event as a card: rounded picture, name, a few words, outlined tags, Register (and Skip). Picture on top on phones, left on wide screens.
+    picture keeps its own shape so any flyer fits (landscape, square, portrait).
+    deck needs: event, pos (0 top, 1 and 2 peeking, 3 hidden), number, total, filters.
+    without pos (e.g. the registered pop-up) it is a plain card, no counter or buttons.
+    in the deck a signed-in senior's first cards can carry a note (event.deckNotes: 'near', 'recommended') %>
 <% const inDeck = typeof pos !== 'undefined';
    const notes = Array.isArray(event.deckNotes) ? event.deckNotes : [];
    const alt = event.tImageAlt || event.imageAlt || t('event.image_alt', { title: event.tTitle || event.title }); %>
@@ -15,8 +13,7 @@
          aria-label="<%= t('stack.counter', { n: number, total: total }) %>: <%= event.tTitle || event.title %>"
   <% } %>>
 
-  <%# the picture, at its own shape: the card fits the flyer exactly, so nothing is cut off and nothing is padded.
-      (A very tall picture stops at a set height; it is still shown whole.) %>
+  <%# picture at its own shape, card fits the flyer, nothing cut or padded (a very tall picture stops at a set height, still whole) %>
   <div class="relative md:max-w-[52%] md:shrink-0 md:self-start">
     <% if (event.imageUrl) { %>
       <img src="<%= event.imageUrl %>" alt="<%= alt %>" loading="lazy" draggable="false" class="mx-auto block h-auto w-auto max-w-full select-none rounded-[1.25rem] max-h-[24rem] md:max-h-[27rem]">
@@ -31,8 +28,7 @@
     <% } %>
   </div>
 
-  <%# On a wide screen the words and the Register / Skip buttons share the right-hand column.
-      On a phone this wrapper disappears, so the buttons belong to the whole card. %>
+  <%# wide screens: words and Register / Skip share the right column. phones: this wrapper disappears, buttons belong to the whole card %>
   <div class="contents md:flex md:min-w-0 md:flex-1 md:flex-col">
   <div class="flex min-w-0 flex-col px-1.5 pb-1.5 md:py-1.5 md:pr-1.5">
     <% if (inDeck) { %><p class="mb-1 text-[0.95rem] font-medium text-slate-500"><%= t('stack.counter', { n: number, total: total }) %></p><% } %>

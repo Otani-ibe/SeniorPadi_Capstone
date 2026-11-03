@@ -1,4 +1,4 @@
-// The Find events deck for a signed-in senior: what is near them and what is picked for them comes first, with a small note.
+// Find events deck for a signed-in senior: near and picked events first, with a small note
 const request = require('supertest');
 const app = require('../src/app');
 const { Registration } = require('../src/models');

@@ -1,6 +1,5 @@
 const { Sequelize } = require('sequelize');
-// the database is chosen by DB_TARGET (see config/database.js), so the
-// settings are the same whatever NODE_ENV says
+// database is chosen by DB_TARGET (config/database.js), same settings whatever NODE_ENV says
 const config = require('../config/config').development;
 
 const sequelize = new Sequelize(config.url, config);

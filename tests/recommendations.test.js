@@ -1,4 +1,4 @@
-// Integration tests: the senior's real history and the real events in the database, through recommendForUser.
+// integration: real history and real events in the database, through recommendForUser
 const { Registration, EventInterest, Attendance } = require('../src/models');
 const { recommendForUser, reasonText } = require('../src/services/recommendations');
 const { t } = require('../src/services/i18n');

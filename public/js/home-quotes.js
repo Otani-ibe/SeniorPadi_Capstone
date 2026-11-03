@@ -1,6 +1,4 @@
-// Home page: the quotes about growing older take turns, one every 8 seconds.
-// The box smoothly grows or shrinks to fit each quote, so short quotes don't leave a gap.
-// Stops while someone is reading it with the mouse over it or keyboard focus on it.
+// Home: the quotes about growing older take turns every 8 seconds. The box grows or shrinks to fit each one, stops while hovered or focused
 (function () {
   var box = document.querySelector('[data-quotes]');
   if (!box) return;

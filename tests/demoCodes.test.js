@@ -1,4 +1,4 @@
-// Presentation mode: the login code shown on the page. Off unless switched on; limited on the live site.
+// presentation mode: login code shown on the page. Off unless switched on, limited on the live site
 const request = require('supertest');
 const app = require('../src/app');
 const demo = require('../src/services/demoCodes');

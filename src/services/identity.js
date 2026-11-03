@@ -1,16 +1,7 @@
-// Identity verification by NIN, decided by a person.
-//
-//   1. A senior who wants Find Seniors types their NIN and agrees to how it is used.
-//   2. It is saved ENCRYPTED (AES-256-GCM). Nothing is sent to any outside service.
-//   3. The superadmin (and only the superadmin) opens it, checks it on the official NIMC website against the
-//      account's name, phone number and date of birth, and decides: verified, under 50 (not eligible), or turned down with a reason.
-//   4. The instant they decide, the encrypted NIN is erased. What stays: who decided, when, and the outcome.
-//
-// A valid NIN is treated as proof of Nigerian citizenship (SeniorPadi's decision); citizenship is not checked separately.
-// The NIN is never logged, never put in a page, a redirect or a notice, and never shown to anyone but the superadmin.
-//
-// Setting (.env): NIN_ENCRYPTION_KEY, a long random secret (32+ characters). Without it nothing is accepted, nothing is stored.
-// Losing or changing it only affects NINs still waiting for a decision (they cannot be read; the senior sends it again).
+// NIN identity check, decided by a person (the superadmin). Nothing goes to an outside service.
+// Stored encrypted (AES-256-GCM), erased as soon as a decision is made, never logged or shown to anyone else.
+// A valid NIN counts as proof of citizenship, not checked separately.
+// Needs NIN_ENCRYPTION_KEY (32+ chars), without it nothing is accepted or stored. Changing it only breaks NINs still waiting.
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { User, IdentityVerification } = require('../models');
@@ -18,12 +9,12 @@ const notifier = require('./notify');
 const { addNotification } = require('./social');
 const { audit } = require('./audit');
 
-const MAX_REJECTIONS = 3; // after this many turned-down NINs, they are asked to call SeniorPadi
+const MAX_REJECTIONS = 3; // after this many rejections they are asked to call
 const CAN_SUBMIT = ['unverified', 'rejected'];
 
 // ---------- the NIN ----------
 
-// "123 4567 8901" -> "12345678901"; anything that is not 11 digits -> null
+// "123 4567 8901" -> "12345678901", anything else -> null
 function normalizeNin(raw) {
   const nin = String(raw == null ? '' : raw).replace(/[\s-]/g, '');
   return /^\d{11}$/.test(nin) ? nin : null;
@@ -31,7 +22,7 @@ function normalizeNin(raw) {
 
 // ---------- encryption ----------
 
-// two separate keys come from the one secret, so the key that locks a NIN is not the key that hashes it
+// separate keys for encrypting and hashing, both from the one secret
 function keyFor(purpose) {
   const secret = process.env.NIN_ENCRYPTION_KEY;
   if (!secret || secret.length < 32) return null;
@@ -42,8 +33,7 @@ function isConfigured() {
   return keyFor('encrypt') !== null;
 }
 
-// "v1:" + base64(iv + auth tag + ciphertext). The account id is part of what is signed, so a stored value cannot be
-// moved to another account unnoticed. A fresh random iv every time: the same NIN never looks the same twice.
+// "v1:" + base64(iv + auth tag + ciphertext). user id is the AAD so a value cannot be moved to another account, random iv each time
 function encryptNin(nin, userId) {
   const key = keyFor('encrypt');
   if (!key) throw new Error('NIN_ENCRYPTION_KEY is not set');
@@ -54,7 +44,7 @@ function encryptNin(nin, userId) {
   return 'v1:' + Buffer.concat([iv, cipher.getAuthTag(), body]).toString('base64');
 }
 
-// the NIN, or null when it cannot be read (wrong key, tampered with, moved to another account)
+// null when unreadable (wrong key, tampered, other account)
 function decryptNin(stored, userId) {
   const key = keyFor('encrypt');
   if (!key || typeof stored !== 'string' || !stored.startsWith('v1:')) return null;
@@ -70,7 +60,7 @@ function decryptNin(stored, userId) {
   }
 }
 
-// a keyed hash, so a copy of the database cannot be used to work out NINs by trying them all
+// keyed hash so a db copy can't be brute-forced
 function hashNin(nin) {
   const key = keyFor('hash');
   if (!key) throw new Error('NIN_ENCRYPTION_KEY is not set');
@@ -79,7 +69,7 @@ function hashNin(nin) {
 
 // ---------- telling people ----------
 
-// the text lives in locales: identity.<outcome>.sms / .email / .subject, and notification.identity.<outcome>
+// text lives in locales: identity.<outcome>.sms / .email / .subject, notification.identity.<outcome>
 async function tell(user, outcome, vars = {}) {
   const link = outcome === 'verified' ? '/find-seniors' : '/identity/status';
   try {
@@ -90,7 +80,7 @@ async function tell(user, outcome, vars = {}) {
   notifier.notify(user, 'identity.' + outcome, { name: user.firstName(), ...vars });
 }
 
-// only the superadmin can act on a NIN, so only they are told one is waiting
+// only the superadmin is told
 async function tellSuperAdmins(senior) {
   try {
     const staff = await User.findAll({ where: { role: 'admin', isSuperAdmin: true }, attributes: ['id'] });
@@ -102,12 +92,12 @@ async function tellSuperAdmins(senior) {
 
 // ---------- the senior sends their NIN ----------
 
-// how many more times they may be turned down before a person has to help
+// rejections left before they have to call
 async function rejectionsLeft(user) {
   return MAX_REJECTIONS - await IdentityVerification.count({ where: { userId: user.id, status: 'rejected' } });
 }
 
-// returns { ok: true } or { ok: false, reason: 'bad_format' | 'no_consent' | 'not_allowed' | 'too_many' | 'in_progress' | 'unavailable' }
+// -> { ok: true } | { ok: false, reason: 'bad_format' | 'no_consent' | 'not_allowed' | 'too_many' | 'in_progress' | 'unavailable' }
 async function submitNin(user, rawNin, { consent, now = new Date() } = {}) {
   const nin = normalizeNin(rawNin);
   if (!nin) return { ok: false, reason: 'bad_format' };
@@ -115,7 +105,7 @@ async function submitNin(user, rawNin, { consent, now = new Date() } = {}) {
   if (user.role !== 'senior' || !CAN_SUBMIT.includes(user.verificationStatus)) return { ok: false, reason: 'not_allowed' };
   if ((await rejectionsLeft(user)) <= 0) return { ok: false, reason: 'too_many' };
 
-  // locked before anything changes: with no key, nothing is accepted and nothing is saved
+  // key check first, nothing is saved without it
   let encryptedNin;
   let ninHash;
   try {
@@ -125,7 +115,7 @@ async function submitNin(user, rawNin, { consent, now = new Date() } = {}) {
     return { ok: false, reason: 'unavailable' };
   }
 
-  // take the place in one step, so two quick taps (or two tabs) make one submission
+  // claimed in one step so a double tap makes one submission
   const [claimed] = await User.update(
     { verificationStatus: 'pending', verificationRejectionReason: null },
     { where: { id: user.id, verificationStatus: { [Op.in]: CAN_SUBMIT } } }
@@ -137,26 +127,26 @@ async function submitNin(user, rawNin, { consent, now = new Date() } = {}) {
 
   await audit(null, 'identity.submitted', 'User', user.id);
   await tellSuperAdmins(user);
-  await tell(user, 'manual_review'); // "a member of our team is checking your details"
+  await tell(user, 'manual_review');
   return { ok: true };
 }
 
 // ---------- the superadmin ----------
 
-// the senior's waiting submission, or null
+// waiting submission or null
 function waitingFor(user) {
   return IdentityVerification.findOne({ where: { userId: user.id, status: 'submitted' }, order: [['createdAt', 'DESC']] });
 }
 
-// Another account that already holds this NIN as verified, so the superadmin is warned before approving a second one.
+// other account already holding this NIN as verified, so the superadmin is warned
 async function duplicateOf(row) {
   if (!row.ninHash) return null;
   const other = await IdentityVerification.findOne({ where: { ninHash: row.ninHash, status: 'verified', userId: { [Op.ne]: row.userId } }, attributes: ['userId'] });
   return other ? User.findByPk(other.userId, { attributes: ['id', 'fullName'] }) : null;
 }
 
-// Opens the NIN for the superadmin. Every opening is written to the audit log (who, and whose NIN: never the number).
-// returns { ok: true, nin } or { ok: false, reason: 'not_waiting' | 'unreadable' }
+// shows the NIN to the superadmin, audited (who, whose, never the number)
+// -> { ok: true, nin } | { ok: false, reason: 'not_waiting' | 'unreadable' }
 async function revealNin(adminId, user) {
   const row = user.verificationStatus === 'pending' ? await waitingFor(user) : null;
   if (!row) return { ok: false, reason: 'not_waiting' };
@@ -165,9 +155,8 @@ async function revealNin(adminId, user) {
   return nin ? { ok: true, nin } : { ok: false, reason: 'unreadable' };
 }
 
-// outcome: 'verified' | 'not_eligible' | 'rejected' (rejected needs a note the senior will see).
-// Whatever is decided, the encrypted NIN is erased in the same step.
-// returns { ok: true } or { ok: false, reason: 'not_waiting' | 'duplicate' | 'no_note' | 'bad_outcome' }
+// outcome: verified | not_eligible | rejected (rejected needs a note). NIN erased in the same step
+// -> { ok: true } | { ok: false, reason: 'not_waiting' | 'duplicate' | 'no_note' | 'bad_outcome' }
 async function decide(adminId, user, outcome, note, now = new Date()) {
   if (!['verified', 'not_eligible', 'rejected'].includes(outcome)) return { ok: false, reason: 'bad_outcome' };
   const reason = String(note || '').trim().slice(0, 300);
@@ -179,7 +168,7 @@ async function decide(adminId, user, outcome, note, now = new Date()) {
   try {
     await row.update({
       status: outcome,
-      encryptedNin: null, // erased now that it has been checked
+      encryptedNin: null, // erased after the check
       ninHash: outcome === 'verified' ? row.ninHash : null, // kept only to stop one NIN verifying two accounts
       decisionNote: outcome === 'rejected' ? reason : null,
       reviewedByAdminId: adminId, reviewedAt: now, completedAt: now

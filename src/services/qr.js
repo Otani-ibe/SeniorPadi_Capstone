@@ -1,5 +1,4 @@
-// Optional check-in code. Staff can scan it to mark attendance faster.
-// Seniors never need it: their name is on the printed list.
+// Optional check-in code for staff to scan. Seniors never need it, their name is on the printed list
 const QRCode = require('qrcode');
 
 function scanUrl(qrToken) {

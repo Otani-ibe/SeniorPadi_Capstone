@@ -1,7 +1,5 @@
-// Help for visitors: the "Having trouble registering?" pop-up.
-// It opens once a visitor has spent a while on the site (counted across pages) without signing up.
-// Tapping around doesn't hold it back - that's what being stuck looks like - but it waits while
-// someone is typing, so it never interrupts a form. At most once per visit.
+// Help for visitors: the "Having trouble registering?" pop-up. Opens once a visitor has spent a while on the site (counted across pages) without signing up.
+// tapping around does not hold it back (that is what being stuck looks like) but it waits while someone is typing. At most once per visit
 (function () {
   var nudge = document.querySelector('[data-help-nudge]');
   if (!nudge) return;
@@ -28,8 +26,7 @@
   var clock = setInterval(function () {
     var now = Date.now();
     if (document.hidden || now - start < wait || now - lastTyped < TYPING_PAUSE) return;
-    // another pop-up is open on screen: don't stack a second one on top
-    // (pages keep some pop-ups hidden, ready to open; those don't count)
+    // another pop-up is open: do not stack a second (pop-ups kept hidden ready to open do not count)
     var others = document.querySelectorAll('[role=dialog]');
     for (var i = 0; i < others.length; i++) {
       if (others[i] !== dialog && others[i].getClientRects().length) return;

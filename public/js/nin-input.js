@@ -1,5 +1,4 @@
-// The NIN box takes numbers only, never more than 11: letters are dropped as they are typed, and a number pasted with
-// spaces or dashes (701 2345 6789) is cleaned up first, so no digit is lost to the length limit.
+// NIN box: numbers only, 11 maximum. Letters are dropped as typed, a pasted number with spaces or dashes (701 2345 6789) is cleaned first so no digit is lost to the limit
 (function () {
   var box = document.querySelector('[data-nin]');
   if (!box) return;

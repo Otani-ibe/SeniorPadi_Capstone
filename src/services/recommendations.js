@@ -1,19 +1,17 @@
-// "Recommended for you": the events a senior can still book, scored 0-100 for them, best first, each with
-// the reasons. This file only gathers the inputs (bookable events from nearby.js, the senior's history from
-// recommendationData.js, distances from geo.js) and hands them to recommendationScoring.js, which does the
-// scoring. Weights and tuning numbers are in config/recommendation.js.
+// Recommended for you: bookable events scored 0-100 for the senior, best first, with reasons.
+// Only gathers inputs (nearby.js, recommendationData.js, geo.js) and hands them to recommendationScoring.js.
+// Weights and tuning are in config/recommendation.js.
 //
 //   const picks = await recommendForUser(req.user, { limit: 4 });
 //   picks[0] -> { event, score, components, weights, reasons: [{ code, params }] }
-//   reasonText(picks[0].reasons[0], req.t)  -> "You have been to 2 Fitness events before"
+//   reasonText(picks[0].reasons[0], req.t)
 const { bookableEvents, nearbyEvents } = require('./nearby');
 const { loadProfile } = require('./recommendationData');
 const { scoreEvents, reasonText } = require('./recommendationScoring');
 const { distanceKm, locationOf } = require('./geo');
 
-// options: limit, now, config (overrides for config/recommendation.js),
-//          events (bookable events already loaded, to save a second query)
-// A senior who is not signed in, has no history or has no place still gets a list (see the scoring file).
+// options: limit, now, config (overrides config/recommendation.js), events (already loaded, saves a query)
+// signed out, no history or no place still gets a list
 async function recommendForUser(user, options = {}) {
   const now = options.now || new Date();
   const [candidates, profile] = await Promise.all([options.events || bookableEvents(user, now), loadProfile(user)]);
@@ -28,16 +26,14 @@ async function recommendForUser(user, options = {}) {
   return scoreEvents(candidates, profile, { now, limit: options.limit, config: options.config });
 }
 
-const NEAR_KM = 15; // "near you" means this close or closer
-// "recommended for you" needs a real reason: at least about one booking's worth of interest in the event's type
-// (a booking is worth about 39 of 100, an attended event 53, a type they asked about 63; a page view alone, about 7)
+const NEAR_KM = 15; // km
+// "recommended" needs a real reason: about one booking of interest in the type
+// (booking ~39, attended ~53, asked about ~63, a page view ~7)
 const MIN_INTEREST = 25;
 
-// The Find events deck for a signed-in senior: the events near them and the events picked for them come first, each
-// marked (event.deckNotes = ['near'], ['recommended'] or both), then every other event in its usual order. Nothing is
-// added or removed: it only changes the order, so filters, skips and places left are exactly as they were.
-// "Recommended" is only used for events of a type they have shown interest in (joined, booked, or asked to hear about);
-// before that the order is the usual one apart from the nearby events.
+// Find events deck for a signed-in senior: near events and picked events come first, marked in event.deckNotes
+// (['near'], ['recommended'] or both), then the rest in the usual order. Only reorders, filters and skips are untouched.
+// "recommended" only for types they showed interest in (joined, booked, asked about).
 async function personalFirst(user, deck, { perKind = 4 } = {}) {
   if (!user || user.role !== 'senior' || deck.length === 0) return deck;
 
@@ -48,7 +44,7 @@ async function personalFirst(user, deck, { perKind = 4 } = {}) {
   const closest = near.located ? near.events.filter((e) => e.distanceKm !== null && e.distanceKm <= NEAR_KM).slice(0, perKind) : [];
   const picked = picks.filter((p) => p.components.interest !== null && p.components.interest >= MIN_INTEREST).slice(0, perKind).map((p) => p.event);
 
-  // the nearest first, then the best pick, taking turns
+  // nearest first, then best pick, taking turns
   const front = [];
   const note = (event, kind) => {
     if (!front.includes(event)) front.push(event);

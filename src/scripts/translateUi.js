@@ -1,7 +1,7 @@
-// Fills in locales/yo.json from locales/en.json using the Google Cloud Translation API.
-//   npm run translate:ui          -> only translates text that's missing in yo.json
-//   npm run translate:ui -- --all -> translates everything again (overwrites yo.json)
-// Needs GOOGLE_TRANSLATE_API_KEY in .env. A Yorùbá speaker should still read the result.
+// Fills locales/yo.json from locales/en.json with Google Cloud Translation.
+//   npm run translate:ui          only text missing in yo.json
+//   npm run translate:ui -- --all everything again (overwrites yo.json)
+// needs GOOGLE_TRANSLATE_API_KEY in .env. A Yorùbá speaker should still read the result
 require('dotenv').config({ quiet: true });
 const fs = require('fs');
 const path = require('path');

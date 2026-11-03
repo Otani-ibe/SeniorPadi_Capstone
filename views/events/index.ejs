@@ -105,8 +105,7 @@
 
   <% } %>
 
-  <%# they've skipped everything: say so, and let them choose to look at the skipped ones.
-      Shown straight away by the page when the last new card is skipped. %>
+  <%# all skipped: say so and offer the skipped ones. Shown by the page when the last new card is skipped %>
   <% if (!showSkipped && (deck.length > 0 || skippedCount > 0)) { %>
     <div class="rounded-card bg-white px-6 py-12 text-center shadow-md shadow-slate-900/5 ring-1 ring-slate-100" data-deck-done tabindex="-1" <%= deck.length > 0 ? 'hidden' : '' %>>
       <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-mist text-2xl text-indigo"><i class="icon-circle-check" aria-hidden="true"></i></span>

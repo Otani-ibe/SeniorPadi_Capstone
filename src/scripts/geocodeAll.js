@@ -1,14 +1,10 @@
-// Finds latitude / longitude for every senior and event that has none yet (new ones are done as they are
-// saved; this is for the ones that were there before, and for the sample events and seniors).
-//
-//   npm run geo:backfill             the database in .env (DB_TARGET=local is your own computer)
-//   npm run geo:backfill:neon        the Neon (live) database
+// Finds latitude / longitude for every senior and event that has none (new ones are done on save, this is for earlier rows and the sample data).
+//   npm run geo:backfill             database in .env (DB_TARGET=local is your computer)
+//   npm run geo:backfill:neon        Neon (live) database
 //   npm run geo:backfill -- --dry    only count what would be looked up
-//   npm run geo:backfill -- --all    look everything up again, even what already has coordinates
-//
-// The lookup service allows one request a second, so about a minute per 50 places. It only fills in
-// blanks (or, with --all, replaces coordinates); it never changes anything else. The database must
-// already be up to date: it is migrated when the app starts, so start the app once first.
+//   npm run geo:backfill -- --all    look everything up again, even rows with coordinates
+// one request a second, about a minute per 50 places. Only fills blanks (--all replaces coordinates), changes nothing else.
+// the database must be migrated already, start the app once first
 require('dotenv').config({ quiet: true });
 const { Op } = require('sequelize');
 const { sequelize, User, Event } = require('../models');

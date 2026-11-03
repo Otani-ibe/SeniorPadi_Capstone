@@ -1,12 +1,10 @@
-// Recording who came to an event. Every way of checking in
-// (ticking the list, scanning the QR code, typing the ticket number, the host organization's link)
-// ends up here, so they all update the same records.
+// Records who came. Every check-in path (list, QR, ticket number, host link) ends here.
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { sequelize, Attendance, Registration, User } = require('../models');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const PLACE_STATUSES = ['registered', 'attended', 'no_show']; // cancelled places are left off the list
+const PLACE_STATUSES = ['registered', 'attended', 'no_show']; // cancelled places are left off
 
 async function markAttended(registration, method, adminId) {
   return sequelize.transaction(async (transaction) => {
@@ -51,7 +49,7 @@ async function attendanceCounts(eventId) {
   return { came, missed, waiting, total: came + missed + waiting };
 }
 
-// one person: Came, Didn't come, or back to Not marked. Returns the registration, or null if it isn't on this event's list.
+// one person: Came, Didn't come or Not marked. -> the registration, or null if not on this event's list
 async function setStatus(eventId, registrationId, status, method, adminId) {
   const reg = await Registration.findOne({ where: { id: registrationId, eventId, status: { [Op.in]: PLACE_STATUSES } } });
   if (!reg) return null;
@@ -75,7 +73,7 @@ async function checkInByTicket(eventId, typed, method, adminId) {
   return { reg };
 }
 
-// after the event: everyone still not marked didn't come. Returns how many.
+// after the event: everyone not marked didn't come. -> count
 async function markRestMissed(eventId) {
   const waiting = await Registration.findAll({ where: { eventId, status: 'registered' } });
   for (const reg of waiting) await markNotAttended(reg, 'no_show');

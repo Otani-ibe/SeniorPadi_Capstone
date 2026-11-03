@@ -20,7 +20,7 @@ function formatTime(date) {
   }).format(new Date(date));
 }
 
-// short date for SMS, e.g. "Tue 29 Sep". Same in both languages to keep texts short.
+// short date for SMS, e.g. "Tue 29 Sep", same in both languages
 function shortDate(date) {
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: TIME_ZONE,

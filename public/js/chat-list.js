@@ -1,6 +1,6 @@
 // The search box above the list of people: hides the rows that don't match what was typed.
 (function () {
-  // the chat fills what is left of the window under the site header, however big the window or the text size
+  // the chat fills what is left of the window under the site header, whatever the window or text size
   var shell = document.querySelector('.chat-shell');
   function fit() {
     if (!shell) return;

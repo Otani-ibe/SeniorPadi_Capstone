@@ -1,6 +1,5 @@
-<%# one person on the attendance list. Also sent back on its own after a tap, to replace the old row.
-    needs: reg (with senior and Attendance), event, hasStarted, door ({ base, host }).
-    The host organization sees only the last 4 digits of a phone number and no profile links. %>
+<%# one person on the attendance list, also sent back alone after a tap to replace the old row.
+    needs: reg (with senior and Attendance), event, hasStarted, door ({ base, host }). Host organization sees only the last 4 phone digits, no profile links %>
 <%
   const s = reg.senior;
   const name = s ? s.fullName : '(deleted account)';

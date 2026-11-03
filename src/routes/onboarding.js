@@ -1,4 +1,4 @@
-// There used to be a welcome video here. It was retired; old links and bookmarks go to Find events.
+// the welcome video was retired, old links go to Find events
 const express = require('express');
 
 const router = express.Router();

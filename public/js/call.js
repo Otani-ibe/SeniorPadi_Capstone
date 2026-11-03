@@ -1,11 +1,10 @@
-// Voice calls. The audio goes straight between the two phones (WebRTC); this script starts and
-// answers calls over the live connection (see src/sockets/calls.js). If anything is missing
-// (no microphone, no live connection), the Call button simply never appears.
+// Voice calls. Audio is WebRTC, phone to phone, this starts and answers calls over the live connection (src/sockets/calls.js).
+// no microphone or no live connection: the Call button never appears
 (function () {
   var ui = document.querySelector('[data-call-ui]');
   var socket = window.spSocket;
   if (!ui) return;
-  // an old browser, or a page that is not https (the microphone needs it): the button explains instead of doing nothing
+  // old browser or non-https page (the microphone needs it): the button explains instead of doing nothing
   if (!socket || !window.RTCPeerConnection || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     document.querySelectorAll('[data-call-to]').forEach(function (b) {
       b.addEventListener('click', function () { alert(ui.getAttribute('data-text-unsupported')); });
@@ -42,7 +41,7 @@
         if (call) return;
         var toId = Number(b.getAttribute('data-call-to'));
         showScreen(name, T('offline', name), avatar);
-        // the server is told as well, so a missed call waits for them in the chat (it replies "offline" and writes the line)
+        // the server is told too, so a missed call waits in the chat (it replies "offline" and writes the line)
         socket.emit('call:invite', { toId: toId }, function (reply) {
           // the missed call goes into the open chat at once
           if (reply && reply.line) document.dispatchEvent(new CustomEvent('sp:message', { detail: reply.line }));
@@ -316,6 +315,6 @@
     ui.querySelector('[data-call-mute-icon]').className = muted ? 'icon-mic-off' : 'icon-mic';
   });
 
-  // someone is typing a number into the page when a call comes in: Escape never closes a call by accident
+  // typing a number into the page when a call comes in: Escape never closes a call by accident
   window.addEventListener('beforeunload', function () { if (call && call.id) socket.emit('call:end', { callId: call.id }); });
 })();

@@ -1,7 +1,6 @@
-<%# "Help on SeniorPadi": a full-width strip fixed to the bottom of the hero, for visitors. Ways to get help
-    slide past slowly, without end; every item is a link. It stops while a finger, the mouse or the keyboard
-    is on it, and stands still for people who turn animations off (then it scrolls sideways by hand).
-    The second copy is only there so the loop has no gap; screen readers and the Tab key skip it. %>
+<%# "Help on SeniorPadi": full-width strip fixed to the bottom of the hero, visitors only. Items slide past endlessly, every item is a link.
+    stops on finger, mouse or keyboard focus, still for people who turn animations off (then it scrolls sideways by hand).
+    the second copy only closes the loop gap, screen readers and Tab skip it %>
 <% if (!currentUser && !bookingFor) {
      const items = [
        { href: '/signup/parent', photo: 'senior-4', title: 'help.t1_title', tag: 'help.t1_tag' },

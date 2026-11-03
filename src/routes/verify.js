@@ -1,5 +1,4 @@
-// Confirming a phone number (and email, if they gave one) with a 6-digit code.
-// Needed before joining an event or messaging another senior.
+// Confirms a phone number (and email, if given) with a 6-digit code. Needed before joining an event or messaging a senior
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
 const { sendCode, checkCode, demoCodeFor, CODE_MINUTES } = require('../services/verification');
@@ -38,8 +37,8 @@ router.get('/verify', requireAuth, async (req, res) => {
 
   if (req.user.contactVerified()) return carryOn(req, res);
 
-  // arriving here with an unconfirmed phone: text the code straight away (they can still ask again).
-  // If one was sent in the last minute, sendCode says "wait" and the code box is simply shown.
+  // arriving with an unconfirmed phone: text the code now (they can ask again).
+  // sent within the last minute, sendCode says "wait" and the code box is just shown
   let sent = req.query.sent || '';
   if (!sent && !req.user.phoneVerifiedAt) {
     await sendCode(req.user, 'phone');

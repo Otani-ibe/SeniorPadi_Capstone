@@ -5,9 +5,7 @@ const { Sequelize } = require('sequelize');
 
 const MIGRATIONS_DIR = path.join(__dirname, '../migrations');
 
-// Our own small migration runner (no extra package needed).
-// It uses the same "SequelizeMeta" table as sequelize-cli: one row per migration
-// that has run. Anything already listed there is skipped.
+// own runner, same SequelizeMeta table as sequelize-cli, already-run files are skipped
 
 // the migration files in name order (they start with a date, so that's run order)
 function migrationFiles() {
@@ -60,11 +58,8 @@ async function findMissingTables(sequelize) {
     .filter((name) => !existing.includes(name));
 }
 
-// Makes sure the database has everything the app needs.
-// 1. runs new migrations (skips ones already done)
-// 2. if the migration record says "done" but tables are missing
-//    (for example someone deleted tables by hand), creates the missing ones
-// Never deletes or changes existing data.
+// makes sure the db has everything the app needs: runs new migrations, then creates tables still missing (e.g. deleted by hand)
+// never deletes or changes data
 async function ensureDatabase(sequelize) {
   const ran = await runMigrations(sequelize);
 

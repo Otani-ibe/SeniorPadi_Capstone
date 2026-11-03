@@ -50,8 +50,8 @@
   <a href="<%= href %>" class="btn group min-h-14 px-7 text-[1.1rem]"><%= label %><i class="icon-arrow-right transition group-hover:translate-x-1" aria-hidden="true"></i></a>
 <% } %>
 
-<%# ================= 1. HERO: who we are, one clear next step =================
-   phones: badge and headline, the circle, then the text and buttons. computers: text on the left, circle on the right %>
+<%# ================= 1. HERO =================
+   phones: badge and headline, circle, then text and buttons. computers: text left, circle right %>
 <%# edge to edge, square corners; the help strip sits on its bottom edge %>
 <section class="relative overflow-hidden bg-white">
   <div class="relative mx-auto flex max-w-6xl flex-col px-5 py-8 text-center md:grid md:grid-cols-[1.1fr_1fr] md:items-center md:gap-10 md:px-10 md:py-16 md:text-left">
@@ -117,9 +117,9 @@
 <%# ================= 1b. HELP ON SENIORPADI: a moving strip of ways to get help, on the hero's bottom edge (visitors only) ================= %>
 <%- include('partials/helpTicker') %>
 
-<%# ================= 2. EVENTS: picture on the left, details and Register on the right =================
-   Signed in: recommended, so events like the ones they joined before come first. Visitors: upcoming events, soonest first.
-   A visitor who taps an event or Register goes to sign up, then confirms their phone, then is registered. %>
+<%# ================= 2. EVENTS: picture left, details and Register right =================
+   signed in: recommended (like ones they joined) first. visitors: upcoming, soonest first.
+   visitor taps an event or Register -> sign up -> confirm phone -> registered %>
 <section id="events" class="mx-auto max-w-6xl scroll-mt-4 px-4 pt-14 md:px-10 md:pt-20">
   <h2 class="text-[1.9rem] font-extrabold leading-tight tracking-tight text-slate-900 md:text-[2.4rem]"><%= currentUser ? t('home.rec_title_user') : t('home.up_title') %></h2>
 
@@ -201,8 +201,7 @@
       <i class="icon-phone" aria-hidden="true"></i>
     </span>
   </a>
-  <%# WhatsApp: the WhatsApp logo on the right, and common questions taking turns in the middle
-      (public/js/home-whatsapp.js). WhatsApp opens with the message that is showing. %>
+  <%# WhatsApp: logo on the right, common questions rotating in the middle (public/js/home-whatsapp.js), opens WhatsApp with the one showing %>
   <% if (supportTel) {
        const waMessages = [1, 2, 3, 4].map((n) => t('whatsapp.msg_' + n));
        const waBase = whatsappTextable ? whatsappLink('').split('?')[0] : ''; %>
@@ -222,8 +221,8 @@
 <%# ================= 5. HOW IT WORKS: three short steps ================= %>
 <section class="mx-auto max-w-5xl px-4 pt-16 md:pt-24">
   <h2 class="text-center text-[1.9rem] font-extrabold leading-tight tracking-tight text-slate-900 md:text-left md:text-[2.4rem]"><%= t('home.how_title') %></h2>
-  <%# flat panels, like printed steps: a small label on top, a big title, one line, then a link.
-      The whole panel is the link. Signed in, step 1 goes to their account and step 3 to their registrations. %>
+  <%# flat panels like printed steps: small label, big title, one line, link. The whole panel is the link.
+        signed in: step 1 goes to their account, step 3 to their registrations %>
   <% const steps = [
        { title: 'home.step1_title', text: 'home.step1', href: currentUser ? '/account' : '/signup', link: currentUser ? 'home.step1_link_user' : 'home.step1_link' },
        { title: 'home.step2_title', text: 'home.step2', href: '/events', link: 'home.step2_link' },

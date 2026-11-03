@@ -1,6 +1,5 @@
-<%# The list of people you talk to: a search box, then one row each with their picture, name, last message and time.
-    Beside the chat on wide screens; on phones it is the Messages screen. Needs: conversations, unreadIds; activeId (the open chat, or null).
-    public/js/chat-list.js makes the search box work. %>
+<%# people you talk to: search box, then a row each with picture, name, last message, time. Beside the chat on wide screens, the Messages screen on phones.
+    needs: conversations, unreadIds; activeId (open chat or null). public/js/chat-list.js does the search %>
 <% const open = typeof activeId !== 'undefined' ? activeId : null; %>
 <aside aria-label="<%= t('messages.title') %>" class="flex min-h-0 w-full shrink-0 flex-col bg-white md:w-80 md:border-r md:border-slate-100 lg:w-96 <%= open ? 'max-md:hidden' : '' %>">
   <div class="shrink-0 px-4 pb-3 pt-5">

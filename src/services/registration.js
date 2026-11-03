@@ -1,5 +1,4 @@
-// Registers a senior and sends the confirmation text/email.
-// Used by the Register button and by "log in and register" in the pop-up.
+// Registers a senior and sends the confirmation. Used by Register and by log in and register
 const capacity = require('./capacity');
 const { notify } = require('./notify');
 const { shortDate, formatTime } = require('./dates');
@@ -33,7 +32,7 @@ async function registerAndNotify(user, eventId, type) {
   return { ok: true, event, registration: result.registration };
 }
 
-// only allow redirects to our own pages
+// own pages only
 function safeNext(value) {
   return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : null;
 }

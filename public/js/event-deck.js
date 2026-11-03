@@ -1,9 +1,7 @@
-// Find events: a deck of cards, like a dating app.
-// Skip (button, drag left or the left arrow key) throws the card away and the next one springs up.
-// Register (button, drag right or the right arrow key) signs up, or opens the sign-up pop-up for guests.
-// Skipped cards leave the deck. When none are left, a note offers the skipped ones.
-// In the skipped-events deck (?skipped=1) they go to the back instead.
-// Without JavaScript the buttons are plain forms and links, and the page reloads instead.
+// Find events: a deck of cards. Skip (button, drag left, left arrow) throws the card away and the next springs up.
+// Register (button, drag right, right arrow) signs up, or opens the sign-up pop-up for guests.
+// skipped cards leave the deck, when none are left a note offers the skipped ones (in ?skipped=1 they go to the back instead).
+// without JavaScript the buttons are plain forms and links
 (function () {
   // picking an area shows its events straight away
   var areaForm = document.querySelector('[data-area-form]');
@@ -62,8 +60,7 @@
   function announce(hadFocus) {
     var card = topCard();
     if (!card) {
-      // nothing new left: offer the skipped ones
-      // (style, not hidden: their display classes would win)
+      // nothing new left: offer the skipped ones (style, not hidden, their display classes would win)
       deck.style.display = 'none';
       if (hint) hint.style.display = 'none';
       if (seeSkipped) seeSkipped.hidden = true; // the panel has its own button

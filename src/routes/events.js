@@ -35,12 +35,11 @@ async function seatCounts(eventIds) {
 }
 
 // ---------- Find events: a deck of cards, one on top ----------
-// Events they haven't skipped are in the deck. Once they've skipped everything,
-// they're told so and can choose to look at the skipped ones (?skipped=1).
-// Skips are remembered in the session, so this works without an account.
+// unskipped events are in the deck. Once everything is skipped they are told and can look at the skipped ones (?skipped=1).
+// skips live in the session, so this works without an account
 
-// the filters from a query string or form, checked against the allowed values.
-// Everyone sees all of Ibadan unless they pick an area themselves.
+// filters from a query string or form, checked against the allowed values.
+// everyone sees all of Ibadan unless they pick an area
 function readFilters(source) {
   const area = Event.AREAS.includes(source.area) ? source.area : '';
   return {
@@ -121,10 +120,10 @@ router.get('/events', async (req, res) => {
   if (showSkipped && later.length === 0) return res.redirect(eventsUrl(filters));
   let deck = showSkipped ? later : fresh;
 
-  // a signed-in senior sees what is near them and what is picked for them before anything else
+  // signed in: near and picked events first
   if (req.user && !showSkipped) {
     deck = await personalFirst(req.user, deck);
-    // ...but events marked "show first" still come before those (the deck was already in that order)
+    // ...but "show first" events still lead
     deck = deck.filter((e) => e.featured).concat(deck.filter((e) => !e.featured));
   }
 
@@ -151,8 +150,7 @@ router.get('/events', async (req, res) => {
   });
 });
 
-// without JavaScript the Skip button posts here and the page reloads.
-// With JavaScript the card is skipped on the page and this only remembers it.
+// without JavaScript the Skip button posts here and the page reloads. With JavaScript it only remembers the skip
 router.post('/events/:id/skip', (req, res) => {
   const id = Number(req.params.id);
   // move it to the back of the skipped list
@@ -208,7 +206,7 @@ async function signUp(req, res, type) {
     return res.redirect(req.body.from === 'popup' ? '/events' : '/events/' + req.params.id);
   }
 
-  // registering from the home page: the pop-up opens over the home page, and they stay there
+  // registering from home: the pop-up opens over the home page and they stay there
   if (type === 'attendee' && home) return res.redirect('/?registered=' + result.event.id + '#events');
   // registering from the card: show the "you're registered" pop-up
   if (type === 'attendee') return res.redirect('/events/' + result.event.id + '/registered');

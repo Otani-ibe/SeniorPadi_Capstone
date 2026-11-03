@@ -36,7 +36,7 @@ router.get('/health', async (req, res) => {
 router.get('/', async (req, res) => {
   if (req.user && req.user.role === 'admin') return res.redirect('/admin');
 
-  // recommended events: like the ones a signed-in senior joined before, or random for a visitor
+  // recommended: like the ones a signed-in senior joined, random for a visitor
   const recommended = await recommendedEvents(req.user, 4);
   await translateEvents(recommended, req.lang);
 
@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
     }
   }
 
-  // faces for the middle of the circle: the demo seniors' pictures, men and women taking turns
+  // faces for the middle of the circle: demo seniors' pictures, men and women alternating
   const withPhoto = require('../scripts/data/seniors').filter((s) => s.photo);
   const women = withPhoto.filter((s) => s.gender === 'female');
   const men = withPhoto.filter((s) => s.gender === 'male');
@@ -97,8 +97,8 @@ router.post('/language', async (req, res) => {
 });
 
 // ---------- sign up and log in ----------
-// Seniors have no password: they type their phone number, we text a 6-digit code, and typing it in
-// signs them in. A new number is a new account. Staff accounts still use a password.
+// seniors have no password: they type their phone number, get a 6-digit code, and typing it signs them in.
+// a new number is a new account. Staff still use a password
 
 // what to do after logging in or signing up (from the pop-ups)
 function afterAuth(source) {
@@ -126,7 +126,7 @@ async function finishAuth(req, res, user, after, fallback) {
   return res.redirect(fallback);
 }
 
-// who is in the middle of signing in (typed their number, not their code yet). Lasts 30 minutes.
+// who is mid sign-in (typed number, not the code yet), lasts 30 minutes
 const PENDING_MINUTES = 30;
 async function pendingSignIn(req) {
   const pending = req.session.pendingLogin;
@@ -143,7 +143,7 @@ async function startSignIn(req, res, user, after, isNew) {
   return res.redirect('/login/code');
 }
 
-// a new account's code says what it is for, in case someone else is signing up with this phone
+// a new account's code says what it is for, in case someone else signs up with this phone
 const codeText = (isNew) => (isNew ? { smsKey: 'signup.code' } : {});
 
 // everything that happens once someone is really signed in
@@ -282,8 +282,8 @@ router.post('/login/password', loginLimiter, async (req, res) => {
 });
 
 // ---------- a son or daughter signs a parent up ----------
-// They give their own name and number, and their parent's. The code goes to the PARENT's phone,
-// the child types what the parent reads out, and then both of them get a text.
+// their own name and number and their parent's. The code goes to the PARENT's phone,
+// the child types what the parent reads out, then both get a text
 const PARENT_MINUTES = 30;
 
 async function pendingParent(req) {
@@ -320,7 +320,7 @@ router.post('/signup/parent', signupLimiter, async (req, res) => {
   if (!values.lga) errors.lga = req.t('signup.error_lga');
   if (!values.ageDeclared) errors.ageDeclared = req.t('parent.error_age');
 
-  // a number that already has a confirmed account is not made again; one that never typed its code can be
+  // a number with a confirmed account is not made again, one that never typed its code can be
   const existing = parentPhone ? await User.findOne({ where: { phone: parentPhone }, paranoid: false }) : null;
   const reusable = existing && !existing.deletedAt && existing.role === 'senior' && !existing.phoneVerifiedAt;
   if (existing && !reusable && !errors.parentPhone) errors.parentPhone = req.t('parent.error_taken');
@@ -366,7 +366,7 @@ router.post('/signup/parent/code', loginLimiter, async (req, res) => {
   await sendSms({ phone: p.childPhone, preferredLanguage: p.lang }, 'parent.created_child', { parent: parent.fullName });
   await sendSms(parent, 'parent.created_parent', { name: parent.firstName(), child: p.childName });
   await audit(null, 'user.created_by_child', 'User', parent.id, { childName: p.childName, childPhone: p.childPhone });
-  // the parent just read out a code, so this phone can book events for them for the next day
+  // parent read out a code, so this phone can book for them for a day
   req.session.bookingFor = { parentId: parent.id, name: parent.firstName(), childName: p.childName, at: Date.now() };
 
   res.render('auth/parent-done', { title: req.t('parent.done_title'), parentName: parent.fullName, parentFirst: parent.firstName(), parentPhone: parent.localPhone() });

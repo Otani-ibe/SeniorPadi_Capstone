@@ -1,7 +1,5 @@
-// When an admin edits an event, they choose whether to tell the seniors who are registered for it. If they say yes, each
-// senior gets a text (and an email, if they gave one) and a notice in their Notifications that says exactly what is new
-// ("New date and time: ..."), in their own language. Only things a senior would care about are mentioned: the name, the
-// date and time, the place, and the price.
+// Admin edit -> optionally tell registered seniors (text, email if given, and a notice, in their language) exactly what is new.
+// only the name, date and time, place and price are mentioned
 const { Op } = require('sequelize');
 const { Registration, User } = require('../models');
 const dates = require('./dates');
@@ -10,11 +8,11 @@ const notifier = require('./notify');
 const { addNotification } = require('./social');
 const { audit } = require('./audit');
 
-// what an event looked like before the edit (just the parts that matter)
+// the event before the edit, relevant fields only
 function snapshot(event) {
   return {
     title: event.title,
-    // to the minute, which is all the edit form holds: a save that did not touch the time must not look like a new time
+    // to the minute, the form holds no seconds, an untouched time must not look new
     startsAt: Math.floor(new Date(event.startsAt).getTime() / 60000),
     endsAt: Math.floor(new Date(event.endsAt).getTime() / 60000),
     locationText: event.locationText || '',
@@ -23,7 +21,7 @@ function snapshot(event) {
   };
 }
 
-// which of those changed: { title, when, place, price } (true or false)
+// which changed: { title, when, place, price }
 function whatChanged(before, event) {
   const now = snapshot(event);
   return {
@@ -36,7 +34,7 @@ function whatChanged(before, event) {
 
 const anyChange = (changed) => Object.values(changed).some(Boolean);
 
-// the new details, one sentence each, in this language: ["New date and time: Friday, 4 December, 10:00 am – 12:30 pm."]
+// new details, one sentence each, in this language
 function describe(event, changed, lang) {
   const lines = [];
   if (changed.title) lines.push(t('event.change.title', lang, { title: event.title }));
@@ -54,7 +52,7 @@ function describe(event, changed, lang) {
   return lines;
 }
 
-// the seniors who have a place (attending or volunteering), once each
+// seniors with a place (attending or volunteering), once each
 async function registeredSeniors(eventId) {
   const regs = await Registration.findAll({ where: { eventId, status: 'registered' }, attributes: ['seniorId'] });
   const ids = Array.from(new Set(regs.map((r) => r.seniorId)));
@@ -65,8 +63,8 @@ async function countRegisteredSeniors(eventId) {
   return Registration.count({ where: { eventId, status: 'registered' }, distinct: true, col: 'seniorId' });
 }
 
-// Tells everyone registered what is new. Returns { sent, changed } (sent 0 when nothing worth mentioning changed or
-// nobody is registered). `before` is snapshot(event) taken before the edit.
+// tells everyone registered what is new -> { sent, changed } (sent 0 when nothing relevant changed or nobody is registered)
+// before = snapshot(event) taken before the edit
 async function notifyRegistered(adminId, event, before) {
   const changed = whatChanged(before, event);
   if (!anyChange(changed)) return { sent: 0, changed: false };
@@ -86,7 +84,7 @@ async function notifyRegistered(adminId, event, before) {
   return { sent: seniors.length, changed: true };
 }
 
-// a changed date means the reminder they were due (or already got) was for the old date: it is sent again for the new one
+// date changed: the reminder due or already sent was for the old date, send again
 async function resetReminders(eventId) {
   await Registration.update({ reminderSentAt: null }, { where: { eventId, status: 'registered' } });
 }

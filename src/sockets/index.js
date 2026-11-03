@@ -1,5 +1,4 @@
-// Real-time chat. This only makes messages appear without reloading.
-// The normal form still works if any of this fails.
+// Real-time chat, only makes messages appear without a reload. The normal form still works if this fails
 const { Server } = require('socket.io');
 const sessionMiddleware = require('../config/session');
 const { User } = require('../models');
@@ -66,7 +65,7 @@ function setupSockets(httpServer) {
     setupCalls(io, socket, loadVerifiedSenior);
 
     // start watching some people's status: [ids] -> { id: 'online' | 'offline' }
-    // only people this senior is allowed to message, and only those who show their status
+    // only people this senior may message who show their status
     socket.on('presence:watch', async (ids, ack) => {
       const reply = typeof ack === 'function' ? ack : () => {};
       try {

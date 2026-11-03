@@ -1,5 +1,4 @@
-// Tells you which database the app will use and whether it can reach it.
-// Usage: npm run db:check   (or db:check:local / db:check:neon)
+// which database the app will use and whether it can be reached. npm run db:check (or db:check:local / db:check:neon)
 const dns = require('dns').promises;
 const { getDatabaseSettings } = require('../config/database');
 

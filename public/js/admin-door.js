@@ -1,6 +1,5 @@
-// Attendance page at the door: type to find someone, tap Came, and the list and the count update
-// without reloading. Enter checks in the one person who matches; otherwise the box sends the
-// ticket number to the server, as it does without JavaScript.
+// Attendance at the door: type to find someone, tap Came, list and count update without a reload.
+// Enter checks in the one match, otherwise the box sends the ticket number to the server like it does without JavaScript
 (function () {
   var list = document.querySelector('[data-door-list]');
   var search = document.querySelector('[data-door-search]');

@@ -11,8 +11,7 @@ module.exports = (sequelize) => {
     preferredLanguage: { type: DataTypes.ENUM('en', 'yo'), defaultValue: 'en' },
     role: { type: DataTypes.ENUM('senior', 'admin'), defaultValue: 'senior' },
     verificationStatus: {
-      // 'approved' = identity verified through their NIN (see services/identity.js). 'pending' = a check is running;
-      // 'manual_review' = a person must look; 'not_eligible' = the NIN shows they are under 50.
+      // 'approved' = verified by NIN (services/identity.js), 'pending' = check running, 'manual_review' = a person must look, 'not_eligible' = NIN shows under 50
       type: DataTypes.ENUM('unverified', 'pending', 'approved', 'rejected', 'social_removed', 'not_eligible', 'manual_review'),
       defaultValue: 'unverified'
     },
@@ -57,7 +56,7 @@ module.exports = (sequelize) => {
     return this.phone ? '0' + this.phone.replace('+234', '') : '';
   };
 
-  // first name only, for friendly greetings
+  // first name only, for greetings
   // their photo, or an illustration of an older woman or man until they add one
   User.prototype.avatarUrl = function () {
     if (this.profilePictureUrl) return this.profilePictureUrl;
@@ -66,8 +65,7 @@ module.exports = (sequelize) => {
     return '/images/senior-avatar.svg';
   };
 
-  // the name we greet someone by. A title on its own ("Mr", "Mama") is not enough,
-  // so it keeps the next word too: "Mr Kunle", "Mama Tolu", "Chief Samuel".
+  // the name we greet someone by. A title alone ("Mr", "Mama") is not enough so it keeps the next word: "Mr Kunle", "Mama Tolu", "Chief Samuel"
   const TITLES = ['mr', 'mrs', 'ms', 'miss', 'dr', 'prof', 'chief', 'mama', 'baba', 'papa', 'pa', 'ma', 'iya', 'alhaji', 'alhaja',
     'pastor', 'rev', 'reverend', 'deacon', 'deaconess', 'elder', 'evangelist', 'engr', 'sir', 'lady', 'madam', 'oba', 'olori', 'otunba', 'chief.'];
   User.prototype.firstName = function () {

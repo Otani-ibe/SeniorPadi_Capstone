@@ -1,5 +1,4 @@
-// Home page, Find seniors card: the two square photos take turns changing to other seniors,
-// one every few seconds, with a soft fade. Stays still for people who prefer less motion.
+// Home, Find seniors card: the two square photos take turns changing to other seniors every few seconds with a soft fade. Still for reduced motion
 (function () {
   var box = document.querySelector('[data-face-pool]');
   if (!box || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

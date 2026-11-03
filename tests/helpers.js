@@ -44,9 +44,7 @@ function csrfFrom(html) {
   return match ? match[1] : null;
 }
 
-// signs in the way a person does: phone number, then the code we texted them
-// (staff accounts type their password instead). extra = e.g. { registerEventId }.
-// Returns the last response.
+// signs in like a person: phone number, then the texted code (staff type their password). extra = e.g. { registerEventId }. Returns the last response
 async function signIn(agent, phone, extra = {}) {
   const page = await agent.get('/login');
   const first = await agent.post('/login').type('form').send({ _csrf: csrfFrom(page.text), phone, ...extra });

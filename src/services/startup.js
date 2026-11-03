@@ -1,6 +1,4 @@
-// Everything that has to happen before the app can serve people.
-// Runs on every start and skips whatever is already done, so nobody
-// has to type setup commands.
+// Everything that has to happen before the app serves people. Runs on every start and skips what is already done.
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -13,17 +11,17 @@ function line(text) {
   console.log('  ' + text);
 }
 
-// 1. check the settings and fill in safe defaults. Must run before anything else loads.
+// 1. check settings and fill safe defaults. Must run before anything else loads
 function prepareEnvironment() {
   require('dotenv').config({ quiet: true, path: path.join(ROOT, '.env') });
 
-  // tidy up NODE_ENV so "Production " or "prod" still work
+  // tidy NODE_ENV so "Production " or "prod" still work
   const env = (process.env.NODE_ENV || 'development').trim().toLowerCase();
   process.env.NODE_ENV = env.startsWith('prod') ? 'production' : env === 'test' ? 'test' : 'development';
   const isProduction = process.env.NODE_ENV === 'production';
   const warnings = [];
 
-  // a database is the one thing we can't guess
+  // no way to guess the database
   const target = (process.env.DB_TARGET || '').toLowerCase();
   const urlName = target === 'local' ? 'LOCAL_DATABASE_URL' : target === 'neon' ? 'NEON_DATABASE_URL' : 'DATABASE_URL';
   if (!process.env[urlName]) {
@@ -34,7 +32,7 @@ function prepareEnvironment() {
     );
   }
 
-  // on Render, the public address is given to us
+  // Render gives us the public address
   if (!process.env.APP_URL && process.env.RENDER_EXTERNAL_URL) {
     process.env.APP_URL = process.env.RENDER_EXTERNAL_URL;
   }
@@ -62,7 +60,7 @@ function prepareEnvironment() {
   return warnings;
 }
 
-// 2. wait for the database. Neon can take a few seconds to wake up.
+// 2. wait for the database (Neon can take a few seconds to wake)
 async function waitForDatabase(sequelize, attempts = 6) {
   for (let i = 1; i <= attempts; i++) {
     try {
@@ -83,7 +81,7 @@ async function waitForDatabase(sequelize, attempts = 6) {
   }
 }
 
-// 3. the welcome guide text, if it isn't there yet
+// 3. the welcome guide text, if missing
 async function ensureDefaultContent(models) {
   const en = require('../../locales/en.json');
   const yo = require('../../locales/yo.json');
@@ -100,8 +98,7 @@ async function ensureDefaultContent(models) {
   return added;
 }
 
-// 3b. the Ibadan events list, but only when the database has no events at all (a new site). Staff are free to add, edit
-// or cancel events after that: this never runs again once there is any event, and never changes or removes one.
+// 3b. the Ibadan events list, only when there are no events at all (new site). Never runs again once any event exists, never changes or removes one
 async function ensureSampleEvents(models) {
   if (process.env.NODE_ENV === 'test') return 0;
   if ((await models.Event.count()) > 0) return 0;
@@ -125,7 +122,7 @@ async function ensureFirstAdmin(models) {
 
   const existing = await models.User.findOne({ where: { phone }, paranoid: false });
   if (existing) {
-    // the number already belongs to someone: make them staff
+    // number already belongs to someone: make them staff
     await existing.restore();
     await existing.update({ role: 'admin' });
     return 'promoted';
@@ -141,7 +138,7 @@ async function ensureFirstAdmin(models) {
   return 'created';
 }
 
-// 5. the stylesheet. It's included in the project, but rebuild it if it's missing.
+// 5. the stylesheet is in the project, rebuild it if missing
 function ensureCss() {
   if (fs.existsSync(CSS_FILE)) return 'exists';
   try {

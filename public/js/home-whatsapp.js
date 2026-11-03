@@ -1,6 +1,4 @@
-// Home page, WhatsApp button: common questions seniors have take turns, one every few seconds,
-// with a soft fade. Tapping opens WhatsApp with the question that is showing.
-// Stays on the first one for people who prefer less motion.
+// Home, WhatsApp button: common questions take turns every few seconds with a soft fade, tapping opens WhatsApp with the one showing. Stays on the first for reduced motion
 (function () {
   var link = document.querySelector('[data-wa]');
   if (!link) return;

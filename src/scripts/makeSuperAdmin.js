@@ -1,12 +1,9 @@
-// Makes an existing staff account the superadmin: the only account that can open the NINs seniors send.
-// Their phone number and password are not touched. Other admins cannot see NINs.
-//
+// Makes an existing staff account the superadmin, the only one that can open NINs. Phone and password are not touched.
 //   npm run superadmin -- --phone 08012345678                     make that admin the superadmin
 //   npm run superadmin -- --phone 08012345678 --name "Otani Ibe"  ...and change their name
-//   npm run superadmin -- --phone 08012345678 --off               take the role away again
-//   npm run superadmin:neon -- --phone ...                        the same on the Neon (live) database
-//
-// The account must already be an admin. The database must be up to date (it is when the app has been started once).
+//   npm run superadmin -- --phone 08012345678 --off               take the role away
+//   npm run superadmin:neon -- --phone ...                        same on the Neon (live) database
+// the account must already be an admin, and the database migrated (start the app once)
 require('dotenv').config({ quiet: true });
 const { sequelize, User } = require('../models');
 const { normalizePhone } = require('../services/phone');

@@ -111,7 +111,7 @@ describe('adding the events list', () => {
     const was = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development'; // start-up skips this in tests, so pretend it is a normal run
     try {
-      // the 30 Ibadan events and SeniorPadi's own 7 December events (see tests/decemberEvents.test.js)
+      // the 30 Ibadan events and the 7 December events (tests/decemberEvents.test.js)
       expect(await startup.ensureSampleEvents(models)).toBe(37);
       expect(await Event.count()).toBe(37);
 

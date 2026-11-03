@@ -13,7 +13,7 @@ async function sendReminders(now = new Date()) {
     where: { status: 'registered', reminderSentAt: null },
     include: [
       { model: Event, where: { status: 'published', startsAt: { [Op.gt]: now, [Op.lte]: soon } } },
-      { model: User, as: 'senior' } // soft-deleted users are left out automatically
+      { model: User, as: 'senior' } // soft-deleted users are left out
     ]
   });
 
@@ -48,7 +48,7 @@ async function completeFinishedEvents(now = new Date()) {
   return count;
 }
 
-// when each job last ran, shown on the admin System page
+// last run of each job
 const lastRuns = { reminders: null, remindersSent: 0, completeEvents: null };
 
 async function runReminders() {
@@ -72,7 +72,7 @@ async function runCompleteEvents() {
 function startJobs() {
   cron.schedule('0 8 * * *', runReminders, { timezone: TIME_ZONE });
   cron.schedule('0 * * * *', runCompleteEvents, { timezone: TIME_ZONE });
-  runCompleteEvents(); // tidy up once on start too
+  runCompleteEvents(); // once on start too
 }
 
 module.exports = { sendReminders, completeFinishedEvents, startJobs, lastRuns };

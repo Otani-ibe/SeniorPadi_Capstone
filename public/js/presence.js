@@ -1,5 +1,4 @@
-// Online/offline badges ([data-presence]) kept up to date, and this person counted as online
-// while any page is open. If the connection fails the badges just keep what the page loaded with.
+// keeps [data-presence] online/offline badges current and counts this person online while any page is open. If the connection fails the badges keep what the page loaded with
 (function () {
   var csrf = document.currentScript && document.currentScript.getAttribute('data-csrf');
   if (typeof io === 'undefined' || !csrf) return;

@@ -1,19 +1,15 @@
-// Identity checks are done by a person, not by a provider: a senior types their NIN, it is saved ENCRYPTED, and the
-// superadmin checks it on the official NIMC website and decides. See docs/nin-verification.md.
-//
-//  - Users.isSuperAdmin: the only staff account that can open a NIN. (Other admins cannot.)
-//  - IdentityVerifications: the provider columns go; encryptedNin (AES-256-GCM, see services/identity.js) and decisionNote
-//    arrive. The encrypted NIN is erased as soon as the superadmin decides. Statuses are now
-//    submitted / verified / not_eligible / rejected.
-//  - A senior who was 'manual_review' (the earlier, provider-based design) goes back to 'unverified' to send their NIN again.
-//    'approved' seniors, including the demo seniors, keep their access.
+// NIN checks are done by a person: the senior types their NIN, saved ENCRYPTED, the superadmin checks it on NIMC and decides. See docs/nin-verification.md.
+//  - Users.isSuperAdmin: the only staff account that can open a NIN
+//  - IdentityVerifications: provider columns go, encryptedNin (AES-256-GCM, services/identity.js) and decisionNote arrive. The encrypted NIN is erased when the superadmin decides.
+//    statuses: submitted / verified / not_eligible / rejected
+//  - a senior who was 'manual_review' (provider design) goes back to 'unverified' to send their NIN again. 'approved' seniors, demo seniors included, keep access
 module.exports = {
   async up(queryInterface, Sequelize) {
     const sql = (text) => queryInterface.sequelize.query(text);
 
     await queryInterface.addColumn('Users', 'isSuperAdmin', { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false });
 
-    // rows from the provider-based design that never reached a decision carry no NIN, so they cannot be reviewed
+    // rows from the provider design that never reached a decision carry no NIN, so they cannot be reviewed
     await sql('UPDATE "Users" SET "verificationStatus" = \'unverified\' WHERE "verificationStatus" IN (\'manual_review\', \'pending\')');
     await sql('DELETE FROM "IdentityVerifications" WHERE "status" NOT IN (\'verified\', \'not_eligible\', \'rejected\')');
 

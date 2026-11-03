@@ -1,7 +1,6 @@
 'use strict';
 
-// Ticket numbers, an attendance table, phone/email verification,
-// phone number exchange, reminder settings and saved translations.
+// ticket numbers, attendance table, phone/email verification, phone number exchange, reminder settings, saved translations
 module.exports = {
   async up(queryInterface, Sequelize) {
     const userRef = { type: Sequelize.INTEGER, allowNull: false, references: { model: 'Users', key: 'id' } };

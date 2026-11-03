@@ -1,4 +1,4 @@
-// Phase 2: Find Seniors, messages, report, block, notifications
+// Find Seniors, messages, report, block, notifications
 const express = require('express');
 const { Op } = require('sequelize');
 const { User, Message, Skip, Block, Report, ReportHide, Notification } = require('../models');
@@ -34,7 +34,7 @@ router.get('/find-seniors', async (req, res) => {
     });
   }
   if (req.user.role === 'admin') return res.redirect('/admin');
-  // not verified yet: the NIN check comes first (someone removed from Find seniors is told so on this page)
+  // not verified yet: NIN check first (someone removed from Find seniors is told so here)
   if (req.user.verificationStatus !== 'approved' && req.user.verificationStatus !== 'social_removed') return res.redirect('/identity');
 
   let next = null;
@@ -87,7 +87,7 @@ async function loadOtherSenior(req, res) {
   return other;
 }
 
-// someone's profile: their picture and the whole introduction. Only for people who may message each other.
+// someone's profile, picture and full introduction. Only for people who may message each other
 router.get('/seniors/:seniorId', requireVerified, async (req, res) => {
   const other = await loadOtherSenior(req, res);
   if (!other) return;
@@ -173,8 +173,7 @@ async function loadConversations(me) {
     if (!latest.has(otherId)) latest.set(otherId, m);
   }
 
-  // what is waiting: new messages, missed calls, swap-number requests and answers. Someone who only sent a swap
-  // request (no message yet) is in the list too, so nothing waiting is hidden.
+  // what is waiting: new messages, missed calls, swap requests and answers. Someone who only sent a swap request is in the list too
   const alerts = await social.unreadAlerts(me);
   const ids = Array.from(new Set([...latest.keys(), ...alerts.keys()]));
 
@@ -190,12 +189,12 @@ async function loadConversations(me) {
   return { conversations, unreadIds: new Set(conversations.filter((c) => c.alerts).map((c) => c.person.id)) };
 }
 
-// the chat screens fill the whole screen, so they use the full width and have no footer on phones
+// chat screens use the full width, no footer on phones
 const CHAT_PAGE = { fullWidth: true, chatPage: true };
 
 router.get('/messages', requireVerified, requireContactVerified, async (req, res) => {
   const { conversations, unreadIds } = await loadConversations(req.user.id);
-  res.render('social/inbox', { title: req.t('messages.title'), conversations, unreadIds, fullWidth: true, noPhoneFooter: true }); // keeps the site menu: it is the way to other pages
+  res.render('social/inbox', { title: req.t('messages.title'), conversations, unreadIds, fullWidth: true, noPhoneFooter: true }); // keeps the site menu
 });
 
 router.get('/messages/:seniorId', requireVerified, requireContactVerified, async (req, res) => {
@@ -219,13 +218,12 @@ router.get('/messages/:seniorId', requireVerified, requireContactVerified, async
   const hasOlder = page.length > PAGE_SIZE;
   const messages = page.slice(0, PAGE_SIZE).reverse();
 
-  // mark this conversation's message notifications as read, and their messages, so they see "Read"
+  // mark this conversation's message notifications and messages read, so they see "Read"
   await social.markConversationRead(req.user.id, other.id);
   await markRead(req.app.get('io'), req.user.id, other.id);
-  res.locals.unreadMessages = (await social.unreadSenderIds(req.user.id)).size; // the badge was counted before this was read
+  res.locals.unreadMessages = (await social.unreadSenderIds(req.user.id)).size; // badge was counted before the read
 
-  // "Sent" or "Read" goes under the newest message I sent
-  // (not on the "older messages" pages)
+  // "Sent" or "Read" under my newest message (not on the older messages pages)
   const lastMine = req.query.before ? null : messages.filter((m) => m.senderId === req.user.id).pop();
 
   const ex = await exchange.between(req.user.id, other.id);
@@ -286,7 +284,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
     order: [['createdAt', 'DESC']],
     limit: 50
   });
-  // anything to do with a conversation is shown under Messages, not here; opening the page counts as reading the rest
+  // conversation things show under Messages, not here. Opening the page counts as reading the rest
   await Notification.update(
     { readAt: new Date() },
     { where: { userId: req.user.id, readAt: null, type: { [Op.notIn]: social.MESSAGE_NOTIFICATION_TYPES } } }

@@ -1,5 +1,4 @@
-// Makes the logged in user, language, translations and flash messages
-// available in every view.
+// puts the logged in user, language, translations and flash messages in every view
 const { User, Notification, Event, Registration } = require('../models');
 const { t } = require('../services/i18n');
 const fs = require('fs');
@@ -10,18 +9,17 @@ const { Op } = require('sequelize');
 const dates = require('../services/dates');
 const { signInExpired, bookingActive } = require('../services/sessionTimes');
 
-// SeniorPadi's own contact details, used unless SUPPORT_PHONE / SUPPORT_WHATSAPP_URL say otherwise
+// SeniorPadi's own contact details, defaults unless SUPPORT_PHONE / SUPPORT_WHATSAPP_URL are set
 const DEFAULT_SUPPORT_PHONE = '+2348061761235';
 const DEFAULT_SUPPORT_WHATSAPP = 'https://wa.link/lqmmfi';
 
-// +2348061761235 -> 0806 176 1235 (how a Nigerian number is read out); anything else is shown as it is
+// +2348061761235 -> 0806 176 1235, anything else is shown as is
 function displayPhone(tel) {
   const local = /^\+234(\d{10})$/.exec(tel);
   return local ? '0' + local[1].slice(0, 3) + ' ' + local[1].slice(3, 6) + ' ' + local[1].slice(6) : tel;
 }
 
-// the stylesheet's web address carries the time it last changed, so a new stylesheet is never
-// replaced by an old copy kept by the browser (even though files are cached for days on the live site)
+// stylesheet url carries its last change time so a new stylesheet is never shadowed by the browser's cached copy
 const CSS_FILE = path.join(__dirname, '../../public/css/main.css');
 function cssVersion() {
   try { return Math.round(fs.statSync(CSS_FILE).mtimeMs); } catch (err) { return 0; }
@@ -48,8 +46,7 @@ async function locals(req, res, next) {
 
   res.locals.cssVersion = cssVersion();
   res.locals.currentUser = user;
-  // the Account badge counts notifications other than messages; new messages show on Messages instead
-  // both counts are looked up at the same time
+  // Account badge counts notifications other than messages, new messages show on Messages. Both looked up together
   const [unread, unreadFrom] = user
     ? await Promise.all([
       Notification.count({ where: { userId: user.id, readAt: null, type: { [Op.notIn]: social.MESSAGE_NOTIFICATION_TYPES } } }),
@@ -62,8 +59,8 @@ async function locals(req, res, next) {
   res.locals.t = req.t;
   res.locals.formatDate = (d) => dates.formatDate(d, lang);
   res.locals.formatTime = dates.formatTime;
-  // what a screen reader says for a button about one event: "Register: Morning walk, Tuesday 29 October".
-  // It starts with the button's own words, so voice control ("tap Register") still finds it.
+  // screen reader text for a button about one event: "Register: Morning walk, Tuesday 29 October".
+  // starts with the button's own words so voice control ("tap Register") still finds it
   res.locals.forEvent = (label, event) => label + ': ' + (event.tTitle || event.title) + ', ' + dates.formatDate(event.startsAt, lang);
   res.locals.shortDate = dates.shortDate;
   // "2 min 14 sec" for a call that lasted this many seconds
@@ -84,14 +81,14 @@ async function locals(req, res, next) {
     delete req.session.bookedPopup;
     if (reg && reg.Event && reg.senior) res.locals.bookedPopup = { name: reg.senior.firstName(), event: reg.Event, ticket: reg.ticketNumber };
   }
-  res.locals.appUrl = (process.env.APP_URL || '').replace(/\/$/, ''); // for the share picture, which needs a full web address
-  // The Call and WhatsApp buttons open the phone app or WhatsApp, not another page. They use SeniorPadi's own number and
-  // WhatsApp link (SUPPORT_PHONE and SUPPORT_WHATSAPP_URL in the settings; these are the defaults).
+  res.locals.appUrl = (process.env.APP_URL || '').replace(/\/$/, ''); // share picture needs a full url
+  // Call and WhatsApp buttons open the phone app or WhatsApp, with SeniorPadi's own number and link
+  // (SUPPORT_PHONE / SUPPORT_WHATSAPP_URL, these are the defaults)
   const supportNumber = (process.env.SUPPORT_PHONE || DEFAULT_SUPPORT_PHONE).trim();
   res.locals.supportTel = supportNumber.replace(/[^\d+]/g, ''); // +2348061761235, for tel: links
   res.locals.supportPhone = displayPhone(res.locals.supportTel); // 0806 176 1235, for people to read
   const whatsapp = (process.env.SUPPORT_WHATSAPP_URL || DEFAULT_SUPPORT_WHATSAPP).trim();
-  // wa.me links can carry a ready-written message; a wa.link short link cannot (it has its own), so it is used as it is
+  // wa.me links can carry a message, a wa.link short link has its own so it is used as is
   const whatsappTextable = /^https:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)\//.test(whatsapp);
   res.locals.whatsappTextable = whatsappTextable;
   res.locals.whatsappLink = (message) => (whatsappTextable ? whatsapp.split('?')[0] + '?text=' + encodeURIComponent(message) : whatsapp);
@@ -99,7 +96,7 @@ async function locals(req, res, next) {
   res.locals.presenceOf = presence.statusOf; // 'online', 'offline' or null (hidden)
   res.locals.categoryIcons = Event.CATEGORY_ICONS;
   res.locals.lgas = Event.AREAS;
-  // "Bodija, Ibadan North": their neighbourhood and local government area, whichever they gave
+  // "Bodija, Ibadan North": neighbourhood and LGA, whichever they gave
   res.locals.placeOf = (person) => [person.area, person.lga ? req.t('area.' + person.lga) : null].filter(Boolean).join(', ');
 
   // flash messages live in the session for one page view

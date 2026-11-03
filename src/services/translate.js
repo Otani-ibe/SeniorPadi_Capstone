@@ -1,7 +1,5 @@
-// Translates text written by staff or seniors (event titles, descriptions, bios)
-// into Yorùbá with the Google Cloud Translation API.
-// Results are saved in the Translations table, so each text is only translated once.
-// The buttons and menus use the reviewed text in locales/yo.json instead.
+// Translates staff and senior text (event titles, descriptions, bios) to Yorùbá with Google Cloud Translation.
+// saved in Translations so each text is translated once. Buttons and menus use locales/yo.json
 const crypto = require('crypto');
 const { Translation } = require('../models');
 
@@ -15,8 +13,7 @@ function hash(text) {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
 
-// texts: array of strings. Returns an array of translated strings in the same order.
-// If anything goes wrong, the original English is returned, so pages never break.
+// texts: strings -> translated strings, same order. On any failure the English comes back, pages never break
 async function translateTexts(texts, targetLang) {
   if (targetLang === 'en' || !isOn()) return texts;
 
@@ -56,7 +53,7 @@ async function translateTexts(texts, targetLang) {
   return results;
 }
 
-// adds .tTitle, .tDescription and .tImageAlt to each event (the original stays in .title / .description / .imageAlt)
+// adds .tTitle, .tDescription, .tImageAlt to each event, originals stay
 async function translateEvents(events, lang) {
   const list = events.filter(Boolean);
   const texts = [];

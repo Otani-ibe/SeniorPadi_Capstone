@@ -1,5 +1,4 @@
-// Voice call set-up over Socket.IO. Called from sockets/index.js for every connected senior.
-// Rules are checked here on the server every time, the same as for messages.
+// Voice call set-up over Socket.IO, called from sockets/index.js for every connected senior. Rules are checked here every time, same as messages
 const { User } = require('../models');
 const social = require('../services/social');
 const calls = require('../services/calls');
@@ -10,7 +9,7 @@ const MAX_SIGNAL_BYTES = 20000;
 
 const userRoom = (id) => 'user:' + id;
 
-// io: the server, socket: this connection, loadVerifiedSenior: checks they still exist and are approved
+// io: server, socket: this connection, loadVerifiedSenior: checks they still exist and are approved
 function setupCalls(io, socket, loadVerifiedSenior) {
   const myId = socket.data.userId;
   socket.join(userRoom(myId));
@@ -50,9 +49,9 @@ function setupCalls(io, socket, loadVerifiedSenior) {
       }
       if (calls.isBusy(me.id)) return reply({ ok: false, reason: 'you_busy' });
       if (!(await isOnline(other.id))) {
-        // they are away: the caller is told, and a missed call waits for them in the chat, one line for every try.
-        // It counts toward the limit on calls (10 in 10 minutes), so it cannot be used to fill someone's chat.
-        // The line is handed straight back to the caller, so it shows at once whatever the connection does.
+        // away: the caller is told and a missed call waits in the chat, one line per try.
+        // counts toward the call limit (10 in 10 minutes) so it cannot fill someone's chat.
+        // the line goes straight back to the caller so it shows at once whatever the connection does
         socket.data.inviteTimes.push(now);
         let line = null;
         try {

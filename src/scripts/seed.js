@@ -1,5 +1,4 @@
-// Fills the database with demo data. Wipes existing data first!
-// Usage: npm run seed
+// Fills the database with demo data, wipes existing data first. npm run seed
 require('dotenv').config({ quiet: true });
 const bcrypt = require('bcrypt');
 const { sequelize, User, Organization, Event, Registration, Message, OnboardingVideo } = require('../models');
@@ -191,7 +190,7 @@ async function main() {
   await OnboardingVideo.create({ language: 'en', transcript: en['onboarding.default_transcript'], uploadedByAdminId: admin.id });
   await OnboardingVideo.create({ language: 'yo', transcript: yo['onboarding.default_transcript'], uploadedByAdminId: admin.id });
 
-  // the demo seniors (all verified, with pictures) and the sample events: kept every time the data is reseeded
+  // demo seniors (verified, with pictures) and sample events, kept on every reseed
   const models = require('../models');
   await require('../services/sampleSeniors').ensureSampleSeniors(models);
   const sampleEvents = require('../services/sampleEvents');

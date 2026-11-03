@@ -1,5 +1,5 @@
-<%# staff: the private check-in link for the host organization, with ways to send it.
-    needs: event (with Organization), link (null, or { url, state, opens, closes, phone }) %>
+<%# staff: private check-in link for the host organization, with ways to send it.
+    needs: event (with Organization), link (null or { url, state, opens, closes, phone }) %>
 <%
   const org = event.Organization;
   const until = formatDate(link ? link.closes : event.endsAt);

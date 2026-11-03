@@ -1,20 +1,12 @@
-// Scores events for one senior, 0 to 100, and says why. Pure functions: numbers in, numbers out, so it is
-// easy to test. No database, no requests, no clock (the time is passed in). All weights and tuning numbers
-// come from config/recommendation.js. The queries that feed it are in recommendationData.js.
+// Scores events for one senior, 0-100, with reasons. Pure functions: no db, no clock (now is passed in).
+// Weights and tuning are in config/recommendation.js, the queries in recommendationData.js.
 //
-// Five parts, each scored 0-100, then combined with the weights:
-//   interest      how well the event's category matches what the senior chose and has joined before
-//   proximity     how close the venue is
-//   interactions  whether they have joined this host organization before
-//   freshness     starting soon, newly listed, and places left
-//   diversity     a type that is new to them, and not the same type again and again in the list
+// parts, each 0-100: interest (category match), proximity, interactions (same host before),
+// freshness (soon, new, places left), diversity (new type, not repeated in the list)
 //
-// Not double-counting: one past event adds points once, at its strongest state (attended beats booked
-// beats no-show), to its category and to its host. A "tell me about this type" request made from an event
-// they also booked adds nothing more, and a view of an event they booked or attended adds nothing.
-//
-// A part we know nothing about (a new senior has no history; a senior with no place has no distance) is
-// left out and the others share its weight, so a new senior is not marked down for having no past.
+// a past event counts once, at its strongest state (attended > booked > no-show), for category and host.
+// "tell me about this type" from an event already counted, and views of booked or attended events, add nothing.
+// a part with no data (no history, no location) is dropped and the others share its weight.
 const { resolveConfig } = require('../config/recommendation');
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -24,7 +16,7 @@ const clamp = (n, low = 0, high = 100) => Math.min(high, Math.max(low, n));
 const round1 = (n) => Math.round(n * 10) / 10;
 const ms = (date) => (date instanceof Date ? date.getTime() : new Date(date).getTime());
 
-// points -> 0-100, gaining less with each extra point and never passing 100
+// points -> 0-100, diminishing returns, capped at 100
 function saturate(points, config) {
   return 100 * (1 - Math.exp(-points / config.saturation));
 }
@@ -38,17 +30,17 @@ function statusPoints(status, config) {
   }[status] || 0;
 }
 
-// What we know about a senior, worked out once.
-// profile = {
-//   history:   [{ eventId, category, organizationId, startsAt, status }]   their bookings (status as in Registration)
-//   interests: [{ category, sourceEventId }]                              "tell me about this type" requests
-//   views:     [{ eventId, category, count }]                             passive views (none are recorded yet)
+// profile, built once per senior
+// {
+//   history:   [{ eventId, category, organizationId, startsAt, status }]
+//   interests: [{ category, sourceEventId }]   "tell me about this type"
+//   views:     [{ eventId, category, count }]  not recorded yet
 // }
 function analyseProfile(profile = {}, options = {}) {
   const config = options.config || resolveConfig();
   const now = ms(options.now || new Date());
 
-  // one entry per event, at its strongest state
+  // strongest state per event
   const strongest = new Map();
   for (const item of profile.history || []) {
     const kept = strongest.get(item.eventId);
@@ -57,8 +49,8 @@ function analyseProfile(profile = {}, options = {}) {
 
   const categoryPoints = {};
   const hostPoints = {};
-  const attended = {}; // category -> number of events attended
-  const booked = {}; // category -> number of events booked (not attended, not given up)
+  const attended = {}; // category -> attended
+  const booked = {}; // category -> booked, not attended or cancelled
   const add = (bucket, key, points) => { bucket[key] = (bucket[key] || 0) + points; };
 
   for (const item of strongest.values()) {
@@ -72,7 +64,7 @@ function analyseProfile(profile = {}, options = {}) {
     else add(booked, item.category, 1);
   }
 
-  // asked to hear about a type: counts once per type, and not at all again when it came from an event already counted above
+  // once per type, skipped when it came from an event already counted
   const chosen = new Set();
   for (const interest of profile.interests || []) {
     if (chosen.has(interest.category)) continue;
@@ -82,7 +74,7 @@ function analyseProfile(profile = {}, options = {}) {
     if (!alreadyCounted) add(categoryPoints, interest.category, config.signals.explicitInterest);
   }
 
-  // passive views: least valuable, capped, and ignored for events already counted as a booking
+  // views: lowest value, capped, ignored for events already booked
   const viewsByEvent = new Map();
   for (const view of profile.views || []) {
     if (strongest.has(view.eventId) && statusPoints(strongest.get(view.eventId).status, config) > 0) continue;
@@ -98,7 +90,7 @@ function analyseProfile(profile = {}, options = {}) {
   return { categoryPoints, hostPoints, attended, booked, chosen, hasSignals };
 }
 
-// ---------- the five parts, each 0-100 (or null = not known) ----------
+// ---------- the five parts, 0-100 or null when unknown ----------
 
 function interestScore(event, prefs, config) {
   if (!prefs.hasSignals) return null;
@@ -140,18 +132,18 @@ function freshnessScore(event, now, config) {
   return (p.soon * soon + p.newlyListed * newlyListed + p.availability * availability) / (p.soon + p.newlyListed + p.availability);
 }
 
-// picked = how many events of each category are already in the list
+// picked = events per category already in the list
 function diversityScore(event, prefs, picked, config) {
   const interest = prefs.hasSignals ? saturate(prefs.categoryPoints[event.category] || 0, config) : 0;
-  const discovery = 100 - interest; // a type they have never touched is a discovery
-  const variety = 100 / (1 + (picked[event.category] || 0)); // the first of its type in the list is worth most
+  const discovery = 100 - interest; // never touched = discovery
+  const variety = 100 / (1 + (picked[event.category] || 0)); // first of its type counts most
   const p = config.diversity.parts;
   return (p.discovery * discovery + p.variety * variety) / (p.discovery + p.variety);
 }
 
 // ---------- combining ----------
 
-// Combines the parts that are known. Returns the 0-100 score and the weights actually used (adding up to 1).
+// combines the known parts, returns the score and the weights used (sum to 1)
 function combine(components, weights) {
   const known = PARTS.filter((name) => components[name] != null);
   const total = known.reduce((sum, name) => sum + weights[name], 0);
@@ -178,10 +170,10 @@ function scoreEvent(event, prefs, picked, now, config) {
 
 // ---------- availability ----------
 
-// can this event still be booked? (the queries already filter, this keeps the scorer safe on its own)
+// still bookable? the queries already filter, this keeps the scorer safe on its own
 function isAvailable(event, now) {
   if (event.status && event.status !== 'published') return false;
-  if (event.startsAt == null || !(ms(event.startsAt) > now)) return false; // already started or over
+  if (event.startsAt == null || !(ms(event.startsAt) > now)) return false; // started or over
   if (event.registrationDeadline && !(ms(event.registrationDeadline) > now)) return false;
   if (event.slotsLeft === 0) return false;
   return true;
@@ -189,7 +181,7 @@ function isAvailable(event, now) {
 
 // ---------- explaining ----------
 
-// The reasons for a score, strongest first. Each is { code, params }; reasonText turns it into a sentence.
+// reasons, strongest first, each { code, params }. reasonText makes the sentence
 function explain(event, prefs, result, now, config) {
   const { components, used } = result;
   const worth = (part) => (components[part] == null ? 0 : used[part] * components[part]); // what the part added
@@ -226,7 +218,7 @@ function explain(event, prefs, result, now, config) {
   return reasons.length > 0 ? reasons : [{ code: 'upcoming', params: {} }];
 }
 
-// A reason as a sentence. `translate` is the page's t(key, vars); categories are translated too.
+// reason as a sentence. translate = the page's t(key, vars)
 function reasonText(reason, translate) {
   const params = { ...reason.params };
   if (params.category) params.category = translate('category.' + params.category);
@@ -235,18 +227,18 @@ function reasonText(reason, translate) {
 
 // ---------- the whole thing ----------
 
-// events: candidates, each { id, category, organizationId, startsAt, createdAt, slotsLeft, distanceKm,
-//         distanceApproximate, status, registrationDeadline, Organization: { name } }
-// options: { now, limit, config (overrides for config/recommendation.js) }
-// The order does not depend on `limit`: asking for 12 gives the same first 6 as asking for 6.
-// Returns up to `limit` of { event, score (0-100, one decimal), components, weights, reasons }, best first.
+// events: { id, category, organizationId, startsAt, createdAt, slotsLeft, distanceKm,
+//   distanceApproximate, status, registrationDeadline, Organization: { name } }
+// options: { now, limit, config }
+// order does not depend on limit
+// -> up to limit of { event, score, components, weights, reasons }, best first
 function scoreEvents(events, profile, options = {}) {
   const config = resolveConfig(options.config);
   const now = ms(options.now || new Date());
   const limit = options.limit == null ? config.limit : options.limit;
   const prefs = analyseProfile(profile, { config, now });
 
-  // a fixed starting order, so equal scores always come out the same way
+  // fixed start order so ties are stable
   let remaining = events
     .filter((e) => isAvailable(e, now))
     .sort((a, b) => ms(a.startsAt) - ms(b.startsAt) || a.id - b.id);
@@ -257,8 +249,7 @@ function scoreEvents(events, profile, options = {}) {
   const out = [];
 
   while (out.length < limit && remaining.length > 0) {
-    // a category that already fills its share of the last few places waits behind the others,
-    // but fills the list if nothing else is left
+    // a category already filling its share of the last few picks waits, but fills the list if nothing else is left
     const recent = out.slice(-(window - 1)).map((r) => r.event.category);
     const open = remaining.filter((e) => recent.filter((c) => c === e.category).length + 1 <= maxInWindow);
     const pool = open.length > 0 ? open : remaining;
@@ -266,7 +257,7 @@ function scoreEvents(events, profile, options = {}) {
     let best = null;
     for (const event of pool) {
       const result = scoreEvent(event, prefs, picked, now, config);
-      if (!best || result.score > best.result.score) best = { event, result }; // ties keep the earlier (soonest) event
+      if (!best || result.score > best.result.score) best = { event, result }; // ties keep the earlier event
     }
 
     picked[best.event.category] = (picked[best.event.category] || 0) + 1;
@@ -284,6 +275,6 @@ function scoreEvents(events, profile, options = {}) {
 
 module.exports = {
   PARTS, scoreEvents, analyseProfile, reasonText, isAvailable,
-  // the parts on their own, for tests
+  // parts alone, for tests
   interestScore, proximityScore, interactionScore, freshnessScore, diversityScore, combine, saturate
 };

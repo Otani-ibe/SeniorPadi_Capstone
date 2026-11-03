@@ -1,7 +1,7 @@
-// "Book for my mum or dad": a son or daughter books events for a parent who already has an account.
-// The parent stays in control: a code goes to the PARENT's phone and they read it out, every time.
-// After that, for one day on this phone, Register books the parent (not the child) and the ticket
-// is texted to the parent. The child never sees the parent's messages or account pages.
+// Book for my mum or dad: a son or daughter books events for a parent who already has an account.
+// the parent stays in control, a code goes to the PARENT's phone and they read it out every time.
+// then for one day on this phone, Register books the parent and the ticket is texted to the parent.
+// the child never sees the parent's messages or account pages
 const express = require('express');
 const { User, Event } = require('../models');
 const { normalizePhone, phoneProblem } = require('../services/phone');
@@ -29,8 +29,7 @@ async function parentOf(session) {
   return User.findOne({ where: { id: b.parentId, role: 'senior' } });
 }
 
-// books the parent (their ticket is texted to THEIR phone), then shows the "registered" pop-up
-// on the page the child was on
+// books the parent (ticket texted to THEIR phone), then shows the registered pop-up on the page the child was on
 async function book(req, res, parent, eventId, back) {
   const result = await registerAndNotify(parent, eventId, 'attendee');
   if (!result.ok) {
@@ -117,7 +116,7 @@ router.post('/book-for-parent/:eventId/register', async (req, res) => {
   return book(req, res, parent, req.params.eventId, safeNext(req.body.back));
 });
 
-// Finish: this phone stops booking for the parent
+// done, this phone stops booking for the parent
 router.post('/book-for-parent/finish', (req, res) => {
   delete req.session.bookingFor;
   req.flash('success', req.t('book.finished'));

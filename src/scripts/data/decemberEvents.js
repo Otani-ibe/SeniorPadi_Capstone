@@ -1,11 +1,10 @@
-// SeniorPadi's own first events, 1 to 4 December 2026. Used by src/scripts/addEvents.js (and by a new site's first start-up).
-// Times are Lagos time (WAT, UTC+1). Every one is marked "show first", needs volunteers, and has a limit on places.
-//
-// The venues are public halls already used elsewhere in the list; confirm each one before the date. The flyers are in
-// public/images/events/december/ (1200 x 900). The doctor, physiotherapist and pension officer are invited guests: confirm them too.
+// SeniorPadi's own first events, 1 to 4 December 2026. Used by src/scripts/addEvents.js and a new site's first start-up.
+// Lagos time (WAT, UTC+1). All "show first", all need volunteers, all have a limit on places.
+// venues are public halls already used in the list, confirm each before the date. Flyers in public/images/events/december/ (1200 x 900).
+// the doctor, physiotherapist and pension officer are invited guests, confirm them too
 const HOST = 'SeniorPadi Community Events';
 
-// each event's flyer, and what it says for readers who cannot see it (screen readers say this instead of showing the picture)
+// flyer per event and its text for readers who cannot see it (read by screen readers instead of the picture)
 const FLYERS = {
   'Ask the Doctor: The Questions You Are Shy to Ask': ['01-ask-the-doctor.jpg', 'Flyer: Ask the Doctor. Topic: the questions you are shy to ask. Tuesday 1 December, 10:00 AM to 12:30 PM. Senior Citizen Palace, Bashorun Estate, Akobo, Ibadan. 50 seniors and 6 volunteers. A smiling doctor with a stethoscope. Sign up on SeniorPadi.'],
   'Dance Like It\'s 1975: Highlife and Juju Afternoon': ['02-dance-like-its-1975.jpg', 'Flyer: Dance like it\'s 1975, a highlife and juju afternoon. Come in your best clothes and bring a friend. Tuesday 1 December, 3:00 to 6:00 PM, Mapo Hall, Ibadan. Register by 6:00 PM on Monday 30 November. An illustration of three people dancing. Sign up on SeniorPadi.'],

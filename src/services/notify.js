@@ -1,5 +1,4 @@
-// Sends transactional email and SMS through Brevo.
-// Everything goes through sendEmail / sendSms so we could swap provider later.
+// Email and SMS through Brevo, all via sendEmail / sendSms so the provider can be swapped
 const path = require('path');
 const ejs = require('ejs');
 const { t } = require('./i18n');
@@ -92,7 +91,7 @@ async function sendSms(user, key, vars = {}) {
   }
 }
 
-// Fire and forget: a failed message should never stop a registration
+// fire and forget, a failed message must not stop a registration
 function notify(user, key, vars, channels = ['email', 'sms']) {
   if (channels.includes('email')) sendEmail(user, key, vars).catch(console.error);
   if (channels.includes('sms')) sendSms(user, key, vars).catch(console.error);

@@ -1,5 +1,4 @@
-// Swipe cards, like a dating app: drag right to say yes, left to skip.
-// The buttons on the card still work on their own, so this is only an extra.
+// swipe cards: drag right to say yes, left to skip. The card buttons still work alone
 (function () {
   var THRESHOLD = 110;
 

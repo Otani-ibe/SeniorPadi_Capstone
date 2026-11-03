@@ -1,10 +1,10 @@
-// Everything to do with seats: counting, tags and registering safely.
+// Seats: counting, tags, safe registering.
 const { Op } = require('sequelize');
 const { sequelize, Event, Registration } = require('../models');
 const { DAY_MS } = require('./dates');
 
-const ALMOST_FULL_AT = 5; // show "Almost full" when 5 or fewer spots are left
-const DEADLINE_WARNING_DAYS = 5; // show "Closes in X days" when 5 or fewer days are left
+const ALMOST_FULL_AT = 5; // "Almost full" at this many spots
+const DEADLINE_WARNING_DAYS = 5; // "Closes in X days" at this many days
 
 // cancelled and no_show registrations do not take a seat
 const SEAT_STATUSES = ['registered', 'attended'];
@@ -21,7 +21,7 @@ function capacityFor(event, type) {
   return event.capacity == null ? Infinity : event.capacity; // no capacity set: no limit
 }
 
-// Works out which tags and buttons to show. Pure function so it's easy to test.
+// which tags and buttons to show. Pure
 function eventState(event, takenAttendee, takenVolunteer, now = new Date()) {
   const hasLimit = event.capacity != null;
   const attendeeLeft = hasLimit ? event.capacity - takenAttendee : Infinity;
@@ -38,7 +38,7 @@ function eventState(event, takenAttendee, takenVolunteer, now = new Date()) {
     isPast: new Date(event.endsAt) < now,
     attendeeFull: hasLimit && attendeeLeft <= 0,
     attendeeAlmostFull: hasLimit && attendeeLeft > 0 && attendeeLeft <= ALMOST_FULL_AT,
-    slotsLeft: hasLimit ? Math.max(0, attendeeLeft) : null, // what seniors see: "23 slots left"; null shows nothing
+    slotsLeft: hasLimit ? Math.max(0, attendeeLeft) : null, // "23 slots left", null shows nothing
     volunteerEnabled: event.volunteerEnabled,
     volunteerFull: event.volunteerEnabled && volunteerLeft <= 0,
     volunteerAlmostFull: event.volunteerEnabled && volunteerLeft > 0 && volunteerLeft <= ALMOST_FULL_AT,
@@ -53,9 +53,8 @@ async function getEventState(event) {
   return eventState(event, attendee, volunteer);
 }
 
-// Registers a senior as attendee or volunteer.
-// Locks the event row so two people can't take the last seat at the same time.
-// Returns { ok: true, registration } or { ok: false, reason }
+// registers a senior as attendee or volunteer. Locks the event row so the last seat cannot be taken twice
+// -> { ok: true, registration } | { ok: false, reason }
 async function register(eventId, seniorId, type) {
   return sequelize.transaction(async (transaction) => {
     const event = await Event.findByPk(eventId, { transaction, lock: transaction.LOCK.UPDATE });
@@ -79,7 +78,7 @@ async function register(eventId, seniorId, type) {
 
     let registration;
     if (existing) {
-      // they cancelled before and are coming back
+      // cancelled before, coming back
       registration = await existing.update({ status: 'registered', reminderSentAt: null }, { transaction });
     } else {
       registration = await Registration.create({ eventId, seniorId, type }, { transaction });

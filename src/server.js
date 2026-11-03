@@ -1,6 +1,4 @@
-// Starts SeniorPadi. Does all the setup on its own:
-// checks settings, waits for the database, runs any new migrations,
-// adds default content and the first admin, then opens the website.
+// Starts SeniorPadi: checks settings, waits for the database, runs new migrations, adds default content and the first admin, then opens the website
 const startup = require('./services/startup');
 
 const startedAt = new Date();

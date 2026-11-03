@@ -2,8 +2,7 @@
 const { Op } = require('sequelize');
 const { User, Skip, Block, ReportHide, Notification, Message } = require('../models');
 
-// people this senior already has a conversation with (either of them wrote). They are in Messages,
-// so Find Seniors doesn't show them again.
+// people already in a conversation with this senior (either wrote), they are in Messages, not Find Seniors
 async function messagedIds(userId) {
   const rows = await Message.findAll({
     where: { [Op.or]: [{ senderId: userId }, { recipientId: userId }] },
@@ -15,7 +14,7 @@ async function messagedIds(userId) {
 
 // ids this senior should never see in Find Seniors
 async function hiddenIdsFor(userId) {
-  // the four lookups run at the same time (the database may be far away, so waiting for each one in turn is slow)
+  // four lookups in parallel, the database may be far away
   const [skips, blocks, hides, messaged] = await Promise.all([
     Skip.findAll({ where: { seniorId: userId }, attributes: ['skippedId'] }),
     Block.findAll({ where: { [Op.or]: [{ blockerId: userId }, { blockedId: userId }] } }),
@@ -31,7 +30,7 @@ async function hiddenIdsFor(userId) {
   return Array.from(ids);
 }
 
-// true if there's a block or a report between the two, in either direction
+// block or report between the two, either direction
 async function isBlockedOrHidden(aId, bId) {
   const pair = [
     { a: aId, b: bId },
@@ -48,7 +47,7 @@ async function isBlockedOrHidden(aId, bId) {
   return Boolean(hide);
 }
 
-// both verified, and nothing between them
+// both verified, nothing between them
 async function canMessage(sender, recipient) {
   if (!sender || !recipient) return false;
   if (sender.id === recipient.id) return false;
@@ -58,12 +57,12 @@ async function canMessage(sender, recipient) {
   return !(await isBlockedOrHidden(sender.id, recipient.id));
 }
 
-// the next verified senior to show in Find Seniors, or null
+// next verified senior for Find Seniors, or null
 async function nextSeniorFor(user) {
   return (await upcomingSeniorsFor(user, 1))[0] || null;
 }
 
-// the next few verified seniors to show, in order
+// next few verified seniors, in order
 async function upcomingSeniorsFor(user, limit = 3) {
   const hidden = await hiddenIdsFor(user.id);
   return User.findAll({
@@ -77,8 +76,7 @@ async function upcomingSeniorsFor(user, limit = 3) {
   });
 }
 
-// seniors this senior skipped, most recent first. Leaves out anyone blocked or reported
-// (either way) and anyone who can no longer use Find Seniors.
+// seniors this senior skipped, most recent first. Leaves out blocked or reported (either way) and anyone who can no longer use Find Seniors
 async function skippedSeniorsFor(user) {
   const skips = await Skip.findAll({ where: { seniorId: user.id }, order: [['createdAt', 'DESC']] });
   if (skips.length === 0) return [];
@@ -111,18 +109,18 @@ async function notifyAdmins(type, payload, link) {
   for (const admin of admins) await addNotification(admin.id, type, payload, link);
 }
 
-// Everything that has to do with a conversation lives in Messages, not in the Account notifications: a new message, a
-// missed call (written as a message), and a request to swap phone numbers or its answer. Each one links to /messages/<person>.
+// everything about a conversation lives in Messages, not Account notifications: new message, missed call (stored as a message),
+// swap-number request and its answer. Each links to /messages/<person>
 const MESSAGE_NOTIFICATION_TYPES = ['message.new', 'exchange.request', 'exchange.accepted', 'exchange.declined', 'call.missed', 'call.unanswered'];
 
-// the person a message-type notification is about
+// the person a message notification is about
 function personOfNotification(n) {
   if (n.payload && n.payload.senderId) return Number(n.payload.senderId);
   const match = String(n.link || '').match(/^\/messages\/(\d+)/);
   return match ? Number(match[1]) : null;
 }
 
-// What is waiting for this person in Messages, for each person they talk to:
+// what is waiting in Messages per person
 // Map(personId -> { messages: 3, swapRequest: true, swapAccepted: false, swapDeclined: false })
 async function unreadAlerts(userId) {
   const rows = await Notification.findAll({ where: { userId, type: MESSAGE_NOTIFICATION_TYPES, readAt: null }, attributes: ['type', 'payload', 'link'] });
@@ -140,13 +138,12 @@ async function unreadAlerts(userId) {
   return alerts;
 }
 
-// the ids of people who have something waiting in Messages (one id per person, however many things). This is the number on
-// the Messages tab, and it goes down as each conversation is opened.
+// ids with something waiting in Messages, one per person. This is the Messages tab count, drops as conversations are opened
 async function unreadSenderIds(userId) {
   return new Set((await unreadAlerts(userId)).keys());
 }
 
-// opening a conversation reads everything in it: messages, missed calls and swap-number notices
+// opening a conversation reads everything in it: messages, missed calls, swap notices
 function markConversationRead(userId, otherId) {
   return Notification.update(
     { readAt: new Date() },

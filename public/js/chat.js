@@ -1,5 +1,4 @@
-// Live chat on top of the normal form: messages appear without reloading.
-// If anything here fails, we do nothing and the form keeps working as usual.
+// Live chat on top of the normal form, messages appear without a reload. If anything fails the form keeps working
 (function () {
   var thread = document.getElementById('thread');
   var form = document.querySelector('form[data-chat-form]');
@@ -148,7 +147,7 @@
   }
 
   socket.on('message:new', addMessage);
-  // a line made by this page itself (a missed call to someone offline): shown at once, and never twice
+  // line made by this page itself (a missed call to someone offline), shown at once and never twice
   document.addEventListener('sp:message', function (e) { addMessage(e.detail); });
 
   // they opened the conversation: my newest message is now read

@@ -1,6 +1,4 @@
-// "23 slots left" follows what is really happening: every few seconds the numbers on the page are
-// asked for again, so a new registration, or the admin raising or lowering the capacity, shows up
-// without a reload. An event with no limit shows nothing.
+// "23 slots left" follows reality: the numbers are re-requested every few seconds so a new registration or a capacity change shows without a reload. No limit shows nothing
 (function () {
   var els = Array.prototype.slice.call(document.querySelectorAll('[data-slots-for]'));
   if (els.length === 0 || !window.fetch) return;

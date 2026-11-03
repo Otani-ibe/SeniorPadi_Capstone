@@ -18,7 +18,7 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// Only the superadmin: the one staff account that may open a NIN. Used after requireAdmin.
+// superadmin only, the one staff account that may open a NIN. Use after requireAdmin
 function requireSuperAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'admin' || !req.user.isSuperAdmin) {
     return res.status(403).render('error', { title: req.t('error.title'), message: req.t('error.not_allowed') });
@@ -34,9 +34,8 @@ function requirePasswordChanged(req, res, next) {
   next();
 }
 
-// Find Seniors, senior profiles, messages and calls are only for seniors whose identity was verified (by NIN,
-// see services/identity.js). Checked on the server every time, never trusted from the page. Anyone else who
-// types one of these addresses is sent to the verification page.
+// Find Seniors, profiles, messages and calls are only for seniors verified by NIN (services/identity.js).
+// checked on the server every time, anyone else is sent to the verification page
 function requireVerified(req, res, next) {
   if (!req.user) {
     req.session.returnTo = req.originalUrl;

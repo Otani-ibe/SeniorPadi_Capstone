@@ -1,5 +1,4 @@
-// The host organization's check-in link: a private address for one event's guest list,
-// so they can tick people in at the door without an account. Their ticks are recorded as 'host'.
+// host organization's check-in link: a private address for one event's guest list so they can tick people in at the door without an account. Ticks are recorded as 'host'
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn('Events', 'checkinToken', { type: Sequelize.STRING(64), allowNull: true, unique: true });

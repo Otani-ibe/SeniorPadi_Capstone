@@ -1,12 +1,8 @@
-// Deletes the ID photos that seniors uploaded under the old "send a photo of your ID" check, and clears the
-// columns that pointed at them. Identity is now checked with the NIN (see docs/nin-verification.md), so these
-// photos have no purpose left and should not be kept.
-//
-//   npm run ids:purge -- --dry     only count them
+// Deletes ID photos uploaded under the old photo check and clears the columns that pointed at them. Identity is now by NIN (docs/nin-verification.md).
+//   npm run ids:purge -- --dry     only count
 //   npm run ids:purge              delete the files and clear the columns, on the database in .env (DB_TARGET=local = your computer)
-//   npm run ids:purge:neon         the same on the Neon (live) database
-//
-// Run --dry first. This cannot be undone.
+//   npm run ids:purge:neon         same on the Neon (live) database
+// run --dry first, this cannot be undone
 require('dotenv').config({ quiet: true });
 const { sequelize } = require('../models');
 const cloud = require('../services/cloudinary');

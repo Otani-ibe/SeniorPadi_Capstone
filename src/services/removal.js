@@ -1,4 +1,4 @@
-// The two ways a senior can be removed. They must not behave the same way.
+// the two ways a senior is removed, they must not behave alike
 const { Op } = require('sequelize');
 const { Event, Registration } = require('../models');
 const { notify } = require('./notify');
@@ -27,14 +27,14 @@ async function deleteAccount(senior, actorId) {
   for (const reg of upcoming) {
     await reg.update({ status: 'cancelled' });
 
-    // let staff know if a spot opened up on an event that's very close
+    // tell staff if a spot opened on an event that's close
     const startsSoon = new Date(reg.Event.startsAt) - now < 2 * DAY_MS;
     if (startsSoon) {
       await notifyAdmins('admin.spot_opened', { event: reg.Event.title }, '/admin/events/' + reg.Event.id + '/attendance');
     }
   }
 
-  // send the goodbye text before the account disappears
+  // goodbye text before the account goes
   notify(senior, 'account.deleted', { name: senior.firstName() }, ['sms']);
 
   await senior.destroy(); // soft delete (paranoid), the row stays

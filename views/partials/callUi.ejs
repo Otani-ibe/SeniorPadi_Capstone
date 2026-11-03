@@ -1,6 +1,5 @@
-<%# Voice calls: the "someone is calling" pop-up and the call screen. Both start hidden;
-    public/js/call.js shows them. The words come from here so they follow the language.
-    Included on every page for verified seniors (see footer.ejs). %>
+<%# voice calls: "someone is calling" pop-up and call screen, both start hidden, public/js/call.js shows them.
+    words are here so they follow the language. Included on every page for verified seniors (footer.ejs) %>
 <div data-call-ui data-text-calling="<%= t('voice.calling', { name: '__NAME__' }) %>"
      data-text-incoming="<%= t('voice.incoming', { name: '__NAME__' }) %>"
      data-text-connected="<%= t('voice.connected') %>"

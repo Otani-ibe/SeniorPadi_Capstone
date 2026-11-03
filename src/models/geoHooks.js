@@ -1,13 +1,11 @@
-// Keeps a record's coordinates in step with the address words, wherever it is saved from
-// (signup, settings, the admin forms, seed scripts):
-//  - when the address changes, the old coordinates are cleared at once (they would be wrong), and
-//  - a lookup is queued to find the new ones (services/geocode.js). It runs in the background.
-// `fields` are the columns that make up the address.
+// keeps coordinates in step with the address words, wherever a record is saved (signup, settings, admin forms, scripts).
+// address changes: old coordinates are cleared at once (they would be wrong) and a lookup is queued (services/geocode.js).
+// `fields` = the columns that make up the address
 module.exports = function installGeoHooks(model, kind, fields) {
   const addressChanged = (record) => fields.some((field) => record.changed(field));
 
   model.addHook('beforeSave', (record) => {
-    // remembered now, because clearing the numbers below would otherwise look like someone setting them
+    // remembered now, clearing the numbers below would look like someone setting them
     record.coordinatesSetByHand = Boolean(record.changed('latitude') || record.changed('longitude'));
     if (!record.isNewRecord && addressChanged(record) && !record.coordinatesSetByHand) {
       record.latitude = null;

@@ -1,5 +1,4 @@
-// Multer keeps the file in memory, then we stream it to Cloudinary.
-// Nothing is saved on the server's disk.
+// multer keeps the file in memory and it is streamed to Cloudinary, nothing is saved on disk
 const multer = require('multer');
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

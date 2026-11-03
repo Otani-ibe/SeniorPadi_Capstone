@@ -1,6 +1,5 @@
-// The host organization's check-in page: opened from the private link staff send them,
-// with no account. It shows one event's guest list (names, tickets, last 4 phone digits only)
-// and works only from the day before the event until 3 days after it.
+// host organization's check-in page, opened from the private link staff send, no account.
+// shows one event's guest list (names, tickets, last 4 phone digits), only from the day before the event until 3 days after
 const express = require('express');
 const { Registration, Event, Organization, User } = require('../models');
 const {
@@ -17,7 +16,7 @@ router.param('regId', numericId);
 const TOKEN = /^[A-Za-z0-9_-]{20,64}$/;
 const hostDoor = (event) => ({ base: '/checkin/' + event.checkinToken, host: true });
 
-// finds the event for the link; shows a friendly page if the link is wrong, turned off, early or closed
+// finds the event for the link, friendly page if the link is wrong, off, early or closed
 async function eventForLink(req, res, next) {
   const token = req.params.token;
   const event = TOKEN.test(token) ? await Event.findOne({ where: { checkinToken: token }, include: [Organization] }) : null;
@@ -77,8 +76,8 @@ router.post('/checkin/:token/rest-missed', eventForLink, async (req, res) => {
 });
 
 // ---------- a senior's QR code, scanned by the host on the same phone ----------
-// The code points at /admin/scan/...; staff are handled by the admin pages. Someone who isn't staff
-// but has this event's check-in link open on this phone gets a simple check-in page instead.
+// the code points at /admin/scan/..., staff are handled by the admin pages. Someone who isn't staff
+// but has this event's check-in link open on this phone gets a simple check-in page
 async function hostScan(req, res, next) {
   if (req.user && req.user.role === 'admin') return next();
   const hostEvents = req.session.hostEvents || {};

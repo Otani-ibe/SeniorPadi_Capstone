@@ -1,13 +1,7 @@
-// Where a senior lives and where an event is held, as latitude / longitude (degrees, WGS84),
-// so events can be ranked by real distance. See services/geo.js, geocode.js and nearby.js.
-//
-// Plain DOUBLE PRECISION columns rather than PostGIS: the same migration then runs on every
-// database we use (PostGIS is not installed on a typical local Postgres). The distance is worked
-// out in the backend. If the live database later gets PostGIS, a geography column can be added
-// next to these without changing anything else.
-//
-// geoSource says how the numbers were found: 'geocoded' (looked up from the address) or 'area'
-// (the middle of their local government area, used when the address could not be found).
+// latitude / longitude (degrees, WGS84) for where a senior lives and where an event is held, to rank events by real distance. See services/geo.js, geocode.js, nearby.js.
+// plain DOUBLE PRECISION, not PostGIS, so the same migration runs on every database we use (a typical local Postgres has no PostGIS).
+// distance is computed in the backend. A geography column can be added later next to these.
+// geoSource: 'geocoded' (looked up from the address) or 'area' (centre of their LGA, when the address was not found)
 const TABLES = ['Users', 'Events'];
 
 module.exports = {

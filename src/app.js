@@ -20,8 +20,7 @@ if (isProduction) app.set('trust proxy', 1);
 app.use(compression());
 app.use(express.static(path.join(__dirname, '../public'), {
   maxAge: isProduction ? '7d' : 0,
-  // the scripts are not versioned like the stylesheet, so a phone must check for a newer one every time (a 304 when
-  // nothing changed). Otherwise it can keep running an old copy after an update.
+  // scripts are not versioned like the stylesheet, so a phone must check for a newer one every time (304 when unchanged)
   setHeaders: (res, filePath) => { if (filePath.endsWith('.js')) res.setHeader('Cache-Control', 'no-cache'); }
 }));
 app.use(express.urlencoded({ extended: false }));

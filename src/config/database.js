@@ -1,7 +1,4 @@
-// Picks which database to use and whether it needs SSL.
-// Used by Sequelize, sequelize-cli (migrations) and the session store,
-// so all three always talk to the same database.
-//
+// Picks the database and whether it needs SSL. Shared by Sequelize, sequelize-cli and the session store.
 //   DB_TARGET=local  -> LOCAL_DATABASE_URL (Postgres on your computer)
 //   DB_TARGET=neon   -> NEON_DATABASE_URL  (Neon in the cloud)
 //   no DB_TARGET     -> DATABASE_URL       (what Render sets in production)
@@ -44,15 +41,13 @@ function getDatabaseSettings() {
   const isNeon = host.endsWith('.neon.tech');
   const wantsSsl = !isLocalHost(host) && (isNeon || process.env.DB_SSL === 'true' || parsed.searchParams.has('sslmode'));
 
-  // We set SSL ourselves below, so remove these from the URL.
-  // (Leaving sslmode in makes the pg driver print a security warning.)
+  // SSL is set below, strip these from the URL (sslmode makes pg print a security warning)
   parsed.searchParams.delete('sslmode');
   parsed.searchParams.delete('channel_binding');
 
   let ssl = false;
   if (wantsSsl) {
-    // Neon has proper certificates, so check them.
-    // Some other hosts use self-signed ones, set DB_SSL_STRICT=false for those.
+    // Neon has proper certificates so check them. For hosts with self-signed ones set DB_SSL_STRICT=false
     ssl = { require: true, rejectUnauthorized: isNeon || process.env.DB_SSL_STRICT !== 'false' };
   }
 

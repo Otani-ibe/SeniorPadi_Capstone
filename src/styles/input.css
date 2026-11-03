@@ -2,10 +2,7 @@
 @source "../../views";
 @source "../../public/js";
 
-/*
-  SeniorPadi look: white pages, one purple accent, soft grey cards,
-  large dark text. "indigo" is the brand purple (name kept so older pages still work).
-*/
+/* white pages, one purple accent, soft grey cards, large dark text. "indigo" is the brand purple (name kept for older pages) */
 @theme {
   --font-sans: "Nunito Sans", "Segoe UI", Roboto, Arial, sans-serif;
 
@@ -130,8 +127,7 @@
   .btn-coral {
     @apply bg-full-tag hover:bg-[#7f1717];
   }
-  /* the one secondary button: white, a dark grey edge, dark words. btn-outline is the same button
-     (the name is kept so older pages still work). */
+  /* the secondary button: white, dark grey edge, dark words. btn-outline is the same (name kept for older pages) */
   .btn-plain,
   .btn-outline {
     @apply inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-5 py-2
@@ -179,7 +175,6 @@
   .icon-dot-soft {
     @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-mist text-[1.15rem] text-indigo;
   }
-  /* nothing here yet */
   .empty-state {
     @apply rounded-card bg-white px-6 py-10 text-center shadow-md shadow-slate-900/5 ring-1 ring-slate-100;
   }
@@ -257,11 +252,11 @@
   .tag-leaf { @apply bg-emerald-50 text-leaf; }
 
   /* ---------- admin: one button family ----------
-     Flat, one size, one shape, everywhere in the staff area. Three kinds only:
-       abtn         the main action (purple)
-       abtn-soft    any other action (white with a thin edge)
-       abtn-danger  something that turns a person down or removes something (white, red words)
-     The older names (btn, btn-plain, btn-volunteer, btn-coral, admin-add, admin-plain) look the same inside the staff area. */
+     flat, one size, one shape in the staff area
+       abtn         main action (purple)
+       abtn-soft    any other action (white, thin edge)
+       abtn-danger  turns a person down or removes something (white, red words)
+     the older names (btn, btn-plain, btn-volunteer, btn-coral, admin-add, admin-plain) look the same in the staff area */
   .abtn,
   .abtn-soft,
   .abtn-danger,
@@ -410,8 +405,7 @@
 }
 
 /* ---------- the logo ----------
-   First visit: the three padis pop up, give a small nod and the name wipes in. Hover: they hop.
-   Without the intro the logo simply shows its finished look. */
+   first visit: the three padis pop up, nod, the name wipes in. Hover: they hop. Without the intro it shows the finished look */
 .logo-mark { overflow: visible; transition: transform 0.3s ease; }
 
 .logo-intro .logo-mark { animation: lm-pop 0.5s 0.1s cubic-bezier(0.3, 1.5, 0.6, 1) both, lm-nod 0.5s 0.8s ease-in-out; }
@@ -508,9 +502,7 @@
 .deck-stamp-skip { right: 1.75rem; color: var(--color-ink); border-color: var(--color-ink); transform: rotate(14deg); }
 .deck-stamp-yes { left: 1.75rem; color: var(--color-indigo); border-color: var(--color-indigo); transform: rotate(-14deg); }
 
-/* "Help on SeniorPadi" strip: two copies of the list slide left forever, slowly. It runs off the
-   right edge of the screen (no end) and fades in softly beside the label. A finger, the mouse or
-   the keyboard stops it. */
+/* "Help on SeniorPadi" strip: two copies of the list slide left endlessly, runs off the right edge, fades in beside the label. Finger, mouse or keyboard stops it */
 .ticker-viewport {
   overflow: hidden;
   mask-image: linear-gradient(to right, transparent, #000 2.5rem);
@@ -543,15 +535,13 @@
   
 }
 
-/* The Lucide stylesheet sets every icon to "font-size: inherit" outside any layer, which beats the
-   text-size classes put on an icon. This hands the size back to those classes; with none, the icon
-   still takes the size of the text around it. */
+/* Lucide sets icons to "font-size: inherit" outside any layer, which beats text-size classes on an icon.
+   this gives the size back to those classes, with none the icon takes the surrounding text size */
 [class^="icon-"], [class*=" icon-"] {
   font-size: revert-layer;
 }
 
-/* online / offline badge: a filled green dot for online, an empty grey ring for offline,
-   so the two differ by shape as well as colour */
+/* online / offline badge: filled green dot / empty grey ring, so they differ by shape as well as colour */
 .presence {
   display: inline-flex;
   align-items: center;
@@ -570,10 +560,9 @@
 .presence[data-status="online"] .presence-dot { background: currentColor; }
 .presence[data-status="offline"] { color: #4b5563; }
 
-/* ---------- messages: a chat app layout ----------
-   Phones: the chat fills the screen (no site header or bottom bar), the top of the chat stays put,
-   the messages scroll, and the box to write in stays at the bottom.
-   Wider screens: the list of people on the left, the chat on the right, inside the page. */
+/* ---------- messages: chat app layout ----------
+   phones: chat fills the screen (no site header or bottom bar), top stays put, messages scroll, write box stays at the bottom
+   wider: list of people left, chat right, inside the page */
 .chat-shell { height: 100dvh; }
 /* the list of people keeps the site header and the bottom bar on phones */
 .chat-shell-nav { height: calc(100dvh - 3.9rem - 5rem); } /* 5rem: the room the page keeps for the bottom bar */

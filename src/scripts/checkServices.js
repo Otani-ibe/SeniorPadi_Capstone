@@ -1,11 +1,8 @@
-// Checks that Cloudinary (pictures) and Brevo (texts and emails) are set up and working. Prints what is wrong in plain words.
-// It never prints a key.
-//
-//   npm run services:check                                  look at the settings and ask each service if the keys work
-//   npm run services:check -- --sms 08012345678             ...and send a real test text to that number
-//   npm run services:check -- --email you@example.com       ...and send a real test email to that address
-//
-// Test messages are sent for real, even when NOTIFY_DRY_RUN=true (that setting only affects what the app itself sends).
+// Checks Cloudinary and Brevo are set up and working, prints what is wrong. Never prints a key.
+//   npm run services:check                                  check the settings and ask each service if the keys work
+//   npm run services:check -- --sms 08012345678             ...and send a real test text
+//   npm run services:check -- --email you@example.com       ...and send a real test email
+// test messages are sent for real even with NOTIFY_DRY_RUN=true (that only affects what the app sends)
 require('dotenv').config({ quiet: true });
 
 const ok = (text) => console.log('  OK      ' + text);

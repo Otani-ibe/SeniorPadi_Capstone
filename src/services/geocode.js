@@ -1,26 +1,17 @@
-// Turns a place written in words ("Bodija, Ibadan North") into latitude / longitude.
-//
-// The lookup uses OpenStreetMap's free Nominatim service (no key needed; its rules are one request a
-// second and a real User-Agent, both handled below). Nothing here ever blocks a signup or an admin form:
-// saving a senior or an event just puts a job in a small queue that runs in the background.
-//
-// What is stored (see the migration):
-//  - the address was found           -> its coordinates, geoSource 'geocoded'
-//  - not found (or found in another city, outside Ibadan) -> the middle of their local government area,
-//                                       geoSource 'area'
-//  - no address and no area at all   -> nothing stored (the ranking then handles the gap, see nearby.js)
-//
-// Settings (optional): GEOCODING=off turns lookups off; GEOCODER_URL changes the service;
-// GEOCODER_EMAIL is sent so the service can contact us if we misbehave.
+// Place name -> latitude/longitude through OpenStreetMap Nominatim (1 request a second, real User-Agent).
+// Never blocks a signup or an admin form, saving queues a background job.
+// stored: found -> its coordinates (geoSource 'geocoded'). not found or outside Ibadan -> centre of the LGA ('area').
+// no address and no area -> nothing, nearby.js handles the gap.
+// env: GEOCODING=off, GEOCODER_URL, GEOCODER_EMAIL (sent so the service can contact us)
 const { insideIbadan, AREA_CENTRES, IBADAN_BOUNDS } = require('./geo');
 const { t } = require('./i18n');
 
 const MIN_GAP_MS = 1100;
 let lastCall = 0;
 
-// one place name -> { lat, lng } or null. Never throws: a network problem is just "not found".
+// place name -> { lat, lng } or null, never throws
 async function nominatim(query) {
-  if (process.env.JEST_WORKER_ID) return null; // tests never call the internet
+  if (process.env.JEST_WORKER_ID) return null; // tests never hit the network
   const wait = lastCall + MIN_GAP_MS - Date.now();
   if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
   lastCall = Date.now();
@@ -31,7 +22,7 @@ async function nominatim(query) {
     format: 'jsonv2',
     limit: '1',
     countrycodes: 'ng',
-    // look inside Ibadan only: viewbox is left, top, right, bottom as longitude, latitude
+    // Ibadan only. viewbox = left, top, right, bottom
     viewbox: [IBADAN_BOUNDS.minLng, IBADAN_BOUNDS.maxLat, IBADAN_BOUNDS.maxLng, IBADAN_BOUNDS.minLat].join(','),
     bounded: '1'
   });
@@ -52,7 +43,7 @@ async function nominatim(query) {
 let provider = nominatim;
 let injected = false;
 
-// for tests: swap the lookup for a fake one (pass nothing to put the real one back)
+// tests: swap in a fake lookup, no argument restores the real one
 function setProvider(fn) {
   provider = fn || nominatim;
   injected = Boolean(fn);
@@ -63,7 +54,7 @@ function enabled() {
   return !process.env.JEST_WORKER_ID || injected;
 }
 
-// the place names to try for a record, most exact first
+// names to try, most exact first
 function addressQueries(kind, record) {
   const areaName = (key) => (AREA_CENTRES[key] ? t('area.' + key, 'en') : '');
   if (kind === 'user') {
@@ -91,20 +82,20 @@ async function resolve(kind, record) {
   return centre ? { latitude: centre.lat, longitude: centre.lng, geoSource: 'area' } : null;
 }
 
-// finds and saves the coordinates of one user ('user') or event ('event'). Returns what it saved, or null.
+// finds and saves coordinates for a 'user' or 'event', returns what it saved or null
 async function geocodeRecord(kind, id) {
-  const { User, Event } = require('../models'); // loaded here because the models load this file's hooks
+  const { User, Event } = require('../models'); // loaded here, the models load this file's hooks
   const Model = kind === 'user' ? User : Event;
   const record = await Model.findByPk(id);
   if (!record) return null;
 
   const found = await resolve(kind, record);
-  // hooks: false, so saving the result does not start another lookup
+  // hooks: false so saving doesn't start another lookup
   await Model.update({ ...(found || {}), geocodedAt: new Date() }, { where: { id }, hooks: false });
   return found;
 }
 
-// jobs run one after another, so the service is never asked for more than a request a second
+// one job at a time, max a request a second
 let chain = Promise.resolve();
 
 function queue(kind, id) {
@@ -114,7 +105,7 @@ function queue(kind, id) {
     .catch((err) => { if (!process.env.JEST_WORKER_ID) console.error('Could not find the coordinates of ' + kind + ' ' + id + ':', err.message); });
 }
 
-// resolves when every queued lookup is finished
+// resolves when the queue is empty
 function idle() {
   return chain;
 }

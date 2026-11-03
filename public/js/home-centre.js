@@ -1,8 +1,5 @@
-// Home page: the big photo in the middle of the circle spins round and lands on a new face,
-// every few seconds. Stays still for people who prefer less motion, and when the tab is hidden.
-// It never stays blank: it only swaps to a face that has finished loading, the swap happens when
-// the turn ends (not on a timer the browser may slow down), and the photo is put back face-on
-// whenever the tab is shown again.
+// Home: the photo in the middle of the circle spins and lands on a new face every few seconds. Still for reduced motion and when the tab is hidden.
+// never blank: only swaps to a face that has finished loading, swaps when the turn ends (not on a timer the browser may slow), photo put back face-on when the tab is shown again
 (function () {
   var box = document.querySelector('[data-centre-pool]');
   if (!box || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

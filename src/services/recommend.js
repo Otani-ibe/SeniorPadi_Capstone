@@ -1,7 +1,5 @@
-// The events on the home page.
-// A signed-in senior gets recommendations: events like the ones they joined before first (same type,
-// same host). A visitor gets the upcoming events, soonest first.
-// Only events that can still be booked are used. No AI: just counting what they joined before.
+// Events on the home page. Signed in: events like ones they joined (same type, same host) first. Visitor: soonest first.
+// bookable events only. No AI, just counting past joins
 const { Op } = require('sequelize');
 const { Event, Organization, Registration } = require('../models');
 const capacity = require('./capacity');
@@ -25,8 +23,8 @@ async function placesLeftFor(events) {
   return left;
 }
 
-// events ranked for one senior. history = the events they joined before ({ category, organizationId }).
-// Pure function, so it's easy to test: more of the same type or host scores higher, ties go to the soonest.
+// events ranked for one senior. history = events they joined ({ category, organizationId }).
+// pure: same type or host scores higher, ties go to the soonest
 function rankEvents(candidates, history) {
   const byCategory = {};
   const byHost = {};
@@ -48,7 +46,7 @@ async function recommendedEvents(user, limit = 4) {
   let pool = await Event.findAll({
     where: { status: 'published', startsAt: { [Op.gt]: now }, registrationDeadline: { [Op.gt]: now } },
     include: [Organization],
-    order: [['featured', 'DESC'], ['startsAt', 'ASC']], // "show first" events lead
+    order: [['featured', 'DESC'], ['startsAt', 'ASC']], // "show first" leads
     limit: POOL_SIZE
   });
 
@@ -56,9 +54,9 @@ async function recommendedEvents(user, limit = 4) {
   pool = pool.filter((e) => left[e.id] === null || left[e.id] > 0);
   pool.forEach((e) => { e.slotsLeft = left[e.id]; });
 
-  if (!user) return pool.slice(0, limit); // the pool is already soonest first
+  if (!user) return pool.slice(0, limit); // pool is already soonest first
 
-  // what they joined before (cancelled ones don't count as taste), and what they're already booked into
+  // what they joined (cancelled isn't taste) and what they're already booked into
   const regs = await Registration.findAll({
     where: { seniorId: user.id, type: 'attendee', status: { [Op.in]: ['registered', 'attended', 'no_show'] } },
     attributes: ['eventId', 'status']

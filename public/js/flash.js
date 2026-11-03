@@ -1,4 +1,4 @@
-// Notices ("Saved", "Declined. Kehinde won't see your number.") fade away on their own after a few seconds.
+// notices ("Saved", "Declined. Kehinde won't see your number.") fade away after a few seconds
 (function () {
   document.querySelectorAll('[data-flash]').forEach(function (box) {
     var seconds = Number(box.getAttribute('data-seconds')) || 5;

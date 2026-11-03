@@ -1,14 +1,10 @@
-// The Ibadan events list (src/scripts/data/ibadanEvents.js) and the organizations that host them.
-//
-// addSampleEvents only ever ADDS events (and fills in a blank number of places or area on a listed event that is already
-// there). It never removes or overwrites anything, so events that staff add or edit are never touched, and running it again
-// adds nothing twice.
-// removeSampleEvents takes the listed events out again: only those nobody has registered for, and organizations that were
-// added for them and now have no event.
-//
-// Used by the server at start-up (only when the database has no events at all), and by `npm run events:add` / `events:remove`.
+// The Ibadan events list (src/scripts/data/ibadanEvents.js) and the organizations hosting them.
+// addSampleEvents only adds (and fills a blank capacity or area on a listed event already there). Never removes or overwrites,
+// so staff edits are safe and running it again adds nothing twice.
+// removeSampleEvents takes listed events out again: only those nobody registered for, and organizations added for them that are now empty.
+// used at start-up (empty database only) and by `npm run events:add` / `events:remove`.
 const { Op } = require('sequelize');
-// the lists it can add. The Ibadan list is the default; the December list is SeniorPadi's own first events (no flyers yet).
+// lists it can add. Ibadan is the default, December is SeniorPadi's own first events
 const LISTS = {
   ibadan: require('../scripts/data/ibadanEvents'),
   december: require('../scripts/data/decemberEvents')
@@ -16,7 +12,7 @@ const LISTS = {
 const ALL = Object.keys(LISTS);
 const listFor = (include) => include.flatMap((name) => LISTS[name] || []);
 
-// the same church is already in the admin page under another spelling: use it, don't add a second one
+// same church already in the admin page under another spelling: reuse it
 const ORG_ALIASES = {
   'Cathedral Church of St. David, Kudeti': 'St. David’s Anglican Cathedral, Kudeti'
 };
@@ -25,7 +21,7 @@ const ORG_ALIASES = {
 const norm = (s) => String(s).toLowerCase().replace(/[’'`.,()]/g, '').replace(/\s+/g, ' ').trim();
 const sameDay = (a, b) => new Date(a).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' }) === new Date(b).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
 
-// models: the app's models. Returns { events, orgs, filled, skipped: [text] }.
+// models: the app's models. Returns { events, orgs, filled, skipped: [text] }
 async function addSampleEvents(models, { dry = false, log = () => {}, include = ['ibadan'] } = {}) {
   const { User, Organization, Event } = models;
   const orgs = await Organization.findAll();
@@ -42,9 +38,9 @@ async function addSampleEvents(models, { dry = false, log = () => {}, include = 
   for (const e of listFor(include)) {
     let org = findOrg(e.org);
 
-    // already there? same title on the same day, or the same host on the same day
+    // already there? same title and day, or same host and day
     const duplicate = existing.find((x) =>
-      // (our own events share one host, so for them only the same title counts)
+      // (our own events share one host, so only the title counts)
       sameDay(x.startsAt, e.startsAt) && (norm(x.title) === norm(e.title) || (org && !e.featured && x.organizationId === org.id))
     );
     if (duplicate) {
@@ -62,7 +58,7 @@ async function addSampleEvents(models, { dry = false, log = () => {}, include = 
           continue;
         }
       }
-      // the same gathering under another name: it gets this flyer if it has none
+      // same gathering under another name: gets this flyer if it has none
       if (!sameEvent && !duplicate.imageUrl && e.imageUrl) {
         if (!dry) await duplicate.update({ imageUrl: e.imageUrl });
         filled++;
@@ -77,7 +73,7 @@ async function addSampleEvents(models, { dry = false, log = () => {}, include = 
         org = await Organization.create({ name: e.org, address: e.location, lga: e.area, createdByAdminId: admin ? admin.id : null });
         orgByName.set(norm(org.name), org);
       } else {
-        org = { id: -(orgByName.size + 1), name: e.org }; // only for counting in a dry run
+        org = { id: -(orgByName.size + 1), name: e.org }; // dry run counting only
         orgByName.set(norm(e.org), org);
       }
       added.orgs++;
@@ -100,7 +96,7 @@ async function addSampleEvents(models, { dry = false, log = () => {}, include = 
         volunteerCapacity: e.volunteerCapacity || null,
         category: e.category,
         organizationId: org.id,
-        // registration closes the evening before, the same as the other events
+        // registration closes the evening before
         registrationDeadline: new Date(Date.UTC(e.startsAt.getUTCFullYear(), e.startsAt.getUTCMonth(), e.startsAt.getUTCDate() - 1, 17, 0)),
         createdByAdminId: admin ? admin.id : null
       });
@@ -115,7 +111,7 @@ async function addSampleEvents(models, { dry = false, log = () => {}, include = 
   return { events: added.events, orgs: added.orgs, filled, skipped };
 }
 
-// models: the app's models. Returns { events, orgs }.
+// models: the app's models. Returns { events, orgs }
 async function removeSampleEvents(models, { dry = false, log = () => {}, include = ['ibadan'] } = {}) {
   const { Organization, Event, Registration } = models;
   const orgs = await Organization.findAll();

@@ -1,8 +1,6 @@
 <%#
-  Sign-up / log-in pop-up. Shown when someone who isn't logged in (or whose session ended)
-  taps Register or opens Find seniors. Works without JavaScript.
-  needs: heading, mode ('signup' or 'login'), switchHref (same page, other mode),
-         registerEventId (optional), next (optional), closeHref
+  sign-up / log-in pop-up for someone not logged in (or session ended) who taps Register or opens Find seniors. Works without JavaScript.
+  needs: heading, mode ('signup' or 'login'), switchHref (same page, other mode), registerEventId (optional), next (optional), closeHref
 %>
 <% const regId = typeof registerEventId !== 'undefined' && registerEventId ? registerEventId : ''; %>
 <% const goNext = typeof next !== 'undefined' && next ? next : ''; %>

@@ -1,4 +1,4 @@
-// Session setup lives here because both Express and Socket.IO use it
+// session setup, shared by Express and Socket.IO
 const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg');

@@ -1,5 +1,4 @@
-// Confirms a senior's phone number (SMS code) and email (email code)
-// before they can join an event or message another senior.
+// Confirms a senior's phone (SMS code) and email (email code) before they can join an event or message
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { VerificationCode } = require('../models');
@@ -8,16 +7,16 @@ const demo = require('./demoCodes');
 
 const CODE_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
-const WAIT_SECONDS = process.env.NODE_ENV === 'test' ? 0 : 60; // between "send me a code" taps
-const lastCodes = {}; // test runs only: the newest plain code for each user
-const shownCodes = new Map(); // presentations only (see demoCodes.js): 'userId:channel' -> { code, at }
+const WAIT_SECONDS = process.env.NODE_ENV === 'test' ? 0 : 60; // between code requests
+const lastCodes = {}; // tests only: newest plain code per user
+const shownCodes = new Map(); // presentations only (demoCodes.js): 'userId:channel' -> { code, at }
 
 function hash(code) {
   return crypto.createHash('sha256').update(String(code)).digest('hex');
 }
 
-// sends a new 6-digit code. Returns { ok } or { ok: false, reason: 'wait' | 'no_email' }
-// options.smsKey / options.vars let a different wording be used (the parent's text names the child)
+// sends a new 6-digit code -> { ok } | { ok: false, reason: 'wait' | 'no_email' }
+// options.smsKey / options.vars give different wording (the parent's text names the child)
 async function sendCode(user, channel, options = {}) {
   if (channel === 'email' && !user.email) return { ok: false, reason: 'no_email' };
 
@@ -37,9 +36,9 @@ async function sendCode(user, channel, options = {}) {
   const vars = { name: user.firstName(), code, minutes: CODE_MINUTES, ...(options.vars || {}) };
   if (channel === 'phone') await sendSms(user, options.smsKey || 'verify.code', vars);
   else await sendEmail(user, 'verify.code', vars);
-  // for a presentation: the page can show this code, but only for an account that is allowed to, and only while that is on
+  // presentations: the page may show this code, only for an allowed account and while on
   if (demo.allowedFor(user)) shownCodes.set(user.id + ':' + channel, { code, at: Date.now() });
-  // the automated tests need the code; it's never returned anywhere else
+  // tests need the code, never returned anywhere else
   if (process.env.NODE_ENV === 'test') lastCodes[user.id] = code;
   return process.env.NODE_ENV === 'test' ? { ok: true, code } : { ok: true };
 }
@@ -64,8 +63,7 @@ async function checkCode(user, channel, code) {
   return { ok: true };
 }
 
-// the code to show on the page, or null. Null unless presentation mode is on and allows this account, and only for the
-// ten minutes the code works.
+// code to show on the page, or null. Only in presentation mode, for an allowed account, for the ten minutes the code works
 function demoCodeFor(user, channel = 'phone') {
   if (!demo.allowedFor(user)) return null;
   const shown = shownCodes.get(user.id + ':' + channel);

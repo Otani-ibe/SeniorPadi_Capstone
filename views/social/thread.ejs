@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 
-<%# a chat app. Wide screens: the people on the left, this chat on the right. Phones: just this chat, full screen.
-    The top (who you are talking to), the box to write in, and Report / Block stay in place; only the messages scroll. %>
+<%# chat app. wide screens: people on the left, this chat on the right. phones: just this chat, full screen.
+    top (who), the box to write in, and Report / Block stay put, only the messages scroll %>
 <% const canSwap = !incomingRequest && !(exchange && (exchange.status === 'accepted' || (exchange.status === 'pending' && exchange.requesterId === currentUser.id))); %>
 <div class="chat-shell mx-auto flex w-full max-w-6xl overflow-hidden bg-white md:my-4 md:rounded-[1.5rem] md:shadow-md md:shadow-slate-900/5 md:ring-1 md:ring-slate-200">
   <%- include('../partials/chatList', { activeId: other.id }) %>

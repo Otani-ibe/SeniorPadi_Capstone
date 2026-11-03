@@ -1,7 +1,6 @@
-// Voice calls between seniors. The audio goes straight between the two phones (WebRTC);
-// the server only keeps track of who is calling whom and passes the set-up messages along
-// (see sockets/calls.js). Calls live in memory: a restart ends any call in progress.
-const RING_SECONDS = 30; // the usual time a phone rings before it counts as missed
+// Voice calls between seniors. Audio is WebRTC, phone to phone. The server tracks who calls whom and relays set-up (sockets/calls.js).
+// in memory, a restart ends calls in progress
+const RING_SECONDS = 30; // seconds before a call counts as missed
 
 const calls = new Map(); // call id -> { id, callerId, calleeId, state, callerSocket, calleeSocket, timer }
 const byUser = new Map(); // user id -> call id (a person can only be in one call)
@@ -34,9 +33,8 @@ function end(call) {
   if (byUser.get(call.calleeId) === call.id) byUser.delete(call.calleeId);
 }
 
-// The relay servers the phones use to reach each other when a direct line is blocked
-// (common on mobile networks). Cloudflare hands out short-lived passwords; without settings,
-// or if Cloudflare can't be reached, a free public helper is used (fine for testing, not reliable).
+// relay (TURN) servers for when a direct line is blocked, common on mobile. Cloudflare credentials are short-lived.
+// no settings, or Cloudflare unreachable: a free public server (testing only)
 const FALLBACK = [{ urls: 'stun:stun.cloudflare.com:3478' }, { urls: 'stun:stun.l.google.com:19302' }];
 const TTL_SECONDS = 3600;
 let cached = null; // { servers, until }
@@ -58,7 +56,7 @@ async function getIceServers() {
     const data = await res.json();
     const servers = Array.isArray(data.iceServers) ? data.iceServers : data.iceServers ? [data.iceServers] : null;
     if (!servers || !servers.length) throw new Error('no servers in the answer');
-    // reuse them for half their life, so nobody is handed a password about to expire
+    // reuse for half their life
     cached = { servers, until: Date.now() + (TTL_SECONDS / 2) * 1000 };
     return servers;
   } catch (err) {

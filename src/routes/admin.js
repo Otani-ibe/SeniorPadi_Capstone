@@ -32,7 +32,7 @@ router.use(requireAdmin);
 
 // ---------- dashboard ----------
 
-// the numbers on the dashboard. Also sent as JSON so the page can refresh itself.
+// dashboard numbers, also served as JSON for the refresh
 async function dashboardStats() {
   const totals = {
     events: await Event.count({ where: { status: { [Op.ne]: 'cancelled' } } }),
@@ -126,7 +126,7 @@ router.get('/', async (req, res) => {
 
   const stats = await dashboardStats();
 
-  // only the superadmin can act on these, so only the superadmin is shown the count
+  // superadmin only
   const pendingIds = req.user.isSuperAdmin ? await User.count({ where: { role: 'senior', verificationStatus: 'pending' } }) : 0;
   const openReports = await Report.count({ where: { status: 'pending' } });
   const alerts = await Notification.findAll({
@@ -157,7 +157,7 @@ function orgValues(body) {
   };
 }
 
-// "%text%" for a search box, with the wildcards people might type taken literally
+// "%text%" for search, with typed wildcards escaped
 const contains = (text) => ({ [Op.iLike]: '%' + text.replace(/[\\%_]/g, '\\$&') + '%' });
 
 function renderOrgForm(res, status, org, error) {
@@ -267,7 +267,7 @@ function readEventForm(body) {
   return { values, errors };
 }
 
-// the form keeps what the admin typed, so turn dates back into input strings
+// dates back to input strings, the form keeps what was typed
 function formValues(values) {
   return {
     ...values,
@@ -390,7 +390,7 @@ router.post('/events/:id/edit', imageUpload('image', 3), async (req, res) => {
   if (!event) return res.redirect('/admin/events');
 
   const { values, errors } = readEventForm(req.body || {});
-  // the capacity can go up or down, but not below the seniors who are already registered
+  // capacity cannot go below the seniors already registered
   if (!errors.capacity && values.capacity !== null) {
     const taken = await capacity.countTaken(event.id, 'attendee');
     if (values.capacity < taken) errors.capacity = taken + ' seniors are already registered, so the number cannot be lower than ' + taken + '.';
@@ -403,11 +403,11 @@ router.post('/events/:id/edit', imageUpload('image', 3), async (req, res) => {
   await event.update(values);
   await audit(req.user.id, 'event.edit', 'Event', event.id);
 
-  // a new date means any reminder already sent was for the old one
+  // new date: an earlier reminder was for the old one
   const changed = eventUpdates.whatChanged(before, event);
   if (changed.when) await eventUpdates.resetReminders(event.id);
 
-  // the admin chose "Save and notify registered seniors" (yes) or "Save without notifying" (no)
+  // "Save and notify registered seniors" (yes) or "Save without notifying" (no)
   let told = '';
   if (req.body.notify === 'yes') {
     const result = await eventUpdates.notifyRegistered(req.user.id, event, before);
@@ -599,9 +599,8 @@ router.post('/seniors/:id/delete', async (req, res) => {
 });
 
 // ---------- identity checks (superadmin only) ----------
-// A senior typed their NIN. It waits here, encrypted, until the superadmin opens it, checks it on the official NIMC
-// website against the account's name, phone number and date of birth, and decides. Other admins cannot see this at all.
-// Opening a NIN is written to the audit log; deciding erases it.
+// NIN sent by a senior, waits here encrypted until the superadmin opens it, checks it on NIMC against name, phone and date of birth, and decides.
+// other admins cannot see this. Opening is audited, deciding erases it
 router.get('/ids', requireSuperAdmin, async (req, res) => {
   const people = await User.findAll({ where: { role: 'senior', verificationStatus: 'pending' }, order: [['updatedAt', 'ASC']] });
   const pending = [];
@@ -612,7 +611,7 @@ router.get('/ids', requireSuperAdmin, async (req, res) => {
   res.render('admin/ids', { title: 'Identity checks', pending });
 });
 
-// "Show NIN" is a button (a POST), so the number is never in an address or in browser history
+// Show NIN is a POST button so the number never lands in an address or history
 router.post('/ids/:userId/show', requireSuperAdmin, async (req, res) => {
   const senior = await User.findOne({ where: { id: req.params.userId, role: 'senior', verificationStatus: 'pending' } });
   if (!senior) return res.redirect('/admin/ids');

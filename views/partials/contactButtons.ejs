@@ -1,5 +1,5 @@
-<%# Call and WhatsApp buttons. They open the phone app or WhatsApp; they never go to another page.
-    needs: callLabel, whatsappLabel. Nothing is shown until a support number is set (SUPPORT_PHONE). %>
+<%# Call and WhatsApp buttons, they open the phone app or WhatsApp, never another page.
+    needs: callLabel, whatsappLabel. Nothing shows until a support number is set (SUPPORT_PHONE) %>
 <% if (supportTel) { %>
   <div class="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
     <a href="tel:<%= supportTel %>" class="btn-plain min-h-12">

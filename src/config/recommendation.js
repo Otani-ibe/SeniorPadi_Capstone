@@ -1,10 +1,7 @@
-// Every number the "Recommended for you" scoring uses lives here, so it can be tuned in one place.
-// (The scoring itself is in services/recommendationScoring.js and never hardcodes any of these.)
-//
-// To change the five main weights without editing code, set RECOMMEND_WEIGHTS in .env, for example
+// Every number the Recommended for you scoring uses, in one place. The scoring itself (services/recommendationScoring.js) hardcodes none.
+// RECOMMEND_WEIGHTS in .env overrides the five weights, e.g.
 //   RECOMMEND_WEIGHTS={"interest":0.5,"proximity":0.2,"interactions":0.15,"freshness":0.1,"diversity":0.05}
-// The weights are shares of the whole: they are scaled so they add up to 1, so 40/30/15/10/5 and
-// 0.4/0.3/0.15/0.1/0.05 mean the same thing.
+// weights are shares, scaled to add up to 1 (40/30/15/10/5 = 0.4/0.3/0.15/0.1/0.05)
 
 const DEFAULTS = {
   // how much each part of the score counts
@@ -16,8 +13,7 @@ const DEFAULTS = {
     diversity: 0.05 // something new to them, and not the same type again and again in the list
   },
 
-  // what each kind of behaviour is worth, in "points". An attended event is worth more than a booking,
-  // which is worth more than a passive view. An event is only ever counted once, at its strongest.
+  // what each behaviour is worth in points: attended > booking > passive view. An event counts once, at its strongest
   signals: {
     attended: 3,
     registered: 2, // booked and still going (the nearest thing to "saved")
@@ -29,8 +25,7 @@ const DEFAULTS = {
   },
   // an old event counts for half as much every this many days
   halfLifeDays: 180,
-  // points are turned into a 0-100 score with 100 * (1 - e^(-points / saturation)): the first events matter
-  // most and it can never pass 100. At 4 points the score is about 63.
+  // points -> 0-100 with 100 * (1 - e^(-points / saturation)): first events matter most, never passes 100. 4 points is about 63
   saturation: 4,
 
   proximity: {
@@ -49,9 +44,8 @@ const DEFAULTS = {
 
   diversity: {
     parts: { discovery: 0.5, variety: 0.5 }, // a type new to the senior / a type not yet in the list
-    // In any run of `window` events in the list, no more than this share may be one category (of 4, at most 2)
-    // while other categories are available. It looks at runs, not the whole list, so the order is the same
-    // however many events are asked for (page 2 continues page 1).
+    // in any run of `window` events no more than this share may be one category (of 4, at most 2) while other categories are left.
+    // looks at runs, not the whole list, so the order is the same however many events are asked for (page 2 continues page 1)
     window: 4,
     maxShareOfCategory: 0.5
   },
@@ -75,7 +69,7 @@ function merge(base, extra) {
   return out;
 }
 
-// Scales the weights so they add up to 1. Throws if one is negative or not a number, or all are zero.
+// scales the weights to add up to 1, throws on a negative or non-number or all zero
 function normaliseWeights(weights) {
   const names = Object.keys(DEFAULTS.weights);
   let total = 0;
@@ -90,8 +84,8 @@ function normaliseWeights(weights) {
   return out;
 }
 
-// The settings to use: the defaults, then RECOMMEND_WEIGHTS from .env, then `overrides` (used by tests and callers).
-// A bad value in .env is ignored with the defaults kept; a bad value in `overrides` throws, so a mistake is not silent.
+// settings to use: defaults, then RECOMMEND_WEIGHTS from .env, then `overrides` (tests and callers).
+// a bad .env value is ignored (defaults kept), a bad override throws
 function resolveConfig(overrides = {}) {
   let config = DEFAULTS;
   if (process.env.RECOMMEND_WEIGHTS) {

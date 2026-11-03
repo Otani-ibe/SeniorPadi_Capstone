@@ -24,7 +24,7 @@ test('only the Join page has the small link for sons and daughters; Log in and t
   expect(join.text).toContain('Are you a family member or caregiver?');
   expect(join.text).toContain('Create an account for your parent or loved one');
   expect((await request(app).get('/login')).text).not.toContain('/signup/parent');
-  // (the "having trouble?" help pop-up at the end of the page is separate, and only opens after a while)
+  // (the "having trouble?" pop-up at the end of the page is separate, opens only after a while)
   const popup = (await request(app).get('/events?login=1&mode=signup')).text.split('data-help-nudge')[0];
   expect(popup).not.toContain('/signup/parent');
   expect(join.text).toContain('I am 50 years old or older');       // the original wording

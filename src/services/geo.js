@@ -1,14 +1,10 @@
-// Geography helpers: checking coordinates, and the distance between two places.
-// Everything here is plain maths on numbers, so it is easy to test. Latitude (north / south, -90 to 90)
-// always comes first and longitude (east / west, -180 to 180) second, in every function and column.
+// Coordinate checks and distance, plain maths. Latitude always first, longitude second, in every function and column.
 const EARTH_RADIUS_KM = 6371.0088;
 
-// A box around Ibadan. A lookup that lands outside it is a wrong match (another "Challenge" in another
-// city) and is thrown away.
+// box around Ibadan. A lookup outside it is a wrong match (another "Challenge" elsewhere) and is dropped
 const IBADAN_BOUNDS = { minLat: 7.1, maxLat: 7.7, minLng: 3.6, maxLng: 4.2 };
 
-// The middle of each local government area, used until a better address is found. Approximate: good
-// enough to tell "this side of town" from "the other side".
+// centre of each LGA, used until a better address is found. Approximate
 const AREA_CENTRES = {
   akinyele: { lat: 7.53, lng: 3.91 },
   egbeda: { lat: 7.395, lng: 3.99 },
@@ -23,7 +19,7 @@ const AREA_CENTRES = {
   'ona-ara': { lat: 7.34, lng: 3.98 }
 };
 
-// a real number that can be a latitude / longitude (not null, '', NaN, or the "null island" 0,0)
+// valid lat/lng (not null, '', NaN or 0,0)
 function isValidCoordinate(lat, lng) {
   if (typeof lat !== 'number' || typeof lng !== 'number') return false;
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
@@ -48,10 +44,10 @@ function distanceKm(a, b) {
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-// Where a user or an event is, as { lat, lng, approximate }, or null if nothing is known.
-//  - their own saved coordinates, when valid;
-//  - otherwise the middle of their local government area (approximate: true);
-//  - otherwise null. A user's area key is .lga; an event's is .area.
+// where a user or event is -> { lat, lng, approximate } or null
+//  - own valid coordinates
+//  - else the centre of their LGA (approximate: true)
+//  - else null. users use .lga, events .area
 function locationOf(record) {
   if (!record) return null;
   if (isValidCoordinate(record.latitude, record.longitude)) {
