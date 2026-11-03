@@ -4,6 +4,7 @@ SeniorPadi is a website for people aged 50 and over in Ibadan, Nigeria. It helps
 
 ## Links
 
+- Live site: https://seniorpadi.onrender.com
 - Repository: https://github.com/Otani-ibe/SeniorPadi_Capstone.git
 - Walkthrough video: https://drive.google.com/file/d/1_LISSND8AedGtK5BaS0iIM7cdfP2ksv0/view?usp=sharing
 - Technical report (PDF, 5 pages maximum): https://github.com/Otani-ibe/SeniorPadi_Capstone/blob/main/docs/technical-report.pdf
