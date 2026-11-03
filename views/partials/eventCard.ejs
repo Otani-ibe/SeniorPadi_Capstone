@@ -47,6 +47,9 @@
 
     <%# a few words about it %>
     <p class="mt-1.5 whitespace-pre-line leading-snug text-slate-700 line-clamp-2"><%= event.tDescription || event.description %></p>
+    <% if (inDeck && (event.tDescription || event.description || '').length > 90) { %>
+      <a href="/events/<%= event.id %>" class="mt-1 inline-flex min-h-11 items-center gap-1 font-semibold text-indigo"><%= t('event.read_more') %><i class="icon-arrow-right" aria-hidden="true"></i><span class="sr-only"> <%= event.tTitle || event.title %></span></a>
+    <% } %>
 
     <%# tags: kind of event, price, and how many places are left %>
     <div class="mt-2 flex flex-wrap items-center gap-2">

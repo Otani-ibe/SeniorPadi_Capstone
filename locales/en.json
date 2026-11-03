@@ -91,6 +91,7 @@
   "event.where": "Where",
   "event.open_map": "Open in Google Maps",
   "event.image_alt": "Flyer for {title}",
+  "event.read_more": "Read the full details",
   "event.run_by": "Run by",
   "event.deadline": "Register before",
   "event.join_title": "Join this event",
