@@ -191,10 +191,11 @@ async function main() {
   await OnboardingVideo.create({ language: 'en', transcript: en['onboarding.default_transcript'], uploadedByAdminId: admin.id });
   await OnboardingVideo.create({ language: 'yo', transcript: yo['onboarding.default_transcript'], uploadedByAdminId: admin.id });
 
-  // the demo seniors (all verified, with pictures) and the Ibadan events list: kept every time the data is reseeded
+  // the demo seniors (all verified, with pictures) and the sample events: kept every time the data is reseeded
   const models = require('../models');
   await require('../services/sampleSeniors').ensureSampleSeniors(models);
-  await require('../services/sampleEvents').addSampleEvents(models);
+  const sampleEvents = require('../services/sampleEvents');
+  await sampleEvents.addSampleEvents(models, { include: sampleEvents.ALL }); // the Ibadan list and SeniorPadi's December events
 
   console.log('Seeded. Log in with any of these (password: password123):');
   console.log('  Admin:  08000000001');

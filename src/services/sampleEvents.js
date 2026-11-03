@@ -54,6 +54,7 @@ async function addSampleEvents(models, { dry = false, log = () => {}, include = 
         if (duplicate.capacity == null && e.capacity) blanks.capacity = e.capacity;
         if (!duplicate.area && e.area) blanks.area = e.area;
         if (!duplicate.imageUrl && e.imageUrl) blanks.imageUrl = e.imageUrl;
+        if (!duplicate.imageAlt && e.imageAlt) blanks.imageAlt = e.imageAlt;
         if (Object.keys(blanks).length) {
           if (!dry) await duplicate.update(blanks);
           filled++;
@@ -93,6 +94,7 @@ async function addSampleEvents(models, { dry = false, log = () => {}, include = 
         area: e.area,
         capacity: e.capacity,
         imageUrl: e.imageUrl,
+        imageAlt: e.imageAlt || null,
         featured: Boolean(e.featured),
         volunteerEnabled: Boolean(e.volunteerCapacity),
         volunteerCapacity: e.volunteerCapacity || null,

@@ -1,10 +1,20 @@
 // SeniorPadi's own first events, 1 to 4 December 2026. Used by src/scripts/addEvents.js (and by a new site's first start-up).
 // Times are Lagos time (WAT, UTC+1). Every one is marked "show first", needs volunteers, and has a limit on places.
 //
-// The venues are public halls already used elsewhere in the list; confirm each one before the date. There are no flyers yet
-// (imageUrl is empty): add each from the admin page when it is made. The doctor, physiotherapist and pension officer are
-// invited guests: confirm them too.
+// The venues are public halls already used elsewhere in the list; confirm each one before the date. The flyers are in
+// public/images/events/december/ (1200 x 900). The doctor, physiotherapist and pension officer are invited guests: confirm them too.
 const HOST = 'SeniorPadi Community Events';
+
+// each event's flyer, and what it says for readers who cannot see it (screen readers say this instead of showing the picture)
+const FLYERS = {
+  'Ask the Doctor: The Questions You Are Shy to Ask': ['01-ask-the-doctor.jpg', 'Flyer: Ask the Doctor. Topic: the questions you are shy to ask. Tuesday 1 December, 10:00 AM to 12:30 PM. Senior Citizen Palace, Bashorun Estate, Akobo, Ibadan. 50 seniors and 6 volunteers. A smiling doctor with a stethoscope. Sign up on SeniorPadi.'],
+  'Dance Like It\'s 1975: Highlife and Juju Afternoon': ['02-dance-like-its-1975.jpg', 'Flyer: Dance like it\'s 1975, a highlife and juju afternoon. Come in your best clothes and bring a friend. Tuesday 1 December, 3:00 to 6:00 PM, Mapo Hall, Ibadan. Register by 6:00 PM on Monday 30 November. An illustration of three people dancing. Sign up on SeniorPadi.'],
+  'Retired, Not Retired: Pension, Scams and Your Money': ['03-retired-not-retired.jpg', 'Flyer: Retired, not retired. Pension, scams and your money. Wednesday 2 December, 10:00 AM to 12:30 PM, Cultural Centre, Mokola, Ibadan. A smiling older man in a flat cap. Sign up on SeniorPadi.'],
+  'Fall-Proof Your Home': ['04-fall-proof-your-home.jpg', 'Flyer: A morning session. Fall-proof your home. Thursday 3 December, 9:30 to 11:30 AM, Senior Citizen Palace, Bashorun Estate, Akobo, Ibadan. A smiling older woman tying her trainer. Sign up on SeniorPadi.'],
+  'Ayo Olopon Showdown: Grandparents vs Grandchildren': ['05-ayo-olopon-showdown.jpg', 'Flyer: Ayo Olopon Showdown, grandparents versus grandchildren. Who plays it better? Come and settle it. Thursday 3 December, 12:30 to 3:30 PM, Cultural Centre, Mokola, Ibadan. A group of elders and young people posing inside an old television. Sign up on SeniorPadi.'],
+  'Sing It Like the Old Days: Karaoke for Elders': ['06-sing-it-like-the-old-days.jpg', 'Flyer: Karaoke for elders. Sing it like the old days. Pick your song. Take the mic. Thursday 3 December, 4:30 to 7:00 PM, Mapo Hall, Ibadan. A smiling older woman holding a radio cassette player. Sign up on SeniorPadi.'],
+  'Teach Pupils in Primary School Day': ['07-teach-pupils-primary-school-day.jpg', 'Flyer: Volunteer day for elders. Teach pupils in primary school day. Friday 4 December, 9:00 AM to 12:00 noon, Ibadan North. We will text you the school before the day. Smiling primary school pupils and a teacher. Sign up on SeniorPadi.']
+};
 
 const ev = (title, category, date, from, to, description, location, area, capacity, volunteerCapacity) => ({
   title, category, description, org: HOST, location, area,
@@ -12,7 +22,8 @@ const ev = (title, category, date, from, to, description, location, area, capaci
   endsAt: new Date(date + 'T' + to + ':00+01:00'),
   capacity, volunteerCapacity,
   featured: true,
-  imageUrl: null
+  imageUrl: '/images/events/december/' + FLYERS[title][0],
+  imageAlt: FLYERS[title][1]
 });
 
 module.exports = [

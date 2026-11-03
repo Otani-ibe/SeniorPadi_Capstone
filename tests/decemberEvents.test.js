@@ -1,4 +1,6 @@
 // SeniorPadi's own December events (1 to 4 December 2026), and "show this event first".
+const fs = require('fs');
+const path = require('path');
 const request = require('supertest');
 const app = require('../src/app');
 const models = require('../src/models');
@@ -43,7 +45,10 @@ describe('the list', () => {
       expect(e.capacity).toBeGreaterThan(0);
       expect(e.volunteerCapacity).toBeGreaterThan(0);
       expect(e.featured).toBe(true);
-      expect(e.imageUrl).toBeNull(); // the flyers are made separately
+      expect(e.imageUrl).toMatch(/^\/images\/events\/december\/0\d-.+\.jpg$/);
+      expect(fs.existsSync(path.join(__dirname, '../public', e.imageUrl))).toBe(true); // the flyer file is really there
+      expect(e.imageAlt.length).toBeGreaterThan(80); // what blind seniors hear instead of the picture
+      expect(e.imageAlt).toMatch(/^Flyer: /);
       expect(e.org).toBe('SeniorPadi Community Events');
     }
   });
@@ -72,7 +77,9 @@ describe('adding them to the database', () => {
       'Ayo Olopon Showdown: Grandparents vs Grandchildren', 'Sing It Like the Old Days: Karaoke for Elders', 'Teach Pupils in Primary School Day'
     ]);
     for (const e of saved) {
-      expect(e).toMatchObject({ featured: true, volunteerEnabled: true, status: 'published', imageUrl: null });
+      expect(e).toMatchObject({ featured: true, volunteerEnabled: true, status: 'published' });
+      expect(e.imageUrl).toMatch(/^\/images\/events\/december\//);
+      expect(e.imageAlt).toBeTruthy();
       expect(e.capacity).toBeGreaterThan(0);
       expect(e.volunteerCapacity).toBeGreaterThan(0);
       expect(e.registrationDeadline < e.startsAt).toBe(true);
