@@ -11,7 +11,7 @@
       <p class="max-md:sr-only text-slate-600"><%= t('find.subtitle') %></p>
     </div>
     <% if (skippedCount > 0) { %>
-      <a href="/find-seniors/skipped" class="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full bg-white px-4 font-semibold text-ink no-underline shadow-sm ring-1 ring-slate-200 hover:ring-indigo"><i class="icon-rotate-ccw" aria-hidden="true"></i><%= skippedCount %></a>
+      <a href="/find-seniors/skipped" class="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full bg-white px-4 text-[0.95rem] font-semibold leading-tight text-ink no-underline shadow-sm ring-1 ring-slate-200 hover:ring-indigo"><i class="icon-rotate-ccw" aria-hidden="true"></i><%= t('find.skipped_link', { count: skippedCount }) %></a>
     <% } %>
   </div>
 
