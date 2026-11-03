@@ -152,7 +152,7 @@
   "settings.picture": "Profile picture",
   "settings.picture_alt": "Your profile picture",
   "settings.picture_choose": "Choose a picture",
-  "settings.picture_hint": "JPG, PNG or WebP, up to 2MB.",
+  "settings.picture_hint": "JPG, PNG or WebP, up to 8MB.",
   "settings.picture_upload": "Upload picture",
   "settings.password": "Password",
   "upload.uploading": "Uploading…",

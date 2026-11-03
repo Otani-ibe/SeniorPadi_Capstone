@@ -120,7 +120,7 @@ router.post('/settings', requireAuth, async (req, res) => {
   res.redirect('/settings');
 });
 
-router.post('/settings/profile-picture', requireAuth, uploadLimiter, imageUpload('picture', 2), async (req, res) => {
+router.post('/settings/profile-picture', requireAuth, uploadLimiter, imageUpload('picture', 8), async (req, res) => {
   if (req.uploadError) {
     req.flash('error', req.uploadError);
     return res.redirect('/settings');
