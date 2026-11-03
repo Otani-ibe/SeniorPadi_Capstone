@@ -34,7 +34,8 @@
     "events:add": "node src/scripts/addEvents.js",
     "events:add:neon": "cross-env DB_TARGET=neon node src/scripts/addEvents.js",
     "events:remove": "node src/scripts/addEvents.js --remove",
-    "seniors:add": "node src/scripts/addSeniors.js"
+    "seniors:add": "node src/scripts/addSeniors.js",
+    "seniors:add:neon": "cross-env DB_TARGET=neon node src/scripts/addSeniors.js"
   },
   "author": "",
   "license": "MIT",

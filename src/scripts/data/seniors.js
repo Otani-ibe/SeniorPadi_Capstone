@@ -1,21 +1,50 @@
-// The demo seniors: the 10 from the seed, plus 10 more. Used by src/services/sampleSeniors.js.
-// Every one is verified (ID approved, phone confirmed) so they can all find and message each other.
-// photo: the file name in public/images/seniors (without .jpg). No photo = the man or woman illustration is shown.
-// Log in with the phone number: the code is printed in the terminal where the app runs (while NOTIFY_DRY_RUN=true).
+// Demo seniors: the 10 from the seed plus 10 more. Used by src/services/sampleSeniors.js. All verified (ID approved, phone confirmed) so they can find and message each other.
+// photo: file name in public/images/seniors without .jpg, none = man or woman illustration
+// log in with the phone number, the code is printed in the terminal while NOTIFY_DRY_RUN=true
 const s = (fullName, phone, gender, photo, extra = {}) => ({ fullName, phone, gender, photo, ...extra });
 
 module.exports = [
-  // ---- the ten from the seed (their bios and places come from the seed) ----
-  s('Babatunde Ogunleye', '+2348030000010', 'male', 'babatunde-ogunleye'),
-  s('Adunni Afolabi', '+2348030000011', 'female', 'adunni-afolabi'),
-  s('Olusegun Adebayo', '+2348030000012', 'male', 'olusegun-adebayo'),
-  s('Kehinde Oladipo', '+2348030000013', 'male', 'kehinde-oladipo'),
-  s('Mojisola Akinwale', '+2348030000014', 'female', 'mojisola-akinwale'),
-  s('Tunde Ajayi', '+2348030000015', 'male', 'tunde-ajayi'),
-  s('Folake Ogundele', '+2348030000016', 'female', 'folake-ogundele'),
-  s('Ayodele Olatunji', '+2348030000017', 'male', 'ayodele-olatunji'),
-  s('Iyabo Adewale', '+2348030000018', 'female', 'iyabo-adewale'),
-  s('Gbenga Oyelaran', '+2348030000019', 'male', 'gbenga-oyelaran'),
+  // ---- the ten from the seed (same bios and places as src/scripts/seed.js) ----
+  s('Babatunde Ogunleye', '+2348030000010', 'male', 'babatunde-ogunleye', {
+    area: 'Bodija', lga: 'ibadan-north', language: 'yo',
+    bio: 'I spent 34 years as an estate surveyor, measuring land from Bodija to Ogbomoso. These days my mornings start with a walk around the UI ring road, and my evenings end with a game of ayo on the veranda. I love telling my grandchildren how Ibadan looked before the flyovers, and I would enjoy meeting others who remember it too.'
+  }),
+  s('Adunni Afolabi', '+2348030000011', 'female', 'adunni-afolabi', {
+    area: 'Jericho', lga: 'ibadan-north-west',
+    bio: 'Grandmother of five and a teacher at heart. I taught English at a secondary school in Jericho for many years, and I still correct grammar on WhatsApp! I sew my own adire dresses, cook egusi for a crowd every Sunday, and nothing makes me happier than a long gist over a cup of tea.'
+  }),
+  s('Olusegun Adebayo', '+2348030000012', 'male', 'olusegun-adebayo', {
+    area: 'Oluyole Estate', lga: 'ibadan-south-west',
+    bio: 'Walking keeps me young. I walk around Oluyole Estate every morning at six, rain or shine, and I would love some company on the road. I worked for the Ministry of Works for 30 years, so ask me about any road in Oyo State and I will tell you who built it.'
+  }),
+  s('Kehinde Oladipo', '+2348030000013', 'male', 'kehinde-oladipo', {
+    area: 'Mokola', lga: 'ibadan-north', language: 'yo',
+    bio: 'Music has always been my joy. I have sung alto in my church choir in Mokola for over twenty years, and I still practise hymns while I cook. After a long career in banking, I finally have time to learn new things. Beading is next on my list, and I am looking for a patient teacher.'
+  }),
+  s('Mojisola Akinwale', '+2348030000014', 'female', 'mojisola-akinwale', {
+    area: 'Moniya', lga: 'akinyele',
+    bio: 'Caring for people is what I know best. I was a nurse at Adeoyo Hospital for 35 years and helped deliver more babies than I can count. Now I enjoy my garden in Moniya, listening to Ebenezer Obey, and helping at health talks where I can share simple tips on blood pressure and staying strong.'
+  }),
+  s('Tunde Ajayi', '+2348030000015', 'male', 'tunde-ajayi', {
+    area: 'Egbeda', lga: 'egbeda',
+    bio: 'If you play draughts or ayo, I am looking for you! I worked as an electrical engineer, so I still fix every radio and fan in my compound in Egbeda. I enjoy Saturday football on the radio, a cold glass of zobo, and a friendly argument about the best Nigerian musician of all time.'
+  }),
+  s('Folake Ogundele', '+2348030000016', 'female', 'folake-ogundele', {
+    area: 'Ido', lga: 'ido', language: 'yo',
+    bio: 'My kitchen is my happy place. I ran a small catering business in Ido for many years, cooking for weddings, naming ceremonies and church harvests. I still bake chin chin and cakes for church events, and I would love to teach others a few simple recipes they can make at home.'
+  }),
+  s('Ayodele Olatunji', '+2348030000017', 'male', 'ayodele-olatunji', {
+    area: 'Bodija', lga: 'ibadan-north',
+    bio: 'Books have been my lifelong friends. I spent my working years as a librarian at the University of Ibadan, and I still read a little every day. I enjoy talking about history, old Yoruba proverbs and the stories behind them, and I am happy to start a small reading group if others are interested.'
+  }),
+  s('Iyabo Adewale', '+2348030000018', 'female', 'iyabo-adewale', {
+    area: 'Jericho', lga: 'ibadan-north-west',
+    bio: 'Dugbe market was my home for over forty years, selling fabrics and lace to half of Ibadan. I know how to bargain and I know how to laugh! I love dancing to old juju music, going to owambe parties, and meeting new friends who enjoy good company as much as I do.'
+  }),
+  s('Gbenga Oyelaran', '+2348030000019', 'male', 'gbenga-oyelaran', {
+    area: 'Oluyole Estate', lga: 'ibadan-south-west', language: 'yo',
+    bio: 'Plants are my passion. I lectured in agriculture for many years, and today I grow tomatoes, ugu and peppers in a small garden behind my house in Oluyole. Nothing pleases me more than helping someone plant their first seeds. I also enjoy chess and long conversations about farming.'
+  }),
 
   // ---- ten more ----
   s('Bukola Adeyemi', '+2348030000020', 'female', 'bukola-adeyemi', {

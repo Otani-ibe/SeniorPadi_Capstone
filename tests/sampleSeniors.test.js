@@ -19,6 +19,10 @@ test('the demo seniors list is 20 people, each phone once, and every picture fil
     expect(s.phone).toMatch(/^\+2348030000\d{3}$/);
     if (s.photo) expect(fs.existsSync(path.join(__dirname, '../public/images/seniors', s.photo + '.jpg'))).toBe(true);
   }
+  for (const s of data) {
+    expect(s.bio.length).toBeGreaterThan(100);
+    expect(s.area && s.lga).toBeTruthy();
+  }
   // sixteen have a picture, four do not
   expect(data.filter((s) => !s.photo).map((s) => s.fullName)).toEqual(['Femi Adeleke', 'Kayode Ogundipe', 'Rotimi Fagbemi', 'Lekan Adesina']);
 });
@@ -60,4 +64,14 @@ test('seed seniors who were pending or unverified become verified, and a real pe
   expect(fixed.phoneVerifiedAt).not.toBeNull();
   expect(fixed.profilePictureUrl).toBe('/images/seniors/folake-ogundele.jpg');
   expect((await User.findByPk(real.id)).verificationStatus).toBe('pending');
+});
+
+test('accounts that already exist without a bio or place get them, and what someone wrote is kept', async () => {
+  await User.create({ fullName: data[0].fullName, phone: data[0].phone, passwordHash: 'x', ageDeclared: true, gender: 'male' });
+  await User.create({ fullName: data[1].fullName, phone: data[1].phone, passwordHash: 'x', ageDeclared: true, gender: 'female', bio: 'My own words.', area: 'Dugbe' });
+  await ensureSampleSeniors(models, { log: () => {} });
+  const first = await User.findOne({ where: { phone: data[0].phone } });
+  expect(first).toMatchObject({ bio: data[0].bio, area: data[0].area, lga: data[0].lga });
+  const second = await User.findOne({ where: { phone: data[1].phone } });
+  expect(second).toMatchObject({ bio: 'My own words.', area: 'Dugbe', lga: data[1].lga });
 });

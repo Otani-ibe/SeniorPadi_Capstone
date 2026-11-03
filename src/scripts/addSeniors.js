@@ -1,9 +1,7 @@
-// Adds the demo seniors (src/scripts/data/seniors.js) to the database in .env and makes them all verified.
-// Safe to run again. See src/services/sampleSeniors.js.
-//
-//   npm run seniors:add
-//
-// This is for your own computer. It is never run by the live site on its own.
+// Adds the demo seniors (src/scripts/data/seniors.js) to the database in .env, all verified. Safe to rerun. See src/services/sampleSeniors.js.
+//   npm run seniors:add        database in .env
+//   npm run seniors:add:neon   Neon (live) database
+// never run by the site itself
 require('dotenv').config({ quiet: true });
 const { sequelize } = require('../models');
 const { ensureSampleSeniors } = require('../services/sampleSeniors');
@@ -20,5 +18,6 @@ async function main() {
 }
 
 main()
+  .then(() => require('../services/geocode').idle())
   .then(() => sequelize.close())
   .catch((err) => { console.error(err); process.exit(1); });
