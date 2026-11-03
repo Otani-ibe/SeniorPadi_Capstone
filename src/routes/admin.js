@@ -13,7 +13,8 @@ const { normalizePhone } = require('../services/phone');
 const { doorReply } = require('./doorReply');
 const capacity = require('../services/capacity');
 const cloud = require('../services/cloudinary');
-const { notify } = require('../services/notify');
+const notifier = require('../services/notify');
+const { notify } = notifier;
 const { audit } = require('../services/audit');
 const { shortDate, fromLocalInput, toLocalInput, DAY_MS } = require('../services/dates');
 const { requireAdmin, requireSuperAdmin } = require('../middleware/auth');
@@ -434,7 +435,7 @@ router.post('/events/:id/cancel', async (req, res) => {
   });
   for (const reg of registrations) {
     if (!reg.senior) continue;
-    notify(reg.senior, 'event.cancelled_by_admin', {
+    notifier.notify(reg.senior, 'event.cancelled_by_admin', {
       name: reg.senior.firstName(),
       event: event.title,
       date: shortDate(event.startsAt)

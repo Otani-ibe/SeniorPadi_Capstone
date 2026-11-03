@@ -236,5 +236,23 @@
   <% } %>
 </form>
 
+<%# cancelling an event: on the edit page, below the form (a separate form, so it cannot be sent by accident with a save) %>
+<% if (event && event.status === 'published') { %>
+  <section class="admin-box mt-8 p-5" aria-labelledby="cancel-title">
+    <h2 id="cancel-title" class="text-[1.05rem]">Cancel this event</h2>
+    <p class="mt-1 text-slate-600">
+      The event is taken off the site and stays here in your list, marked as cancelled.
+      <% if (registeredCount > 0) { %><%= registeredCount %> registered senior<%= registeredCount === 1 ? ' is' : 's are' %> told by text that it is cancelled.<% } else { %>Nobody is registered yet, so nobody needs telling.<% } %>
+      This cannot be undone.
+    </p>
+    <form action="/admin/events/<%= event.id %>/cancel" method="post" class="mt-4" onsubmit="return confirm('Cancel this event?<%= registeredCount > 0 ? ' ' + registeredCount + ' registered senior(s) will get a message.' : '' %>');">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="abtn-danger"><i class="icon-circle-x" aria-hidden="true"></i>Cancel this event</button>
+    </form>
+  </section>
+<% } else if (event && event.status === 'cancelled') { %>
+  <p class="admin-box mt-8 p-5 text-slate-600"><span class="chip chip-red">Cancelled</span> This event was cancelled. It is not shown to seniors.</p>
+<% } %>
+
 <script src="/js/upload.js" defer></script>
 <%- include('../partials/footer') %>

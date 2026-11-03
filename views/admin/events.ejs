@@ -82,7 +82,7 @@
           <% if (event.status === 'published') { %>
             <form action="/admin/events/<%= event.id %>/cancel" method="post" class="ml-auto" onsubmit="return confirm('Cancel this event? Everyone registered will get a message.');">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="inline-flex min-h-11 items-center font-semibold text-full-tag hover:underline">Cancel event</button>
+              <button class="abtn-danger abtn-sm">Cancel event</button>
             </form>
           <% } %>
         </div></div>
