@@ -20,9 +20,9 @@
 <ul class="grid gap-5 md:grid-cols-2">
   <% registrations.forEach(function (reg) { const event = reg.Event; %>
     <li class="rounded-card bg-surface p-4">
-      <%# the flyer is shown whole beside the details, never cropped %>
-      <div class="flex gap-4">
-        <%- include('../partials/eventImage', { event, imgClass: 'aspect-[4/5] w-28 shrink-0 self-start rounded-xl bg-mist object-contain sm:w-32' }) %>
+      <%# flyer on top at its own shape, never cropped, then the details %>
+      <a href="/events/<%= event.id %>" class="block"><%- include('../partials/eventImage', { event, natural: true, imgClass: 'block w-full rounded-xl bg-mist' }) %></a>
+      <div class="mt-4">
         <div class="min-w-0">
           <span class="<%= reg.type === 'volunteer' ? 'tag-leaf' : 'tag-mine' %>"><i class="<%= reg.type === 'volunteer' ? 'icon-hand-heart' : 'icon-user-check' %>" aria-hidden="true"></i><%= reg.type === 'volunteer' ? t('registrations.volunteering') : t('registrations.attending') %></span>
           <h2 class="mt-2 text-[1.2rem] leading-snug"><a href="/events/<%= event.id %>" class="text-ink no-underline hover:underline"><%= event.title %></a></h2>
@@ -33,7 +33,7 @@
       <div class="mt-4">
 
         <%# the ticket: a dashed "pass" %>
-        <div class="mt-4 flex items-center justify-between gap-3 rounded-card border-2 border-dashed border-indigo/40 bg-white px-4 py-3">
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-card border-2 border-dashed border-indigo/40 bg-white px-4 py-3">
           <span class="text-gray-700"><i class="icon-ticket mr-1.5 text-indigo" aria-hidden="true"></i><%= t('ticket.label') %></span>
           <span class="whitespace-nowrap text-[1.15rem] font-bold tracking-wider text-indigo"><%= reg.ticketNumber %></span>
         </div>
