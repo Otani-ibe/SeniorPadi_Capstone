@@ -4,3 +4,5 @@ coverage/
 *.log
 public/uploads/
 storage/
+gallery/
+gallery.zip
