@@ -85,9 +85,16 @@ async function markRestMissed(eventId) {
 const newCheckinToken = () => crypto.randomBytes(24).toString('base64url');
 
 // the link works from the day before the event until 3 days after it ends
+// 00:00 in Lagos (UTC+1, no daylight saving) on the day before the given time
+function lagosMidnightBefore(date) {
+  const HOUR_MS = 60 * 60 * 1000;
+  const lagosDay = Math.floor((new Date(date).getTime() + HOUR_MS) / DAY_MS) * DAY_MS;
+  return new Date(lagosDay - DAY_MS - HOUR_MS);
+}
+
 function checkinWindow(event) {
   return {
-    opens: new Date(new Date(event.startsAt).getTime() - DAY_MS),
+    opens: lagosMidnightBefore(event.startsAt), // the whole day before, as the page says
     closes: new Date(new Date(event.endsAt).getTime() + 3 * DAY_MS)
   };
 }

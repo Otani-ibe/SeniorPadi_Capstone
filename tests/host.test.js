@@ -87,6 +87,15 @@ test('the link opens the day before the event and closes 3 days after it', async
   expect(late.text).toContain('has closed');
 });
 
+test('the link is open from midnight (Lagos) the day before, even for an evening event', () => {
+  const { checkinWindow, checkinLinkState } = require('../src/services/attendance');
+  const event = { startsAt: new Date('2026-11-13T18:00:00+01:00'), endsAt: new Date('2026-11-13T20:00:00+01:00') };
+
+  expect(checkinWindow(event).opens.toISOString()).toBe('2026-11-11T23:00:00.000Z'); // 00:00 on 12 Nov in Lagos
+  expect(checkinLinkState(event, new Date('2026-11-12T00:30:00+01:00'))).toBe('open');
+  expect(checkinLinkState(event, new Date('2026-11-11T23:30:00+01:00'))).toBe('early');
+});
+
 test('a guest\'s QR code works for the organization on the phone with the link open, and for nobody else', async () => {
   const { reg, link } = await setUp();
   // a stranger scanning it is sent to log in, as before
