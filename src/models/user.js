@@ -53,7 +53,7 @@ module.exports = (sequelize) => {
 
   // 08031234567 instead of +2348031234567
   User.prototype.localPhone = function () {
-    return this.phone ? '0' + this.phone.replace('+234', '') : '';
+    return this.phone && this.phone.startsWith('+234') ? '0' + this.phone.replace('+234', '') : '';
   };
 
   // first name only, for greetings

@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 const { Op } = require('sequelize');
 const { Event, Organization, Registration } = require('../models');
 const { notify } = require('../services/notify');
@@ -10,8 +10,16 @@ const { requireAuth } = require('../middleware/auth');
 const { imageUpload } = require('../middleware/upload');
 const { uploadLimiter } = require('../middleware/rateLimit');
 const { deleteAccount } = require('../services/removal');
+const { sendCode, checkCode, demoCodeFor, CODE_MINUTES } = require('../services/verification');
 const { qrSvg } = require('../services/qr');
 const numericId = require('../middleware/numericId');
+
+const codeLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  skip: () => process.env.NODE_ENV === 'test',
+  handler: (req, res) => res.status(429).render('error', { title: req.t('error.title'), message: req.t('error.too_many') })
+});
 
 const router = express.Router();
 router.param('id', numericId);
@@ -152,16 +160,26 @@ router.post('/settings/profile-picture', requireAuth, uploadLimiter, imageUpload
 // ---------- delete account ----------
 router.get('/account/delete', requireAuth, (req, res) => {
   if (req.user.role === 'admin') return res.redirect('/admin');
-  res.render('account/delete', { title: req.t('delete.title'), error: null });
+  renderDelete(req, res, null);
 });
 
-router.post('/account/delete', requireAuth, async (req, res) => {
+// seniors have no password (they sign in with a texted code), so deleting is confirmed with a texted code too
+router.post('/account/delete/code', requireAuth, codeLimiter, async (req, res) => {
+  if (req.user.role === 'admin') return res.redirect('/admin');
+  const result = await sendCode(req.user, 'phone');
+  if (!result.ok && result.reason === 'wait') req.flash('info', req.t('verify.wait'));
+  res.redirect('/account/delete?sent=1');
+});
+
+router.post('/account/delete', requireAuth, codeLimiter, async (req, res) => {
   if (req.user.role === 'admin') return res.redirect('/admin');
 
-  // ask for the password so nobody deletes it by accident
-  const ok = await bcrypt.compare(req.body.password || '', req.user.passwordHash);
-  if (!ok) {
-    return res.status(400).render('account/delete', { title: req.t('delete.title'), error: req.t('delete.wrong_password') });
+  const result = await checkCode(req.user, 'phone', req.body.code);
+  if (!result.ok) {
+    return res.status(400).render('account/delete', {
+      title: req.t('delete.title'), error: req.t('verify.error_' + result.reason), sent: true, minutes: CODE_MINUTES,
+      demoCode: demoCodeFor(req.user, 'phone'), phone: req.user.localPhone()
+    });
   }
 
   await deleteAccount(req.user, req.user.id);
@@ -172,5 +190,12 @@ router.post('/account/delete', requireAuth, async (req, res) => {
     res.redirect('/');
   });
 });
+
+function renderDelete(req, res, error) {
+  res.render('account/delete', {
+    title: req.t('delete.title'), error, sent: req.query.sent === '1', minutes: CODE_MINUTES,
+    demoCode: demoCodeFor(req.user, 'phone'), phone: req.user.localPhone()
+  });
+}
 
 module.exports = router;

@@ -159,7 +159,7 @@ PostgreSQL. Tables are created by migrations that run automatically when the app
 | AuditLogs | who did what, when (staff actions) | Users |
 
 - One senior can't register twice for the same event: unique `(eventId, seniorId, type)`.
-- Accounts are never hard-deleted (`deletedAt`), so attendance history stays.
+- Deleting an account erases the person (name, phone, email, picture, bio, address, NIN and the messages they wrote; Nigeria Data Protection Act 2023, s. 34). Only an empty "Deleted member" row stays (`deletedAt`), so attendance counts and reports still add up. Seniors confirm with a texted code, as they have no password.
 - Times are stored in UTC and shown in Lagos time.
 
 ### 2.3 Deployment

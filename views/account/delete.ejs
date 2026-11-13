@@ -15,15 +15,29 @@
 
     <% if (error) { %><div role="alert" class="mt-5 rounded-card bg-full-bg p-4 font-semibold"><%= error %></div><% } %>
 
-    <form action="/account/delete" method="post" class="mt-6">
+    <p class="mt-6"><%= t('delete.confirm_intro', { phone: phone }) %></p>
+
+    <% if (sent) { %>
+      <form action="/account/delete" method="post" class="mt-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <%- include('../partials/demoCode', { code: demoCode }) %>
+        <div class="field">
+          <label for="code"><%= t('verify.enter_code', { minutes: minutes }) %></label>
+          <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required
+                 class="text-center !text-[1.6rem] font-semibold tracking-[0.5em]">
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="/settings" class="btn"><%= t('delete.keep') %></a>
+          <button class="btn-coral"><%= t('delete.submit') %></button>
+        </div>
+      </form>
+    <% } %>
+
+    <form action="/account/delete/code" method="post" class="mt-4">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div class="field">
-        <label for="password"><%= t('delete.password') %></label>
-        <input type="password" id="password" name="password" autocomplete="current-password" required>
-      </div>
       <div class="flex flex-col gap-3 sm:flex-row">
-        <a href="/settings" class="btn"><%= t('delete.keep') %></a>
-        <button class="btn-coral"><%= t('delete.submit') %></button>
+        <% if (!sent) { %><a href="/settings" class="btn"><%= t('delete.keep') %></a><% } %>
+        <button class="<%= sent ? 'btn-plain' : 'btn-coral' %>"><%= sent ? t('verify.send_again') : t('verify.send_sms') %></button>
       </div>
     </form>
   </section>

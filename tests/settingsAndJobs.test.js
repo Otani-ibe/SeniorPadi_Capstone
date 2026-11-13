@@ -9,6 +9,7 @@ const app = require('../src/app');
 const { User, Event, Registration } = require('../src/models');
 const cloud = require('../src/services/cloudinary');
 const jobs = require('../src/services/cron');
+const { lastCodeForTests } = require('../src/services/verification');
 const { resetDb, makeUser, makeEvent, csrfFrom, signIn, sequelize, DAY } = require('./helpers');
 
 const PHONE = '08031000101';
@@ -189,28 +190,59 @@ describe('profile picture', () => {
 });
 
 describe('delete account', () => {
-  test('the page opens for a senior', async () => {
-    expect((await agent.get('/account/delete')).status).toBe(200);
+  const askForCode = async () => {
+    const res = await postForm('/account/delete/code', {}, '/account/delete');
+    expect(res.headers.location).toBe('/account/delete?sent=1');
+    return lastCodeForTests(user.id);
+  };
+
+  test('the page opens for a senior and explains that a code will be texted, not a password', async () => {
+    const page = await agent.get('/account/delete');
+    expect(page.status).toBe(200);
+    expect(page.text).toContain(PHONE); // their number is shown
+    expect(page.text).not.toContain('type="password"');
   });
 
-  test('a wrong password does not delete anything', async () => {
-    const res = await postForm('/account/delete', { password: 'nope-nope' });
+  test('a wrong code does not delete anything', async () => {
+    await askForCode();
+    const res = await postForm('/account/delete', { code: '000000' }, '/account/delete');
     expect(res.status).toBe(400);
     expect(await User.findByPk(user.id)).not.toBeNull();
   });
 
-  test('the right password frees upcoming places and soft-deletes the account', async () => {
+  test('no code asked for means nothing can be deleted', async () => {
+    const res = await postForm('/account/delete', { code: '123456' }, '/account/delete');
+    expect(res.status).toBe(400);
+    expect(await User.findByPk(user.id)).not.toBeNull();
+  });
+
+  test('the right code frees upcoming places and erases the person', async () => {
     const event = await makeEvent();
     const reg = await Registration.create({ eventId: event.id, seniorId: user.id, type: 'attendee' });
+    await user.update({ email: 'ade@example.com', bio: 'Retired teacher', area: 'Bodija', gender: 'male' });
+    const code = await askForCode();
 
-    const res = await postForm('/account/delete', { password: 'password123' });
+    const res = await postForm('/account/delete', { code }, '/account/delete');
 
     expect(res.status).toBe(302);
     expect(res.headers.location).toBe('/');
-    expect(await User.findByPk(user.id)).toBeNull();
-    expect(await User.findByPk(user.id, { paranoid: false })).not.toBeNull(); // the row stays
+    expect(await User.findByPk(user.id)).toBeNull(); // hidden from every list
     await reg.reload();
     expect(reg.status).toBe('cancelled');
+
+    // the row stays for the records, but holds nothing about the person (NDPA 2023, s. 34)
+    const row = await User.findByPk(user.id, { paranoid: false });
+    expect(row.fullName).toBe('Deleted member');
+    expect(row.phone).not.toContain('803100010');
+    expect(row.phone.startsWith('+')).toBe(false);
+    ['email', 'bio', 'area', 'lga', 'gender', 'profilePictureUrl', 'latitude', 'longitude'].forEach((k) => expect(row[k]).toBeNull());
+  });
+
+  test('the old number can sign up again after deleting', async () => {
+    const code = await askForCode();
+    await postForm('/account/delete', { code }, '/account/delete');
+    const again = await makeUser({ phone: '+234' + PHONE.slice(1), fullName: 'Ade Bello' });
+    expect(again.id).not.toBe(user.id);
   });
 });
 
