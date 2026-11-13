@@ -264,7 +264,7 @@
   "delete.point_places": "Your places at upcoming events are cancelled so others can go.",
   "delete.point_login": "You can't log in anymore.",
   "delete.point_find": "Other seniors won't see you anymore.",
-  "delete.confirm_intro": "To make sure it is you, we will text a 6-digit code to {phone}. Deleting erases your name, phone number and everything else we hold about you, for good.",
+  "delete.confirm_intro": "To make sure it is you, we will text a 6-digit code to {phone}.",
   "delete.submit": "Delete my account",
   "delete.keep": "Keep my account",
   "delete.done": "Your account is deleted. Thank you for being part of SeniorPadi.",
