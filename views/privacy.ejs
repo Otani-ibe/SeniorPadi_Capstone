@@ -1,45 +1,71 @@
 <%- include('partials/header') %>
 
-<%# plain words, one heading and a short paragraph or list for each part %>
+<%# one heading and a short paragraph or list for each part. The contents list on the left (computers only) jumps to them %>
 <%
   const SECTIONS = [
-    { title: 'privacy.who_title', text: 'privacy.who_text' },
-    { title: 'privacy.keep_title', list: ['privacy.keep1', 'privacy.keep2', 'privacy.keep3', 'privacy.keep4', 'privacy.keep5'] },
-    { title: 'privacy.why_title', text: 'privacy.why_text' },
-    { title: 'privacy.nin_title', text: 'privacy.nin_text' },
-    { title: 'privacy.see_title', text: 'privacy.see_text' },
-    { title: 'privacy.services_title', text: 'privacy.services_text' },
-    { title: 'privacy.can_title', list: ['privacy.can1', 'privacy.can2', 'privacy.can3', 'privacy.can4'] },
-    { title: 'privacy.family_title', text: 'privacy.family_text' },
-    { title: 'privacy.safe_title', text: 'privacy.safe_text' }
+    { id: 'who', title: 'privacy.who_title', text: 'privacy.who_text' },
+    { id: 'keep', title: 'privacy.keep_title', list: ['privacy.keep1', 'privacy.keep2', 'privacy.keep3', 'privacy.keep4', 'privacy.keep5'] },
+    { id: 'why', title: 'privacy.why_title', text: 'privacy.why_text' },
+    { id: 'nin', title: 'privacy.nin_title', text: 'privacy.nin_text' },
+    { id: 'see', title: 'privacy.see_title', text: 'privacy.see_text' },
+    { id: 'services', title: 'privacy.services_title', text: 'privacy.services_text' },
+    { id: 'rights', title: 'privacy.can_title', list: ['privacy.can1', 'privacy.can2', 'privacy.can3', 'privacy.can4'] },
+    { id: 'family', title: 'privacy.family_title', text: 'privacy.family_text' },
+    { id: 'safe', title: 'privacy.safe_title', text: 'privacy.safe_text' }
   ];
 %>
 
-<section class="max-w-3xl">
-  <h1 class="text-[2.1rem] font-bold leading-[1.1] tracking-tight [overflow-wrap:anywhere] min-[400px]:text-[2.4rem] md:text-[3rem]"><%= t('privacy.title') %></h1>
-  <% if (lang === 'yo') { %>
-    <p class="mt-4 rounded-2xl bg-mist p-4 text-[1.1rem] font-semibold text-indigo"><%= t('privacy.yo_note') %></p>
-  <% } %>
+<%# ================= TITLE ================= %>
+<section class="rounded-card bg-mist px-5 py-8 md:px-10 md:py-12">
+  <span class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo text-[1.4rem] text-white"><i class="icon-lock" aria-hidden="true"></i></span>
+  <h1 class="mt-4 text-[2.1rem] font-bold leading-[1.1] tracking-tight [overflow-wrap:anywhere] min-[400px]:text-[2.4rem] md:text-[3rem]"><%= t('privacy.title') %></h1>
   <p class="mt-3 text-gray-700"><%= t('privacy.updated') %></p>
-  <p class="mt-4 text-[1.1rem] leading-relaxed text-gray-700 md:text-[1.3rem]"><%= t('privacy.intro') %></p>
-
-  <% SECTIONS.forEach(function (s) { %>
-    <div class="mt-10 border-t-2 border-gray-200 pt-6">
-      <h2 class="text-[1.6rem] leading-tight md:text-[1.9rem]"><%= t(s.title) %></h2>
-      <% if (s.text) { %>
-        <p class="mt-2 text-[1.1rem] leading-relaxed text-gray-700"><%= t(s.text) %></p>
-      <% } else { %>
-        <ul class="mt-3 list-disc space-y-2 pl-6 text-[1.1rem] leading-relaxed text-gray-700">
-          <% s.list.forEach(function (key) { %><li><%= t(key) %></li><% }) %>
-        </ul>
-      <% } %>
-    </div>
-  <% }) %>
-
-  <div class="mt-10 flex flex-col gap-3 sm:flex-row">
-    <a href="/call" class="btn"><%= t('privacy.call') %><i class="icon-phone" aria-hidden="true"></i></a>
-    <a href="/settings" class="btn-plain"><%= t('privacy.settings') %></a>
-  </div>
+  <% if (lang === 'yo') { %>
+    <p class="mt-4 rounded-2xl bg-white p-4 text-[1.1rem] font-semibold text-indigo"><%= t('privacy.yo_note') %></p>
+  <% } %>
 </section>
+
+<div class="mt-10 grid grid-cols-1 gap-10 md:mt-14 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-14">
+  <%# ================= CONTENTS ================= %>
+  <nav class="hidden md:block" aria-label="<%= t('privacy.contents') %>">
+    <div class="sticky top-6">
+      <p class="font-semibold text-indigo"><%= t('privacy.contents') %></p>
+      <ol class="mt-3 space-y-1 border-l-2 border-gray-200">
+        <% SECTIONS.forEach(function (s) { %>
+          <li><a href="#<%= s.id %>" class="-ml-0.5 block border-l-2 border-transparent py-1.5 pl-4 leading-snug text-gray-700 no-underline hover:border-indigo hover:text-indigo"><%= t(s.title) %></a></li>
+        <% }) %>
+      </ol>
+    </div>
+  </nav>
+
+  <%# ================= THE SECTIONS ================= %>
+  <div class="max-w-3xl">
+    <% SECTIONS.forEach(function (s, i) { %>
+      <section id="<%= s.id %>" class="scroll-mt-6 border-b border-gray-200 py-8 first:pt-0">
+        <h2 class="flex items-start gap-3 text-[1.5rem] leading-tight md:text-[1.8rem]">
+          <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mist text-[1.1rem] font-semibold text-indigo"><%= i + 1 %></span>
+          <span class="min-w-0"><%= t(s.title) %></span>
+        </h2>
+        <% if (s.text) { %>
+          <p class="mt-3 text-[1.1rem] leading-relaxed text-gray-700 md:pl-12"><%= t(s.text) %></p>
+        <% } else { %>
+          <ul class="mt-4 space-y-3 md:pl-12">
+            <% s.list.forEach(function (key) { %>
+              <li class="flex items-start gap-3 text-[1.1rem] leading-relaxed text-gray-700">
+                <i class="icon-circle-check mt-1 shrink-0 text-indigo" aria-hidden="true"></i><span class="min-w-0"><%= t(key) %></span>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </section>
+    <% }) %>
+
+    <%# ================= BUTTONS ================= %>
+    <div class="mt-10 flex flex-col gap-3 sm:flex-row">
+      <a href="/call" class="btn"><%= t('privacy.call') %><i class="icon-phone" aria-hidden="true"></i></a>
+      <a href="/settings" class="btn-plain"><%= t('privacy.settings') %></a>
+    </div>
+  </div>
+</div>
 
 <%- include('partials/footer') %>
