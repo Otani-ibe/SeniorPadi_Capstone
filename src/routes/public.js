@@ -78,6 +78,10 @@ router.get('/about', (req, res) => {
   res.render('about', { title: req.t('about.title'), wide: true });
 });
 
+router.get('/privacy', (req, res) => {
+  res.render('privacy', { title: req.t('privacy.title'), wide: true });
+});
+
 // Call SeniorPadi: account help, questions, listing an event
 router.get('/call', (req, res) => {
   res.render('call', {

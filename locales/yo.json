@@ -836,5 +836,7 @@
   "event.updated.sms": "SeniorPadi: {name}, ìròyìn tuntun fún {event}. {changes} Àyè yín ṣì wà.",
   "notification.event.updated": "{event} ti yí padà. {changes}",
   "demo.your_code": "Kóòdù yín ni {code}",
-  "identity.count": "{n} nínú 11"
+  "identity.count": "{n} nínú 11",
+  "privacy.title": "Ìlànà ìpamọ́",
+  "privacy.yo_note": "Èdè Gẹ̀ẹ́sì nìkan ni ìlànà yìí wà báyìí. Ẹ̀dà Yorùbá ń bọ̀."
 }

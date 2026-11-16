@@ -13,7 +13,7 @@ const PHONE = 'tel:+2348061761235';
 const LINK = 'https://wa.link/lqmmfi';
 
 test('the home page, footer and Call page use the number and the WhatsApp link', async () => {
-  for (const url of ['/', '/call', '/about', '/events']) {
+  for (const url of ['/', '/call', '/about', '/privacy', '/events']) {
     const page = await request(app).get(url);
     expect([url, page.text.includes(PHONE)]).toEqual([url, true]);
     expect([url, page.text.includes(LINK)]).toEqual([url, true]);
