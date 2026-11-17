@@ -616,3 +616,52 @@ describe('the staff screens', () => {
     }
   });
 });
+
+describe('a NIN nobody decides on expires', () => {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const later = (days) => new Date(Date.now() + days * DAY_MS);
+
+  test('after 10 days it is erased, the senior is told and can send it again, and it is not counted as a decline', async () => {
+    const notify = jest.spyOn(notifier, 'notify').mockImplementation(() => {});
+    const senior = await waitingSenior();
+
+    expect(await identity.expireStale(later(9))).toBe(0); // not yet
+    expect((await senior.reload()).verificationStatus).toBe('pending');
+
+    expect(await identity.expireStale(later(11))).toBe(1);
+    const row = await IdentityVerification.findOne({ where: { userId: senior.id } });
+    expect(row.status).toBe('expired');
+    expect(row.encryptedNin).toBeNull();
+    expect(row.ninHash).toBeNull();
+    expect(row.completedAt).toBeTruthy();
+    expect((await senior.reload()).verificationStatus).toBe('unverified');
+
+    expect(notify).toHaveBeenCalledWith(expect.objectContaining({ id: senior.id }), 'identity.expired', expect.objectContaining({ days: 10 }));
+    expect(await Notification.count({ where: { userId: senior.id, type: 'identity.expired' } })).toBe(1);
+    expect(await AuditLog.count({ where: { action: 'identity.expired', entityId: senior.id } })).toBe(1);
+    expect(await identity.rejectionsLeft(senior)).toBe(identity.MAX_REJECTIONS);
+
+    const agent = await agentFor(senior);
+    const status = await agent.get('/identity/status');
+    expect(status.text).toContain('We could not check your NIN in time');
+    expect(status.text).toContain('href="/identity"');
+
+    expect((await submit(agent)).headers.location).toBe('/identity/status');
+    expect((await senior.reload()).verificationStatus).toBe('pending');
+    expect(await IdentityVerification.count({ where: { userId: senior.id } })).toBe(2);
+    expect((await agent.get('/identity/status')).text).toContain('We are checking your NIN');
+  });
+
+  test('running it twice changes nothing more, and decided NINs are left alone', async () => {
+    jest.spyOn(notifier, 'notify').mockImplementation(() => {});
+    const boss = await agentFor(await superAdmin());
+    const decided = await waitingSenior({}, '70123456781');
+    await decide(boss, decided, 'verified');
+    await waitingSenior({ phone: '+2348031113333' }, '70123456782');
+
+    expect(await identity.expireStale(later(11))).toBe(1);
+    expect(await identity.expireStale(later(12))).toBe(0);
+    expect((await decided.reload()).verificationStatus).toBe('approved');
+    expect((await IdentityVerification.findOne({ where: { userId: decided.id } })).status).toBe('verified');
+  });
+});

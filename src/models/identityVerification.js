@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 
-const STATUSES = ['submitted', 'verified', 'not_eligible', 'rejected'];
+// expired: nobody decided within EXPIRE_AFTER_DAYS (services/identity.js), the NIN was erased and the senior can send it again
+const STATUSES = ['submitted', 'verified', 'not_eligible', 'rejected', 'expired'];
 
 // one row per NIN a senior sent. Waits here encrypted until the superadmin checks it on NIMC, erased the moment they decide
 // (the database refuses to keep it longer). See docs/nin-verification.md

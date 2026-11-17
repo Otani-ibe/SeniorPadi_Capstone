@@ -11,6 +11,7 @@ const { audit } = require('./audit');
 
 const MAX_REJECTIONS = 3; // after this many rejections they are asked to call
 const CAN_SUBMIT = ['unverified', 'rejected'];
+const EXPIRE_AFTER_DAYS = 10; // a NIN nobody decided on is erased after this many days
 
 // ---------- the NIN ----------
 
@@ -187,8 +188,39 @@ async function decide(adminId, user, outcome, note, now = new Date()) {
   return { ok: true };
 }
 
+// ---------- nobody decided in time ----------
+
+// a NIN waiting longer than this is erased and the senior can send it again (does not count as a rejection). Runs daily from cron.js
+async function expireStale(now = new Date()) {
+  const cutoff = new Date(now.getTime() - EXPIRE_AFTER_DAYS * 24 * 60 * 60 * 1000);
+  const stale = await IdentityVerification.findAll({ where: { status: 'submitted', submittedAt: { [Op.lt]: cutoff } } });
+
+  let expired = 0;
+  for (const row of stale) {
+    // only if still waiting, so a decision made a moment ago is not undone
+    const [claimed] = await IdentityVerification.update(
+      { status: 'expired', encryptedNin: null, ninHash: null, completedAt: now },
+      { where: { id: row.id, status: 'submitted' } }
+    );
+    if (!claimed) continue;
+    expired++;
+
+    await User.update({ verificationStatus: 'unverified' }, { where: { id: row.userId, verificationStatus: 'pending' } });
+    await audit(null, 'identity.expired', 'User', row.userId);
+    const user = await User.findByPk(row.userId); // a deleted account gets no notice
+    if (user) await tell(user, 'expired', { days: EXPIRE_AFTER_DAYS });
+  }
+  return expired;
+}
+
+// true when their last submission ran out (the status page explains it instead of "not verified yet")
+async function lastExpired(user) {
+  const last = await IdentityVerification.findOne({ where: { userId: user.id }, order: [['createdAt', 'DESC']], attributes: ['status'] });
+  return Boolean(last && last.status === 'expired');
+}
+
 module.exports = {
-  MAX_REJECTIONS, CAN_SUBMIT,
+  MAX_REJECTIONS, CAN_SUBMIT, EXPIRE_AFTER_DAYS,
   normalizeNin, isConfigured, encryptNin, decryptNin, hashNin,
-  submitNin, rejectionsLeft, waitingFor, duplicateOf, revealNin, decide
+  submitNin, rejectionsLeft, waitingFor, duplicateOf, revealNin, decide, expireStale, lastExpired
 };

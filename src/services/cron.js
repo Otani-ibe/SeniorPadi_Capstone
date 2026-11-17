@@ -1,8 +1,9 @@
-// Scheduled jobs: reminder SMS every morning, and closing finished events.
+// Scheduled jobs: reminder SMS every morning, closing finished events, and erasing NINs nobody decided on.
 const cron = require('node-cron');
 const { Op } = require('sequelize');
 const { Event, Registration, User } = require('../models');
 const { notify } = require('./notify');
+const { expireStale } = require('./identity');
 const { shortDate, formatTime, lagosDayString, TIME_ZONE, DAY_MS } = require('./dates');
 
 // Sends a reminder to everyone whose reminder day is today
@@ -49,7 +50,7 @@ async function completeFinishedEvents(now = new Date()) {
 }
 
 // last run of each job
-const lastRuns = { reminders: null, remindersSent: 0, completeEvents: null };
+const lastRuns = { reminders: null, remindersSent: 0, completeEvents: null, expireIds: null, idsExpired: 0 };
 
 async function runReminders() {
   try {
@@ -69,9 +70,19 @@ async function runCompleteEvents() {
   }
 }
 
+async function runExpireIds() {
+  try {
+    lastRuns.idsExpired = await expireStale();
+    lastRuns.expireIds = new Date();
+  } catch (err) {
+    console.error('Expiring old NINs failed:', err.message);
+  }
+}
+
 function startJobs() {
   cron.schedule('0 8 * * *', runReminders, { timezone: TIME_ZONE });
   cron.schedule('0 * * * *', runCompleteEvents, { timezone: TIME_ZONE });
+  cron.schedule('0 9 * * *', runExpireIds, { timezone: TIME_ZONE });
   runCompleteEvents(); // once on start too
 }
 

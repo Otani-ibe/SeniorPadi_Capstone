@@ -10,6 +10,7 @@
   else if (status === 'not_eligible') { tone = 'bg-full-bg text-full-tag'; icon = 'icon-circle-alert'; key = 'not_eligible'; }
   else if (status === 'rejected') { tone = 'bg-full-bg text-full-tag'; icon = 'icon-circle-alert'; key = 'review_rejected'; }
   else if (status === 'social_removed') { tone = 'bg-full-bg text-full-tag'; icon = 'icon-circle-alert'; key = 'removed'; }
+  else if (expired) { tone = 'bg-amber-bg text-amber-tag'; icon = 'icon-hourglass'; key = 'expired'; }
 %>
 
 <div class="mx-auto max-w-xl text-center">
@@ -25,7 +26,7 @@
     <% if (status === 'approved') { %>
       <a href="/find-seniors" class="btn min-h-12"><i class="icon-users" aria-hidden="true"></i><%= t('nav.find_seniors') %></a>
     <% } else if (retry) { %>
-      <a href="/identity" class="btn min-h-12"><i class="icon-shield-check" aria-hidden="true"></i><%= status === 'rejected' ? t('identity.try_again') : t('identity.start') %></a>
+      <a href="/identity" class="btn min-h-12"><i class="icon-shield-check" aria-hidden="true"></i><%= (status === 'rejected' || expired) ? t('identity.try_again') : t('identity.start') %></a>
     <% } %>
     <% if (status !== 'approved') { %><a href="/events" class="btn-plain min-h-12"><i class="icon-calendar-days" aria-hidden="true"></i><%= t('nav.find_events') %></a><% } %>
   </div>

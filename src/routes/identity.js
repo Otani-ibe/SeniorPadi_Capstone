@@ -58,6 +58,7 @@ router.get('/identity/status', requireAuth, seniorsOnly, noStore, async (req, re
   const retry = identity.CAN_SUBMIT.includes(status) && (await identity.rejectionsLeft(req.user)) > 0;
   res.render('identity/status', {
     title: req.t('identity.status_title'), status, retry,
+    expired: status === 'unverified' && await identity.lastExpired(req.user),
     reason: status === 'rejected' ? req.user.verificationRejectionReason : null
   });
 });

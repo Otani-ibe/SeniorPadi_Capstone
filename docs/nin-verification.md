@@ -47,7 +47,7 @@ npm run superadmin -- --phone 08012345678 --off                      # take the 
 
 | Stored | Why | Kept |
 |---|---|---|
-| The NIN, **encrypted** (AES-256-GCM, a fresh random IV every time, tied to the account id) | so the superadmin can check it | **only until the decision**; erased then (the database refuses to keep it longer) |
+| The NIN, **encrypted** (AES-256-GCM, a fresh random IV every time, tied to the account id) | so the superadmin can check it | **only until the decision, or 10 days at most**; erased then (the database refuses to keep it longer) |
 | A keyed hash of the NIN (HMAC-SHA256) | so one NIN cannot be verified on two accounts | only for verified accounts |
 | The outcome, who decided, when, and the reason for a decline | accountability, and to tell the senior | while the account exists |
 | When the senior consented and submitted | proof of consent | while the account exists |
@@ -67,5 +67,7 @@ check is only as strong as the superadmin's comparison on the NIMC page.
 - Submissions are limited to 6 an hour per person/address, and a senior gets 3 declines before they are asked to call
   SeniorPadi.
 - A submission cannot start twice at once (two taps or two tabs make one).
+- A NIN nobody decides on within 10 days expires: a daily job (9am Lagos) erases it, marks the row `expired`, sets the
+  senior back to `unverified` and tells them to send it again. An expiry does not count as one of the 3 declines.
 - The database refuses an unknown status, a NIN kept after a decision, and the same NIN hash verified on two accounts.
 
