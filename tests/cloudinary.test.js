@@ -21,6 +21,13 @@ function withKeys() {
   cloud.cloudinary.config({ cloud_name: 'demo-cloud', api_key: '123456', api_secret: 'shhh-secret', secure: true });
 }
 
+// the file is removed in the background, so wait until it is gone (up to 3 seconds)
+async function waitUntilGone(file) {
+  for (let i = 0; i < 30 && fs.existsSync(file); i++) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
 describe('without Cloudinary keys', () => {
   beforeEach(withoutKeys);
 
@@ -61,7 +68,7 @@ describe('without Cloudinary keys', () => {
     expect(fs.existsSync(file)).toBe(true);
 
     await cloud.deleteFile(result.publicId);
-    await new Promise((resolve) => setTimeout(resolve, 100)); // the removal runs in the background
+    await waitUntilGone(file);
     expect(fs.existsSync(file)).toBe(false);
 
     await expect(cloud.deleteFile(null)).resolves.toBeUndefined();

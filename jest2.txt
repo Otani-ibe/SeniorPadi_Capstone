@@ -1,0 +1,4 @@
+﻿
+> seniorpadi@0.1.0 test
+> cross-env NODE_ENV=test jest --runInBand --forceExit
+

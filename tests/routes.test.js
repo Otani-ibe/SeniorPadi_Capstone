@@ -90,12 +90,3 @@ test('admin can mark attendance from the manual list', async () => {
   await reg.reload();
   expect(reg.status).toBe('attended');
 });
-
-// TEMPORARY: tests the /health/mem diagnostics route. Remove with the route.
-test('/health/mem gives memory and CPU numbers without signing in', async () => {
-  const res = await request(app).get('/health/mem');
-  expect(res.status).toBe(200);
-  expect(res.type).toBe('application/json');
-  for (const field of ['upSec', 'rssMB', 'heapMB', 'cpuMs']) expect(typeof res.body[field]).toBe('number');
-});
-// END TEMPORARY

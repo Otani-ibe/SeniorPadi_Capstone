@@ -1,0 +1,7 @@
+
+> seniorpadi@0.1.0 test
+> cross-env NODE_ENV=test jest --runInBand --forceExit --silent
+
+PASS tests/identity.test.js (253.002 s)
+Terminate batch job (Y/N)? 
+^C

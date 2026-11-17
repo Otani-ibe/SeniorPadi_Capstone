@@ -29,6 +29,13 @@ async function postForm(url, fields, tokenPage = '/settings') {
   return agent.post(url).type('form').send(_csrf ? { _csrf, ...rest } : rest);
 }
 
+// the old picture is removed in the background, so wait until it is gone (up to 3 seconds)
+async function waitUntilGone(file) {
+  for (let i = 0; i < 30 && fs.existsSync(file); i++) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
 beforeEach(async () => {
   await resetDb();
   const keys = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_SECRET'];
@@ -149,7 +156,7 @@ describe('profile picture', () => {
     await upload((r) => r.attach('picture', Buffer.from('two'), { filename: 'b.jpg', contentType: 'image/jpeg' }));
     await user.reload();
     made.push(user.profilePicturePublicId);
-    await new Promise((resolve) => setTimeout(resolve, 150)); // the old file is removed in the background
+    await waitUntilGone(cloud.localPath(first));
 
     expect(user.profilePicturePublicId).not.toBe(first);
     expect(fs.existsSync(cloud.localPath(first))).toBe(false);
@@ -263,13 +270,14 @@ describe('scheduled jobs', () => {
     expect((await Event.findByPk(cancelled.id)).status).toBe('cancelled');
   });
 
-  test('startJobs schedules the 8 am reminders and the hourly clean-up in Lagos time', () => {
+  test('startJobs schedules the 8 am reminders, the hourly clean-up and the 9 am ID expiry in Lagos time', () => {
     jobs.startJobs();
 
     const schedules = cron.schedule.mock.calls.map((c) => [c[0], c[2]]);
     expect(schedules).toEqual([
       ['0 8 * * *', { timezone: 'Africa/Lagos' }],
-      ['0 * * * *', { timezone: 'Africa/Lagos' }]
+      ['0 * * * *', { timezone: 'Africa/Lagos' }],
+      ['0 9 * * *', { timezone: 'Africa/Lagos' }]
     ]);
   });
 
