@@ -33,6 +33,21 @@ router.get('/health', async (req, res) => {
   }
 });
 
+// TEMPORARY: used only to measure the live server for the report. Remove after testing.
+// no database, no logging. If DIAG_TOKEN is set, ?token= must match it, otherwise 404
+router.get('/health/mem', (req, res, next) => {
+  if (process.env.DIAG_TOKEN && req.query.token !== process.env.DIAG_TOKEN) return next(); // falls through to the 404 page
+  const mem = process.memoryUsage();
+  const cpu = process.cpuUsage();
+  res.json({
+    upSec: process.uptime(),
+    rssMB: Math.round(mem.rss / 1048576),
+    heapMB: Math.round(mem.heapUsed / 1048576),
+    cpuMs: Math.round((cpu.user + cpu.system) / 1000)
+  });
+});
+// END TEMPORARY
+
 router.get('/', async (req, res) => {
   if (req.user && req.user.role === 'admin') return res.redirect('/admin');
 
