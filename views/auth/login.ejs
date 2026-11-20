@@ -26,6 +26,8 @@
 </form>
 
 <p class="mt-6 rounded-2xl bg-surface p-4"><%= t('login.no_account') %> <a class="font-semibold" href="/signup<%= typeof after !== 'undefined' && after.registerEventId ? '?register=' + after.registerEventId + (after.home ? '&from=home' : '') : '' %>"><%= t('home.create_account') %></a></p>
+<%# sons, daughters and carers coming back to book for a parent who already has an account %>
+<p class="mt-4"><a class="inline-flex min-h-12 items-center gap-2 font-semibold" href="/book-for-parent"><i class="icon-house-plus" aria-hidden="true"></i><%= t('book.link') %></a></p>
   </div>
 </div>
 

@@ -13,6 +13,7 @@ const { registerAndNotify, safeNext } = require('../services/registration');
 const { requireAuth } = require('../middleware/auth');
 const { loginLimiter, signupLimiter } = require('../middleware/rateLimit');
 const { bookingActive } = require('../services/sessionTimes');
+const { remember } = require('../services/rememberBooking');
 
 const router = express.Router();
 const BCRYPT_COST = process.env.NODE_ENV === 'test' ? 4 : 12;
@@ -374,7 +375,8 @@ router.post('/signup/parent/code', loginLimiter, async (req, res) => {
   await sendSms(parent, 'parent.created_parent', { name: parent.firstName(), child: p.childName });
   await audit(null, 'user.created_by_child', 'User', parent.id, { childName: p.childName, childPhone: p.childPhone });
   // parent read out a code, so this phone can book for them for a day
-  req.session.bookingFor = { parentId: parent.id, name: parent.firstName(), childName: p.childName, at: Date.now() };
+  req.session.bookingFor = { parentId: parent.id, name: parent.firstName(), childName: p.childName, childPhone: p.childPhone, at: Date.now() };
+  remember(res, { childName: p.childName, childPhone: p.childPhone, parentPhone: parent.phone }); // "Book for a parent" is filled in next time
 
   res.render('auth/parent-done', { title: req.t('parent.done_title'), parentName: parent.fullName, parentFirst: parent.firstName(), parentPhone: parent.localPhone() });
 });

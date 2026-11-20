@@ -8,13 +8,14 @@ const { resetDb, makeUser, makeEvent, csrfFrom, signIn, sequelize, DAY } = requi
 beforeEach(resetDb);
 afterAll(() => sequelize.close());
 
+const CHILD_PHONE = '0809 999 0000'; // the son or daughter's own number
 const later = (days) => ({ startsAt: new Date(Date.now() + days * DAY), endsAt: new Date(Date.now() + days * DAY + 3600000) });
 
 // a son or daughter starts booking, and the parent reads out the code
 async function startBooking(agent, parent, eventId) {
   const page = await agent.get('/book-for-parent' + (eventId ? '?event=' + eventId : ''));
   await agent.post('/book-for-parent').type('form').send({
-    _csrf: csrfFrom(page.text), childName: 'Tunde', parentPhone: parent.localPhone(), event: eventId ? String(eventId) : ''
+    _csrf: csrfFrom(page.text), childName: 'Tunde', childPhone: CHILD_PHONE, parentPhone: parent.localPhone(), event: eventId ? String(eventId) : ''
   });
   const code = await agent.get('/book-for-parent/code');
   return agent.post('/book-for-parent/code').type('form').send({ _csrf: csrfFrom(code.text), code: lastCodeForTests(parent.id) });
@@ -41,7 +42,7 @@ test('the code goes to the parent; once read out, the parent is booked for the e
 
   const page = await agent.get('/book-for-parent?event=' + event.id);
   expect(page.text).toContain('Painting class');
-  const sent = await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', parentPhone: parent.localPhone(), event: String(event.id) });
+  const sent = await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', childPhone: CHILD_PHONE, parentPhone: parent.localPhone(), event: String(event.id) });
   expect(sent.headers.location).toBe('/book-for-parent/code');
   expect(await VerificationCode.count({ where: { userId: parent.id } })).toBe(1);
 
@@ -96,7 +97,7 @@ test('a wrong code books nothing', async () => {
   const event = await makeEvent({ ...later(3) });
   const agent = request.agent(app);
   const page = await agent.get('/book-for-parent?event=' + event.id);
-  await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', parentPhone: parent.localPhone(), event: String(event.id) });
+  await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', childPhone: CHILD_PHONE, parentPhone: parent.localPhone(), event: String(event.id) });
   const code = await agent.get('/book-for-parent/code');
   const res = await agent.post('/book-for-parent/code').type('form').send({ _csrf: csrfFrom(code.text), code: '000000' });
   expect(res.headers.location).toBe('/book-for-parent/code');
@@ -106,7 +107,7 @@ test('a wrong code books nothing', async () => {
 test('a number with no account is told to sign the parent up first', async () => {
   const agent = request.agent(app);
   const page = await agent.get('/book-for-parent');
-  const res = await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', parentPhone: '0805 999 0000' });
+  const res = await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', childPhone: CHILD_PHONE, parentPhone: '0805 999 0000' });
   expect(res.status).toBe(400);
   expect(res.text).toContain('no SeniorPadi account yet');
   expect(res.text).toContain('/signup/parent');
@@ -221,4 +222,86 @@ test('the child cannot see or cancel anyone else\'s bookings, or anything once b
   await agent.post('/book-for-parent/registrations/' + mine.id + '/cancel').type('form').send({ _csrf: csrfFrom(page.text) });
   expect((await mine.reload()).status).toBe('registered');
   expect((await request(app).get('/book-for-parent/tickets')).headers.location).toBe('/book-for-parent'); // a plain visitor
+});
+
+test('the Log in page has the "Booking for a parent" link for sons, daughters and carers', async () => {
+  const login = (await request(app).get('/login')).text;
+  expect(login).toContain('href="/book-for-parent"');
+  expect(login).toContain('Booking for a parent or loved one?');
+});
+
+test('the child gives their own number too, and it cannot be the parent\'s', async () => {
+  const parent = await makeUser({ fullName: 'Mama Tolu Adeyemi' });
+  const agent = request.agent(app);
+  const page = await agent.get('/book-for-parent');
+  expect(page.text).toContain('name="childPhone"');
+  const missing = await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', childPhone: '', parentPhone: parent.localPhone() });
+  expect(missing.status).toBe(400);
+  const same = await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', childPhone: parent.localPhone(), parentPhone: parent.localPhone() });
+  expect(same.status).toBe(400);
+  expect(same.text).toContain('Your parent needs their own phone number');
+  expect(await VerificationCode.count()).toBe(0); // no code sent
+});
+
+test('the child is texted a copy of each booking and cancellation, and the audit log keeps their number', async () => {
+  const notifier = require('../src/services/notify');
+  const sms = jest.spyOn(notifier, 'sendSms');
+  const { AuditLog } = require('../src/models');
+  const parent = await makeUser({ fullName: 'Mama Tolu Adeyemi' });
+  const event = await makeEvent({ title: 'Painting class', ...later(3) });
+  const agent = request.agent(app);
+  await startBooking(agent, parent, event.id);
+
+  const reg = await Registration.findOne({ where: { seniorId: parent.id, eventId: event.id } });
+  expect(sms).toHaveBeenCalledWith(expect.objectContaining({ phone: '+2348099990000' }), 'book.child_copy', expect.objectContaining({ parent: 'Mama Tolu', event: 'Painting class', ticket: reg.ticketNumber }));
+  const booked = await AuditLog.findOne({ where: { action: 'registration.booked_by_child', entityId: reg.id } });
+  expect(JSON.stringify(booked.toJSON())).toContain('+2348099990000');
+
+  const list = await agent.get('/book-for-parent/tickets');
+  await agent.post('/book-for-parent/registrations/' + reg.id + '/cancel').type('form').send({ _csrf: csrfFrom(list.text) });
+  expect(sms).toHaveBeenCalledWith(expect.objectContaining({ phone: '+2348099990000' }), 'book.child_cancel', expect.objectContaining({ parent: 'Mama Tolu', event: 'Painting class' }));
+  sms.mockRestore();
+});
+
+test('next time on the same phone the form is already filled in, and "Not Tunde? Clear" forgets it', async () => {
+  const parent = await makeUser({ fullName: 'Mama Tolu Adeyemi' });
+  const agent = request.agent(app);
+  await startBooking(agent, parent, null);
+  let page = await agent.get('/events');
+  await agent.post('/book-for-parent/finish').type('form').send({ _csrf: csrfFrom(page.text) });
+
+  page = await agent.get('/book-for-parent');
+  expect(page.text).toContain('Welcome back, Tunde');
+  expect(page.text).toContain('value="Tunde"');
+  expect(page.text).toContain('08099990000');
+  expect(page.text).toContain(parent.localPhone());
+  // the parent's code is still needed: sending the form only sends a code
+  const sent = await agent.post('/book-for-parent').type('form').send({ _csrf: csrfFrom(page.text), childName: 'Tunde', childPhone: '08099990000', parentPhone: parent.localPhone() });
+  expect(sent.headers.location).toBe('/book-for-parent/code');
+
+  page = await agent.get('/book-for-parent');
+  await agent.post('/book-for-parent/forget').type('form').send({ _csrf: csrfFrom(page.text) });
+  page = await agent.get('/book-for-parent');
+  expect(page.text).not.toContain('Welcome back');
+  expect(page.text).not.toContain('08099990000');
+  // a different phone never sees it
+  expect((await request(app).get('/book-for-parent')).text).not.toContain('Welcome back');
+});
+
+test('after signing a parent up, the booking form remembers the child too', async () => {
+  const { User } = require('../src/models');
+  const agent = request.agent(app);
+  const form = await agent.get('/signup/parent');
+  await agent.post('/signup/parent').type('form').send({
+    _csrf: csrfFrom(form.text), childName: 'Tunde', childPhone: '0805 111 2222',
+    parentName: 'Mrs Esther Bello', parentPhone: '0805 333 4444', lga: 'ibadan-north', ageDeclared: 'yes'
+  });
+  const parent = await User.findOne({ where: { fullName: 'Mrs Esther Bello' } });
+  const codePage = await agent.get('/signup/parent/code');
+  await agent.post('/signup/parent/code').type('form').send({ _csrf: csrfFrom(codePage.text), code: lastCodeForTests(parent.id) });
+
+  const page = await agent.get('/book-for-parent');
+  expect(page.text).toContain('Welcome back, Tunde');
+  expect(page.text).toContain('08051112222');
+  expect(page.text).toContain('08053334444');
 });
