@@ -149,3 +149,76 @@ test('booking for a parent lasts one day; signing in lasts 30 days', () => {
   expect(signInExpired(now - 29 * 24 * HOUR, now)).toBe(false);
   expect(signInExpired(now - 31 * 24 * HOUR, now)).toBe(true);
 });
+
+test('while booking, events the parent already has are not offered again on Find events or the home page', async () => {
+  const parent = await makeUser({ fullName: 'Mama Tolu Adeyemi' });
+  const booked = await makeEvent({ title: 'Painting class', ...later(3) });
+  const other = await makeEvent({ title: 'Morning walk', ...later(5) });
+  const agent = request.agent(app);
+  await startBooking(agent, parent, booked.id);
+
+  const registerFor = (event) => '/book-for-parent/' + event.id + '/register';
+  const events = (await agent.get('/events')).text;
+  expect(events).not.toContain(registerFor(booked));
+  expect(events).toContain(registerFor(other));
+  const home = (await agent.get('/')).text;
+  expect(home).not.toContain(registerFor(booked));
+  expect(home).toContain(registerFor(other));
+
+  // a plain visitor still sees both
+  const visitor = (await request(app).get('/events')).text;
+  expect(visitor).toContain('Painting class');
+  expect(visitor).toContain('Morning walk');
+});
+
+test('while booking, the child can see the parent\'s bookings and cancel one; the parent is texted who cancelled it', async () => {
+  const notifier = require('../src/services/notify');
+  const notify = jest.spyOn(notifier, 'notify');
+  const { AuditLog } = require('../src/models');
+  const parent = await makeUser({ fullName: 'Mama Tolu Adeyemi' });
+  const event = await makeEvent({ title: 'Painting class', ...later(3) });
+  const agent = request.agent(app);
+  await startBooking(agent, parent, event.id);
+
+  const banner = (await agent.get('/events')).text;
+  expect(banner).toContain('href="/book-for-parent/tickets"');
+  const list = await agent.get('/book-for-parent/tickets');
+  expect(list.status).toBe(200);
+  expect(list.text).toContain('Mama Tolu’s bookings');
+  expect(list.text).toContain('Painting class');
+  const reg = await Registration.findOne({ where: { seniorId: parent.id, eventId: event.id } });
+  expect(list.text).toContain(reg.ticketNumber);
+
+  const res = await agent.post('/book-for-parent/registrations/' + reg.id + '/cancel').type('form').send({ _csrf: csrfFrom(list.text) });
+  expect(res.headers.location).toBe('/book-for-parent/tickets');
+  expect((await reg.reload()).status).toBe('cancelled');
+  expect(notify).toHaveBeenCalledWith(expect.objectContaining({ id: parent.id }), 'event.cancelled_by_child', expect.objectContaining({ child: 'Tunde', event: 'Painting class' }), ['sms']);
+  expect(await AuditLog.count({ where: { action: 'registration.cancelled_by_child', entityId: reg.id } })).toBe(1);
+  const after = (await agent.get('/book-for-parent/tickets')).text;
+  expect(after).toContain('Mama Tolu’s place at Painting class is cancelled');
+  expect(after).toContain('Mama Tolu has no upcoming bookings');
+  expect((await agent.get('/events')).text).toContain('/book-for-parent/' + event.id + '/register'); // offered again
+  notify.mockRestore();
+});
+
+test('the child cannot see or cancel anyone else\'s bookings, or anything once booking has finished', async () => {
+  const parent = await makeUser({ fullName: 'Mama Tolu Adeyemi' });
+  const stranger = await makeUser({ fullName: 'Baba Kunle' });
+  const event = await makeEvent({ ...later(3) });
+  const theirs = await Registration.create({ eventId: event.id, seniorId: stranger.id, type: 'attendee' });
+  const agent = request.agent(app);
+  await startBooking(agent, parent, null);
+
+  let page = await agent.get('/book-for-parent/tickets');
+  expect(page.text).not.toContain(theirs.ticketNumber);
+  await agent.post('/book-for-parent/registrations/' + theirs.id + '/cancel').type('form').send({ _csrf: csrfFrom(page.text) });
+  expect((await theirs.reload()).status).toBe('registered');
+
+  const mine = await Registration.create({ eventId: event.id, seniorId: parent.id, type: 'attendee' });
+  await agent.post('/book-for-parent/finish').type('form').send({ _csrf: csrfFrom(page.text) });
+  expect((await agent.get('/book-for-parent/tickets')).headers.location).toBe('/book-for-parent');
+  page = await agent.get('/book-for-parent');
+  await agent.post('/book-for-parent/registrations/' + mine.id + '/cancel').type('form').send({ _csrf: csrfFrom(page.text) });
+  expect((await mine.reload()).status).toBe('registered');
+  expect((await request(app).get('/book-for-parent/tickets')).headers.location).toBe('/book-for-parent'); // a plain visitor
+});

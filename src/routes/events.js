@@ -8,6 +8,7 @@ const { translateEvents } = require('../services/translate');
 const { needsContactCheck } = require('./verify');
 const { requireAuth } = require('../middleware/auth');
 const { qrSvg } = require('../services/qr');
+const { bookingActive } = require('../services/sessionTimes');
 
 const numericId = require('../middleware/numericId');
 
@@ -91,11 +92,12 @@ router.get('/events', async (req, res) => {
   const events = await Event.findAll({ where, include: [Organization], order: [['featured', 'DESC'], ['startsAt', 'ASC']] });
   const counts = await seatCounts(events.map((e) => e.id));
 
-  // events this senior already has a place at
+  // events this senior already has a place at (or, booking for a parent, the parent)
   let mine = [];
-  if (req.user) {
+  const bookerId = req.user ? req.user.id : (bookingActive(req.session.bookingFor) ? req.session.bookingFor.parentId : null);
+  if (bookerId) {
     const regs = await Registration.findAll({
-      where: { seniorId: req.user.id, status: 'registered', type: 'attendee', eventId: events.map((e) => e.id) },
+      where: { seniorId: bookerId, status: 'registered', type: 'attendee', eventId: events.map((e) => e.id) },
       attributes: ['eventId']
     });
     mine = regs.map((r) => r.eventId);

@@ -12,6 +12,7 @@ const { normalizePhone, phoneProblem } = require('../services/phone');
 const { registerAndNotify, safeNext } = require('../services/registration');
 const { requireAuth } = require('../middleware/auth');
 const { loginLimiter, signupLimiter } = require('../middleware/rateLimit');
+const { bookingActive } = require('../services/sessionTimes');
 
 const router = express.Router();
 const BCRYPT_COST = process.env.NODE_ENV === 'test' ? 4 : 12;
@@ -37,7 +38,9 @@ router.get('/', async (req, res) => {
   if (req.user && req.user.role === 'admin') return res.redirect('/admin');
 
   // recommended: like the ones a signed-in senior joined, random for a visitor
-  const recommended = await recommendedEvents(req.user, 4);
+  // booking for a parent: leave out what the parent already has
+  const bookedBy = !req.user && bookingActive(req.session.bookingFor) ? req.session.bookingFor.parentId : null;
+  const recommended = await recommendedEvents(req.user, 4, { bookedBy });
   await translateEvents(recommended, req.lang);
 
   // they just registered from this page: show their ticket on top of it

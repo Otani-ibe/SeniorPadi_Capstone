@@ -1,9 +1,13 @@
 // Book for my mum or dad: a son or daughter books events for a parent who already has an account.
 // the parent stays in control, a code goes to the PARENT's phone and they read it out every time.
 // then for one day on this phone, Register books the parent and the ticket is texted to the parent.
-// the child never sees the parent's messages or account pages
+// the child never sees the parent's messages or account pages. They can see and cancel the parent's event places
+// for that same day (the parent is texted about every cancellation)
 const express = require('express');
-const { User, Event } = require('../models');
+const { Op } = require('sequelize');
+const { User, Event, Registration, Organization } = require('../models');
+const notifier = require('../services/notify');
+const { shortDate } = require('../services/dates');
 const { normalizePhone, phoneProblem } = require('../services/phone');
 const { sendCode, checkCode, CODE_MINUTES, demoCodeFor } = require('../services/verification');
 const { registerAndNotify } = require('../services/registration');
@@ -114,6 +118,44 @@ router.post('/book-for-parent/:eventId/register', async (req, res) => {
   const parent = await parentOf(req.session);
   if (!parent || req.user) return res.redirect('/book-for-parent?event=' + encodeURIComponent(req.params.eventId));
   return book(req, res, parent, req.params.eventId, safeNext(req.body.back));
+});
+
+// the parent's upcoming places, while booking for them (the parent agreed by reading out the code).
+// only events: never their messages, account or settings
+router.get('/book-for-parent/tickets', async (req, res) => {
+  const parent = await parentOf(req.session);
+  if (!parent || req.user) return res.redirect('/book-for-parent');
+  const registrations = await Registration.findAll({
+    where: { seniorId: parent.id, status: 'registered' },
+    include: [{ model: Event, where: { endsAt: { [Op.gt]: new Date() } }, include: [Organization] }],
+    order: [[Event, 'startsAt', 'ASC']]
+  });
+  res.render('book/tickets', { title: req.t('book.tickets_title', { name: parent.firstName() }), name: parent.firstName(), registrations });
+});
+
+// cancels one of the parent's places. The parent is texted who cancelled it
+router.post('/book-for-parent/registrations/:id/cancel', async (req, res) => {
+  const parent = await parentOf(req.session);
+  if (!parent || req.user) return res.redirect('/book-for-parent');
+  const registration = /^\d+$/.test(req.params.id) ? await Registration.findOne({
+    where: { id: req.params.id, seniorId: parent.id, status: 'registered' }, // only the parent's own
+    include: [Event]
+  }) : null;
+
+  if (!registration || new Date(registration.Event.startsAt) <= new Date()) {
+    req.flash('error', req.t('registrations.cannot_cancel'));
+    return res.redirect('/book-for-parent/tickets');
+  }
+
+  await registration.update({ status: 'cancelled' });
+  const childName = req.session.bookingFor.childName;
+  await audit(null, 'registration.cancelled_by_child', 'Registration', registration.id, { childName });
+  notifier.notify(parent, 'event.cancelled_by_child', {
+    name: parent.firstName(), child: childName, event: registration.Event.title, date: shortDate(registration.Event.startsAt)
+  }, ['sms']);
+
+  req.flash('success', req.t('book.cancelled', { name: parent.firstName(), event: registration.Event.title }));
+  res.redirect('/book-for-parent/tickets');
 });
 
 // done, this phone stops booking for the parent

@@ -41,7 +41,8 @@ function rankEvents(candidates, history) {
 }
 
 // returns up to `limit` events (soonest first for a visitor), each with .slotsLeft (null when there is no limit)
-async function recommendedEvents(user, limit = 4) {
+// bookedBy: a visitor booking for a parent (routes/bookForParent.js), the parent's id, so events the parent already has are left out
+async function recommendedEvents(user, limit = 4, { bookedBy = null } = {}) {
   const now = new Date();
   let pool = await Event.findAll({
     where: { status: 'published', startsAt: { [Op.gt]: now }, registrationDeadline: { [Op.gt]: now } },
@@ -54,6 +55,11 @@ async function recommendedEvents(user, limit = 4) {
   pool = pool.filter((e) => left[e.id] === null || left[e.id] > 0);
   pool.forEach((e) => { e.slotsLeft = left[e.id]; });
 
+  if (!user && bookedBy) {
+    const theirs = await Registration.findAll({ where: { seniorId: bookedBy, type: 'attendee', status: 'registered' }, attributes: ['eventId'] });
+    const booked = new Set(theirs.map((r) => r.eventId));
+    pool = pool.filter((e) => !booked.has(e.id));
+  }
   if (!user) return pool.slice(0, limit); // pool is already soonest first
 
   // what they joined (cancelled isn't taste) and what they're already booked into

@@ -18,10 +18,13 @@
 <% if (typeof bookingFor !== 'undefined' && bookingFor && !currentUser) { %>
   <div role="status" class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-card bg-amber-bg p-4">
     <p class="flex items-center gap-3 font-semibold text-amber-tag"><i class="icon-house-plus text-[1.3rem]" aria-hidden="true"></i><%= t('book.banner', { name: bookingFor.name }) %></p>
-    <form action="/book-for-parent/finish" method="post">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <button class="btn-outline min-h-12 px-5 py-1.5"><%= t('book.finish') %></button>
-    </form>
+    <div class="flex flex-wrap items-center gap-3">
+      <a href="/book-for-parent/tickets" class="btn-plain min-h-12"><i class="icon-ticket" aria-hidden="true"></i><%= t('book.tickets_link', { name: bookingFor.name }) %></a>
+      <form action="/book-for-parent/finish" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn-outline min-h-12 px-5 py-1.5"><%= t('book.finish') %></button>
+      </form>
+    </div>
   </div>
 <% } %>
 

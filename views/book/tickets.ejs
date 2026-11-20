@@ -1,0 +1,42 @@
+<%# A son or daughter booking for a parent: the parent's upcoming places, and a way to cancel one. Events only. %>
+<%- include('../partials/header') %>
+
+<div class="page-head">
+  <h1><%= t('book.tickets_title', { name: name }) %></h1>
+  <p class="lead"><%= t('book.tickets_intro', { name: name }) %></p>
+</div>
+
+<% if (registrations.length === 0) { %>
+  <div class="empty-state">
+    <span class="icon-dot-soft mx-auto h-16 w-16 text-[1.5rem]"><i class="icon-ticket" aria-hidden="true"></i></span>
+    <p class="mt-4 text-[1.15rem]"><%= t('book.tickets_none', { name: name }) %></p>
+    <a href="/events" class="btn mt-5"><%= t('nav.find_events') %><i class="icon-arrow-right" aria-hidden="true"></i></a>
+  </div>
+<% } else { %>
+  <ul class="grid gap-5 md:grid-cols-2">
+    <% registrations.forEach(function (reg) { const event = reg.Event; %>
+      <li class="rounded-card bg-surface p-4">
+        <span class="<%= reg.type === 'volunteer' ? 'tag-leaf' : 'tag-mine' %>"><i class="<%= reg.type === 'volunteer' ? 'icon-hand-heart' : 'icon-user-check' %>" aria-hidden="true"></i><%= reg.type === 'volunteer' ? t('registrations.volunteering') : t('registrations.attending') %></span>
+        <h2 class="mt-2 text-[1.2rem] leading-snug"><a href="/events/<%= event.id %>" class="text-ink no-underline hover:underline"><%= event.title %></a></h2>
+        <p class="mt-1 text-[0.98rem] text-gray-700"><i class="icon-calendar mr-1.5 text-indigo" aria-hidden="true"></i><%= formatDate(event.startsAt) %>, <%= formatTime(event.startsAt) %></p>
+        <p class="text-[0.98rem] text-gray-700"><i class="icon-map-pin mr-1.5 text-indigo" aria-hidden="true"></i><%= event.locationText %></p>
+
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-card border-2 border-dashed border-indigo/40 bg-white px-4 py-3">
+          <span class="text-gray-700"><i class="icon-ticket mr-1.5 text-indigo" aria-hidden="true"></i><%= t('book.ticket', { name: name }) %></span>
+          <span class="whitespace-nowrap text-[1.15rem] font-bold tracking-wider text-indigo"><%= reg.ticketNumber %></span>
+        </div>
+
+        <% if (new Date(event.startsAt) > new Date()) { %>
+          <form action="/book-for-parent/registrations/<%= reg.id %>/cancel" method="post" class="mt-4">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button aria-label="<%= forEvent(reg.type === 'volunteer' ? t('registrations.cancel_volunteer') : t('registrations.cancel'), event) %>" class="inline-flex min-h-12 items-center gap-2 rounded-md px-1 font-semibold text-full-tag hover:underline"><i class="icon-ban" aria-hidden="true"></i><%= reg.type === 'volunteer' ? t('registrations.cancel_volunteer') : t('registrations.cancel') %></button>
+          </form>
+        <% } else { %>
+          <p class="mt-4 font-semibold text-leaf"><%= t('registrations.happening_now') %></p>
+        <% } %>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+
+<%- include('../partials/footer') %>
