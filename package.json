@@ -62,6 +62,7 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "autocannon": "^9.0.0",
     "cross-env": "^10.1.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.14",
