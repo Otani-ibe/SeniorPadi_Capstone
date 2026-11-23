@@ -21,6 +21,15 @@ function displayPhone(tel) {
 
 // stylesheet url carries its last change time so a new stylesheet is never shadowed by the browser's cached copy
 const CSS_FILE = path.join(__dirname, '../../public/css/main.css');
+// a smaller copy of a Cloudinary picture (same picture, fewer bytes). Other addresses are left alone
+function imageAt(url, width) {
+  if (!url || !/^https:\/\/res\.cloudinary\.com\/.+\/image\/upload\//.test(url) || /\/upload\/[^/]*(w_|c_|f_|q_)/.test(url)) return url;
+  return url.replace('/upload/', '/upload/w_' + width + ',c_limit,q_auto,f_auto/');
+}
+function imageSrcset(url) {
+  return imageAt(url, 400) === url ? '' : [400, 800, 1200].map((w) => imageAt(url, w) + ' ' + w + 'w').join(', ');
+}
+
 function cssVersion() {
   try { return Math.round(fs.statSync(CSS_FILE).mtimeMs); } catch (err) { return 0; }
 }
@@ -95,6 +104,8 @@ async function locals(req, res, next) {
   res.locals.whatsappUrl = res.locals.whatsappLink(req.t('whatsapp.hello'));
   res.locals.presenceOf = presence.statusOf; // 'online', 'offline' or null (hidden)
   res.locals.categoryIcons = Event.CATEGORY_ICONS;
+  res.locals.imageAt = imageAt;
+  res.locals.imageSrcset = imageSrcset;
   res.locals.lgas = Event.AREAS;
   // "Bodija, Ibadan North": neighbourhood and LGA, whichever they gave
   res.locals.placeOf = (person) => [person.area, person.lga ? req.t('area.' + person.lga) : null].filter(Boolean).join(', ');

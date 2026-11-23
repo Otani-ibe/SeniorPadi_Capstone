@@ -302,7 +302,7 @@ async function handleEventImage(req, event) {
   try {
     const uploaded = await cloud.uploadBuffer(req.file.buffer, 'event', req.file.mimetype);
     const oldPublicId = event.imagePublicId;
-    await event.update({ imageUrl: uploaded.url, imagePublicId: uploaded.publicId });
+    await event.update({ imageUrl: uploaded.url, imagePublicId: uploaded.publicId, imageWidth: uploaded.width || null, imageHeight: uploaded.height || null });
     await cloud.deleteFile(oldPublicId);
     return null;
   } catch (err) {

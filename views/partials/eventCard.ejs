@@ -16,7 +16,8 @@
   <%# picture at its own shape, card fits the flyer, nothing cut or padded (a very tall picture stops at a set height, still whole) %>
   <div class="relative md:max-w-[52%] md:shrink-0 md:self-start">
     <% if (event.imageUrl) { %>
-      <img src="<%= event.imageUrl %>" alt="<%= alt %>" loading="lazy" draggable="false" class="mx-auto block h-auto w-auto max-w-full select-none rounded-[1.25rem] max-h-[24rem] md:max-h-[27rem]">
+      <% const first = inDeck && pos === 0 || !inDeck; const srcset = imageSrcset(event.imageUrl); %>
+      <img src="<%= imageAt(event.imageUrl, 800) %>"<% if (srcset) { %> srcset="<%= srcset %>" sizes="(min-width: 768px) 440px, 92vw"<% } %><% if (event.imageWidth && event.imageHeight) { %> width="<%= event.imageWidth %>" height="<%= event.imageHeight %>"<% } %> alt="<%= alt %>" <%- first ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"' %> draggable="false" class="mx-auto block h-auto w-auto max-w-full select-none rounded-[1.25rem] max-h-[24rem] md:max-h-[27rem]">
     <% } else { %>
       <span class="flex aspect-[4/3] w-full items-center justify-center rounded-[1.25rem] bg-mist text-[3rem] text-indigo md:w-[22rem]" aria-hidden="true"><i class="<%= categoryIcons[event.category] || 'icon-image' %>"></i></span>
     <% } %>

@@ -5,7 +5,8 @@
    const whole = typeof natural !== 'undefined' && natural;
    const alt = event.tImageAlt || event.imageAlt || t('event.image_alt', { title: event.tTitle || event.title }); %>
 <% if (event.imageUrl) { %>
-  <img src="<%= event.imageUrl %>" alt="<%= alt %>" loading="lazy" draggable="false" class="<%= whole ? imgCls + ' h-auto' : imgCls %>" width="800" height="600">
+  <% const srcset = imageSrcset(event.imageUrl); %>
+  <img src="<%= imageAt(event.imageUrl, 800) %>"<% if (srcset) { %> srcset="<%= srcset %>" sizes="(min-width: 768px) 480px, 92vw"<% } %> alt="<%= alt %>" loading="lazy" decoding="async" draggable="false" class="<%= whole ? imgCls + ' h-auto' : imgCls %>" width="<%= event.imageWidth || 800 %>" height="<%= event.imageHeight || 600 %>">
 <% } else { %>
   <span class="flex items-center justify-center bg-mist text-[2.5rem] text-indigo/30 <%= whole ? imgCls + ' aspect-[4/3]' : imgCls %>" aria-hidden="true">
     <i class="icon-image" aria-hidden="true"></i>

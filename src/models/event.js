@@ -26,6 +26,8 @@ module.exports = (sequelize) => {
     description: { type: DataTypes.TEXT, allowNull: false },
     imageUrl: DataTypes.STRING,
     imagePublicId: DataTypes.STRING,
+    imageWidth: DataTypes.INTEGER, // picture size in pixels, so the page can keep its space before it loads
+    imageHeight: DataTypes.INTEGER,
     imageAlt: DataTypes.TEXT, // what the picture shows, read out by screen readers; empty = "Flyer for {title}"
     startsAt: { type: DataTypes.DATE, allowNull: false },
     endsAt: { type: DataTypes.DATE, allowNull: false },

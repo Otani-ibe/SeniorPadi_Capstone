@@ -70,7 +70,7 @@ function uploadBuffer(buffer, kind, mimetype) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(options, (err, result) => {
       if (err) return reject(err);
-      resolve({ url: result.secure_url, publicId: result.public_id, format: result.format });
+      resolve({ url: result.secure_url, publicId: result.public_id, format: result.format, width: result.width, height: result.height });
     });
     stream.end(buffer);
   });
