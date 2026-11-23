@@ -2,32 +2,31 @@
 const TIME_ZONE = 'Africa/Lagos';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function formatDate(date, lang) {
-  return new Intl.DateTimeFormat(lang === 'yo' ? 'yo-NG' : 'en-NG', {
+// a DateTimeFormat is slow to build, so each one is made once and reused (a page can format hundreds of dates)
+const DATE_FORMATS = {};
+function dateFormat(lang) {
+  const locale = lang === 'yo' ? 'yo-NG' : 'en-NG';
+  return DATE_FORMATS[locale] || (DATE_FORMATS[locale] = new Intl.DateTimeFormat(locale, {
     timeZone: TIME_ZONE,
     weekday: 'long',
     day: 'numeric',
     month: 'long'
-  }).format(new Date(date));
+  }));
+}
+const TIME_FORMAT = new Intl.DateTimeFormat('en-NG', { timeZone: TIME_ZONE, hour: 'numeric', minute: '2-digit', hour12: true });
+const SHORT_DATE_FORMAT = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, weekday: 'short', day: 'numeric', month: 'short' });
+
+function formatDate(date, lang) {
+  return dateFormat(lang).format(new Date(date));
 }
 
 function formatTime(date) {
-  return new Intl.DateTimeFormat('en-NG', {
-    timeZone: TIME_ZONE,
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }).format(new Date(date));
+  return TIME_FORMAT.format(new Date(date));
 }
 
 // short date for SMS, e.g. "Tue 29 Sep", same in both languages
 function shortDate(date) {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: TIME_ZONE,
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short'
-  }).format(new Date(date)).replace(',', '');
+  return SHORT_DATE_FORMAT.format(new Date(date)).replace(',', '');
 }
 
 // "2026-10-03" for a date, in Lagos time
